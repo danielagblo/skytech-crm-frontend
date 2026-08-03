@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { usersService } from "@/services/users.service";
+import { useAuthStore } from "@/store/authStore";
 import type {
   CreateUserRequest,
   UpdateUserRequest,
@@ -65,8 +66,10 @@ export const useUploadUserPhoto = () => {
   return useMutation({
     mutationFn: ({ id, file }: { id: string; file: File }) =>
       usersService.uploadPhoto(id, file),
-    onSuccess: () => {
+    onSuccess: (response) => {
       void client.invalidateQueries({ queryKey: ["users"] });
+      void client.invalidateQueries({ queryKey: ["auth", "me"] });
+      if (useAuthStore.getState().user?.id === response.data.data.id) useAuthStore.getState().setUser(response.data.data);
       toast.success("Profile photo updated.");
     },
     onError: (error) =>

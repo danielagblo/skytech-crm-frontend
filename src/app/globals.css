@@ -15,11 +15,13 @@
   --muted-foreground: 220 9% 46%;
   --accent: 138 76% 94%;
   --accent-foreground: 142 72% 29%;
+  --workspace: 120 8% 98%;
+  color-scheme: light;
 }
 .dark {
-  --background: 222 47% 7%;
+  --background: 222 42% 7%;
   --foreground: 210 40% 98%;
-  --card: 222 42% 10%;
+  --card: 222 34% 11%;
   --card-foreground: 210 40% 98%;
   --border: 217 25% 18%;
   --input: 217 25% 20%;
@@ -29,12 +31,14 @@
   --muted-foreground: 215 20% 65%;
   --accent: 142 35% 17%;
   --accent-foreground: 142 69% 58%;
+  --workspace: 222 39% 8%;
+  color-scheme: dark;
 }
 * {
   @apply border-border;
 }
 body {
-  @apply bg-background text-foreground antialiased;
+  @apply min-h-screen bg-background text-foreground antialiased;
 }
 button,
 input,
@@ -48,17 +52,56 @@ select {
 }
 @layer components {
   .surface {
-    @apply rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-white/10 dark:bg-card;
+    @apply rounded-xl border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,23,42,.035)];
   }
   .eyebrow {
     @apply text-xs font-medium uppercase tracking-wide text-gray-400;
   }
   .dot-grid {
-    background-image: radial-gradient(#d9dedb 1px, transparent 1px);
+    background-color: hsl(var(--workspace));
+    background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
     background-size: 16px 16px;
   }
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: #d1d5db transparent;
   }
+}
+
+.nav-asset {
+  opacity: .88;
+}
+.dark .nav-asset {
+  filter: invert(1) brightness(1.65);
+}
+
+/* Normalize legacy hard-coded light utilities until each feature is migrated. */
+.dark .bg-white,
+.dark .bg-\[\#fbfcfb\] {
+  background-color: hsl(var(--card)) !important;
+}
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-slate-50 {
+  background-color: hsl(var(--muted)) !important;
+}
+.dark .text-gray-900,
+.dark .text-slate-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: hsl(var(--foreground)) !important;
+}
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: hsl(var(--border)) !important;
+}
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: hsl(var(--border)) !important;
 }
