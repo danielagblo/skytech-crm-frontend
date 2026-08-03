@@ -1,0 +1,14 @@
+'use client';
+import { useMemo,useState } from 'react';
+import { Users } from 'lucide-react';
+import type { Lead } from '@/types/lead.types';
+import type { Priority } from '@/types/api.types';
+import { leads } from '@/lib/mock-data';
+import { Table,TableBody,TableHead,TableHeader,TableRow } from '@/components/ui/table';
+import { LeadRow } from './LeadRow';
+import { LeadFilters } from './LeadFilters';
+import { LeadDetail } from './LeadDetail';
+import { CreateLeadModal } from './CreateLeadModal';
+import { Pagination } from '@/components/shared/Pagination';
+import { EmptyState } from '@/components/shared/EmptyState';
+export const LeadsTable=()=>{const [search,setSearch]=useState('');const [priority,setPriority]=useState<Priority>();const [assignee,setAssignee]=useState<string>();const [selected,setSelected]=useState<Lead|null>(null);const [create,setCreate]=useState(false);const [page,setPage]=useState(1);const filtered=useMemo(()=>leads.filter((lead)=>`${lead.firstName} ${lead.lastName} ${lead.company}`.toLowerCase().includes(search.toLowerCase())&&(!priority||lead.priority===priority)&&(!assignee||lead.assignees.some((user)=>user.id===assignee))),[search,priority,assignee]);return <div className="space-y-4"><LeadFilters search={search} onSearch={setSearch} priority={priority} onPriority={setPriority} assignee={assignee} onAssignee={setAssignee} onCreate={()=>setCreate(true)}/><section className="surface overflow-hidden">{filtered.length===0?<EmptyState icon={Users} title="No leads match these filters" message="Clear a filter or create a new lead to continue."/>:<><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Number</TableHead><TableHead>Company</TableHead><TableHead>Location</TableHead><TableHead>Role</TableHead><TableHead>Email</TableHead><TableHead>Assignee</TableHead><TableHead>Category</TableHead><TableHead>Conversion</TableHead><TableHead>Lead source</TableHead><TableHead>Priority</TableHead><TableHead/></TableRow></TableHeader><TableBody>{filtered.map((lead)=><LeadRow key={lead.id} lead={lead} onOpen={setSelected}/>)}</TableBody></Table><Pagination page={page} totalPages={3} onPageChange={setPage}/></>}</section><LeadDetail lead={selected} open={Boolean(selected)} onOpenChange={(value)=>!value&&setSelected(null)}/><CreateLeadModal open={create} onOpenChange={setCreate}/></div>};

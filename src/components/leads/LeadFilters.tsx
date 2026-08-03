@@ -1,0 +1,8 @@
+'use client';
+import type { Priority } from '@/types/api.types';
+import { people } from '@/lib/mock-data';
+import { SearchInput } from '@/components/shared/SearchInput';
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Plus,SlidersHorizontal } from 'lucide-react';
+export const LeadFilters=({search,onSearch,priority,onPriority,assignee,onAssignee,onCreate}:{search:string;onSearch:(value:string)=>void;priority?:Priority;onPriority:(value?:Priority)=>void;assignee?:string;onAssignee:(value?:string)=>void;onCreate:()=>void})=><div className="surface flex flex-wrap gap-2 rounded-xl p-3"><SearchInput value={search} onChange={onSearch} placeholder="Search leads"/><Select onValueChange={(value)=>onAssignee(value==='ALL'?undefined:value)} value={assignee||'ALL'}><SelectTrigger className="w-44"><SelectValue placeholder="Assignee"/></SelectTrigger><SelectContent><SelectItem value="ALL">All assignees</SelectItem>{people.map((person)=><SelectItem key={person.id} value={person.id}>{person.firstName} {person.lastName}</SelectItem>)}</SelectContent></Select><Select onValueChange={(value)=>onPriority(value==='ALL'?undefined:value as Priority)} value={priority||'ALL'}><SelectTrigger className="w-40"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ALL">All priorities</SelectItem><SelectItem value="LOW">Low</SelectItem><SelectItem value="MEDIUM">Medium</SelectItem><SelectItem value="HIGH">High</SelectItem></SelectContent></Select><Button variant="outline"><SlidersHorizontal className="h-4 w-4"/>Filter</Button><Button className="ml-auto" onClick={onCreate}><Plus className="h-4 w-4"/>Create lead</Button></div>;
