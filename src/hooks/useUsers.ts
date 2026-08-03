@@ -69,7 +69,8 @@ export const useUploadUserPhoto = () => {
     onSuccess: (response) => {
       void client.invalidateQueries({ queryKey: ["users"] });
       void client.invalidateQueries({ queryKey: ["auth", "me"] });
-      if (useAuthStore.getState().user?.id === response.data.data.id) useAuthStore.getState().setUser(response.data.data);
+      if (useAuthStore.getState().user?.id === response.data.data.id)
+        useAuthStore.getState().setUser(response.data.data);
       toast.success("Profile photo updated.");
     },
     onError: (error) =>

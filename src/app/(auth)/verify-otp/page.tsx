@@ -1,6 +1,38 @@
-import type { Metadata } from 'next';
-import { OtpForm } from '@/components/auth/OtpForm';
-export const metadata: Metadata = { title: 'Verify OTP' };
+import type { Metadata } from "next";
+import { OtpForm } from "@/components/auth/OtpForm";
+export const metadata: Metadata = { title: "Verify OTP" };
 export default function OtpPage() {
-  return <main className="relative grid min-h-screen overflow-hidden bg-cover bg-center lg:grid-cols-2" style={{ backgroundImage: "url('/assets/loginOTP_bg.png')" }}><div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/15" /><div className="relative hidden lg:block" /><div className="relative flex min-h-screen items-center justify-center p-4 sm:p-8 lg:justify-start"><section className="flex min-h-[620px] w-full max-w-[600px] flex-col justify-center border border-white/55 bg-white/10 p-6 text-slate-950 shadow-2xl backdrop-blur-[3px] sm:p-12 lg:min-h-[680px]"><div className="mb-10 text-center"><img src="/assets/skytech_Logo.png" alt="Skytech" className="mx-auto mb-6 h-12 w-12 rounded-xl shadow-lg" /><p className="mb-2 text-xs font-semibold uppercase tracking-[.25em] text-slate-700">Identity check</p><h1 className="text-3xl font-medium tracking-tight sm:text-4xl">Verify OTP</h1><p className="mt-3 text-sm text-slate-700">Enter the six-digit code sent to your work email or phone.</p></div><OtpForm /><p className="mt-12 text-center text-sm text-white drop-shadow-sm sm:text-base">Internal use only. Access requires admin validation.</p></section></div></main>;
+  return (
+    <main
+      className="relative grid min-h-screen overflow-hidden bg-cover bg-center lg:grid-cols-2"
+      style={{ backgroundImage: "url('/assets/loginOTP_bg.png')" }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/15" />
+      <div className="relative hidden lg:block" />
+      <div className="relative flex min-h-screen items-center justify-center p-4 sm:p-8 lg:justify-start">
+        <section className="flex min-h-[620px] w-full max-w-[600px] flex-col justify-center border border-white/55 bg-white/10 p-6 text-slate-950 shadow-2xl backdrop-blur-[3px] sm:p-12 lg:min-h-[680px]">
+          <div className="mb-10 text-center">
+            <img
+              src="/assets/skytech_Logo.png"
+              alt="Skytech"
+              className="mx-auto mb-6 h-12 w-12 rounded-xl shadow-lg"
+            />
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[.25em] text-slate-700">
+              Identity check
+            </p>
+            <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
+              Verify OTP
+            </h1>
+            <p className="mt-3 text-sm text-slate-700">
+              Enter the six-digit code sent to your work email or phone.
+            </p>
+          </div>
+          <OtpForm />
+          <p className="mt-12 text-center text-sm text-white drop-shadow-sm sm:text-base">
+            Internal use only. Access requires admin validation.
+          </p>
+        </section>
+      </div>
+    </main>
+  );
 }

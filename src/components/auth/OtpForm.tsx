@@ -124,7 +124,11 @@ export const OtpForm = () => {
           {resend.isPending ? "Sending…" : "Resend"}
         </button>
       </p>
-      <Button className="h-16 w-full rounded-2xl text-lg font-normal" onClick={submit} disabled={verify.isPending}>
+      <Button
+        className="h-16 w-full rounded-2xl text-lg font-normal"
+        onClick={submit}
+        disabled={verify.isPending}
+      >
         {verify.isPending ? "Verifying…" : "Verify & continue"}
       </Button>
     </div>
