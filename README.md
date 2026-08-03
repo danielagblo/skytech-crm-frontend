@@ -50,6 +50,16 @@ NEXT_PUBLIC_ENABLE_DEMO_AUTH=true
 
 Restart `npm run dev`, open `/login`, and select **Enter demo workspace**. The shortcut is compiled out of the visible UI unless the flag is exactly `true`. Never enable it in Vercel Preview or Production.
 
+Demo access is intended for UI review. Data-backed screens still report live API failures because the development identity is not a backend account; use a real account and OTP when validating CRM records and mutations.
+
+## Interface behavior
+
+- Desktop navigation follows the supplied icon-rail and Systems Aisle header design; mobile navigation moves to a safe-area-aware bottom bar.
+- Dialogs and right drawers become draggable bottom sheets on small screens. Drag upward for full screen, downward to dismiss, or use Arrow Up/Arrow Down when the drag handle has keyboard focus.
+- Profile photos can be changed from the profile drawer. The live backend stores uploads for authenticated users.
+- The invoice workspace under **Settings → Invoices** creates printable HTML invoices and stores its history in the current browser. The published backend has no invoice endpoint, so invoice history is device-local and is deliberately not represented as server-synchronized data.
+- Theme selection applies to the entire shell, pages, tables, dialogs, and drawers.
+
 ## Validation
 
 Run the complete local quality gate before pushing:
