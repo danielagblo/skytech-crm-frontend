@@ -57,7 +57,9 @@ Demo access is intended for UI review. Data-backed screens still report live API
 - Desktop navigation follows the supplied icon-rail and Systems Aisle header design; mobile navigation moves to a safe-area-aware bottom bar.
 - Dialogs and right drawers become draggable bottom sheets on small screens. Drag upward for full screen, downward to dismiss, or use Arrow Up/Arrow Down when the drag handle has keyboard focus.
 - Profile photos can be changed from the profile drawer. The live backend stores uploads for authenticated users.
-- The invoice workspace under **Settings → Invoices** creates printable HTML invoices and stores its history in the current browser. The published backend has no invoice endpoint, so invoice history is device-local and is deliberately not represented as server-synchronized data.
+- The invoice workspace under **Settings → Invoices** uses the backend lifecycle for drafts, issuing, PDF generation, email delivery, payments, and voiding. Financial totals are always calculated by the backend; draft updates send the returned version and replace all current line items.
+- Invoice delivery is polled while it remains `SENDING`, and `SEND_FAILED` displays the backend's last delivery error with a retry action.
+- The automation settings screen can create, edit, toggle, and delete birthday, public-holiday, payment, and personal configurations. Holiday dates use `YYYY-MM-DD`; personal configurations are clearly stored inactive when the options endpoint reports no executable trigger.
 - Theme selection applies to the entire shell, pages, tables, dialogs, and drawers.
 
 ## Validation
