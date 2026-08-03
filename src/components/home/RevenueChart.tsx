@@ -50,7 +50,7 @@ export const RevenueChart = ({
               axisLine={false}
             />
             <Tooltip
-              formatter={(value: number) => [formatCurrency(value), "Revenue"]}
+              formatter={(value) => [formatCurrency(Number(value ?? 0)), "Revenue"]}
             />
             <Bar dataKey="revenue" fill="#4ADE80" radius={[6, 6, 0, 0]} />
           </BarChart>

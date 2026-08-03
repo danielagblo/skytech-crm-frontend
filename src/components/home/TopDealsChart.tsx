@@ -23,7 +23,7 @@ const Chart = ({ data, color }: { data: TopDeal[]; color: string }) => (
           <XAxis dataKey="title" tick={false} />
           <YAxis tickFormatter={(value: number) => `${value / 1000}K`} />
           <Tooltip
-            formatter={(value: number) => [formatCurrency(value), "Value"]}
+            formatter={(value) => [formatCurrency(Number(value ?? 0)), "Value"]}
           />
           <Bar dataKey="value" fill={color} radius={[5, 5, 0, 0]} />
         </BarChart>
