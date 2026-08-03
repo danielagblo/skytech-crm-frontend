@@ -1,10 +1,10 @@
 # Skytech CRM Frontend
 
-Production-oriented frontend for Skytech CRM, built from the supplied Figma PDF with Next.js 14 App Router, strict TypeScript, Tailwind CSS, shadcn/ui primitives, Zustand, TanStack Query, React Hook Form/Zod, Recharts, and Axios.
+Production-oriented frontend for Skytech CRM, built from the supplied Figma PDF with Next.js 16 App Router, React 19, strict TypeScript, Tailwind CSS, shadcn/ui primitives, Zustand, TanStack Query, React Hook Form/Zod, Recharts, and Axios.
 
 ## Requirements
 
-- Node.js 20 or newer
+- Node.js 20.9 or newer
 - npm 10 or newer
 - Skytech CRM API running locally or reachable over HTTP
 
@@ -48,6 +48,7 @@ Open [http://localhost:3000](http://localhost:3000). The API base URL is intenti
 
 ```bash
 npm run typecheck
+npm run lint
 npm run build
 ```
 
@@ -64,4 +65,4 @@ The application uses strict TypeScript and the production build performs the fin
 - `src/types` — backend-aligned domain contracts
 - `public/assets` — original assets supplied with the design
 
-Authentication tokens are persisted in local storage, mirrored to a same-site route cookie for middleware guards, refreshed on 401 responses, and cleared on failed refresh. The mock-shaped UI data in `src/lib/mock-data.ts` keeps every designed screen reviewable while the service/query layer remains ready for the backend.
+Authentication tokens are persisted in local storage, mirrored to a same-site route cookie for proxy route guards, refreshed on 401 responses, and cleared on failed refresh. The mock-shaped UI data in `src/lib/mock-data.ts` keeps every designed screen reviewable while the service/query layer remains ready for the backend.

@@ -1,0 +1,16 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+const protectedRoutes=['/home','/pipeline','/tasks','/leads','/calendar','/settings'];
+
+export function proxy(request:NextRequest){
+  const token=request.cookies.get('skytech_access')?.value;
+  const {pathname}=request.nextUrl;
+  const guarded=protectedRoutes.some((route)=>pathname.startsWith(route));
+
+  if(guarded&&!token)return NextResponse.redirect(new URL('/login',request.url));
+  if((pathname==='/login'||pathname==='/verify-otp')&&token)return NextResponse.redirect(new URL('/home',request.url));
+  return NextResponse.next();
+}
+
+export const config={matcher:['/home/:path*','/pipeline/:path*','/tasks/:path*','/leads/:path*','/calendar/:path*','/settings/:path*','/login','/verify-otp']};

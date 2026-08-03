@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { DragDropContext,type DropResult } from 'react-beautiful-dnd';
+import { DragDropContext,type DropResult } from '@hello-pangea/dnd';
 import { Plus,Search,TrendingUp } from 'lucide-react';
 import type { Task } from '@/types/task.types';
 import type { Priority,TaskStatus } from '@/types/api.types';

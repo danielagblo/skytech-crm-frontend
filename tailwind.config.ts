@@ -1,3 +1,31 @@
 import type { Config } from 'tailwindcss';
-const config: Config = {darkMode:['class'],content:['./src/**/*.{ts,tsx}'],theme:{container:{center:true,padding:'1rem'},extend:{colors:{border:'hsl(var(--border))',input:'hsl(var(--input))',ring:'hsl(var(--ring))',background:'hsl(var(--background))',foreground:'hsl(var(--foreground))',primary:{DEFAULT:'#4ADE80',foreground:'#000000'},secondary:{DEFAULT:'hsl(var(--secondary))',foreground:'hsl(var(--secondary-foreground))'},muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},accent:{DEFAULT:'hsl(var(--accent))',foreground:'hsl(var(--accent-foreground))'},destructive:{DEFAULT:'#EF4444',foreground:'#FFFFFF'},card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},success:'#22C55E',warning:'#F59E0B',danger:'#EF4444',info:'#3B82F6',sidebar:'#F8FAF8',prospecting:'#8B5CF6',negotiation:'#3B82F6',settlement:'#F59E0B',payment:'#22C55E',retention:'#EC4899'},borderRadius:{xl:'1rem','2xl':'1.25rem'},fontFamily:{sans:['var(--font-inter)','Inter','sans-serif']},boxShadow:{soft:'0 10px 30px rgba(17,24,39,.06)'}}},plugins:[require('tailwindcss-animate')]};
+import animate from 'tailwindcss-animate';
+
+const config: Config = {
+  darkMode: ['class'],
+  content: ['./src/**/*.{ts,tsx}'],
+  theme: {
+    container: { center: true, padding: '1rem' },
+    extend: {
+      colors: {
+        border: 'hsl(var(--border))', input: 'hsl(var(--input))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: '#4ADE80', foreground: '#000000' },
+        secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+        destructive: { DEFAULT: '#EF4444', foreground: '#FFFFFF' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: '#22C55E', warning: '#F59E0B', danger: '#EF4444', info: '#3B82F6',
+        sidebar: '#F8FAF8', prospecting: '#8B5CF6', negotiation: '#3B82F6',
+        settlement: '#F59E0B', payment: '#22C55E', retention: '#EC4899',
+      },
+      borderRadius: { xl: '1rem', '2xl': '1.25rem' },
+      fontFamily: { sans: ['var(--font-inter)', 'Inter', 'sans-serif'] },
+      boxShadow: { soft: '0 10px 30px rgba(17,24,39,.06)' },
+    },
+  },
+  plugins: [animate],
+};
+
 export default config;

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { DragDropContext,type DropResult } from 'react-beautiful-dnd';
+import { DragDropContext,type DropResult } from '@hello-pangea/dnd';
 import type { Deal } from '@/types/deal.types';
 import type { DealStage } from '@/types/api.types';
 import { deals as initialDeals } from '@/lib/mock-data';
