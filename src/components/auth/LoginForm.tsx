@@ -58,15 +58,15 @@ export const LoginForm = () => {
   return (
     <form className="space-y-5" onSubmit={handleSubmit(submit)}>
       <div className="space-y-2">
-        <Label htmlFor="email">Email address</Label>
+        <Label htmlFor="email" className="sr-only">Email address</Label>
         <div className="relative">
-          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Mail className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-600" />
           <Input
             id="email"
             type="email"
             autoComplete="email"
             placeholder="name@skytech.com"
-            className="pl-9"
+            className="h-16 rounded-2xl border-slate-500/35 bg-white/20 pl-14 text-lg placeholder:text-slate-700 focus-visible:bg-white/35"
             {...register("email")}
           />
         </div>
@@ -75,21 +75,21 @@ export const LoginForm = () => {
         )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password" className="sr-only">Password</Label>
         <div className="relative">
-          <LockKeyhole className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <LockKeyhole className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-600" />
           <Input
             id="password"
             type={visible ? "text" : "password"}
             autoComplete="current-password"
             placeholder="Enter your password"
-            className="px-9"
+            className="h-16 rounded-2xl border-slate-500/35 bg-white/20 px-14 text-lg placeholder:text-slate-700 focus-visible:bg-white/35"
             {...register("password")}
           />
           <button
             type="button"
             onClick={() => setVisible((value) => !value)}
-            className="absolute right-3 top-3 text-muted-foreground"
+            className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-600"
             aria-label={visible ? "Hide password" : "Show password"}
           >
             {visible ? (
@@ -103,7 +103,7 @@ export const LoginForm = () => {
           <p className="text-xs text-danger">{errors.password.message}</p>
         )}
       </div>
-      <Button className="w-full" type="submit" disabled={login.isPending}>
+      <Button className="h-16 w-full rounded-2xl text-lg font-normal" type="submit" disabled={login.isPending}>
         {login.isPending ? "Signing in…" : "Login"}
       </Button>
       {demoEnabled && (

@@ -109,11 +109,11 @@ export const OtpForm = () => {
               if (event.key === "Backspace" && !digits[index] && index > 0)
                 refs.current[index - 1]?.focus();
             }}
-            className="h-14 w-12 px-0 text-center text-2xl font-semibold shadow-sm sm:w-14"
+            className="h-16 w-11 rounded-2xl border-slate-500/35 bg-white/25 px-0 text-center text-2xl font-semibold text-slate-950 shadow-sm focus-visible:bg-white/40 sm:w-14"
           />
         ))}
       </div>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm text-slate-700">
         Did not get a code?{" "}
         <button
           type="button"
@@ -124,7 +124,7 @@ export const OtpForm = () => {
           {resend.isPending ? "Sending…" : "Resend"}
         </button>
       </p>
-      <Button className="w-full" onClick={submit} disabled={verify.isPending}>
+      <Button className="h-16 w-full rounded-2xl text-lg font-normal" onClick={submit} disabled={verify.isPending}>
         {verify.isPending ? "Verifying…" : "Verify & continue"}
       </Button>
     </div>
