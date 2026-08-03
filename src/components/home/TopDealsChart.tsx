@@ -1,6 +1,62 @@
-'use client';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { TopDeal } from '@/types/deal.types';
-import { formatCurrency } from '@/lib/utils';
-const Chart = ({ data, color }: { data: TopDeal[]; color: string }) => <div className="h-48">{data.length === 0 ? <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No closed-deal data yet</div> : <ResponsiveContainer width="100%" height="100%"><BarChart data={data.slice(0, 6)}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="title" tick={false} /><YAxis tickFormatter={(value: number) => `${value / 1000}K`} /><Tooltip formatter={(value: number) => [formatCurrency(value), 'Value']} /><Bar dataKey="value" fill={color} radius={[5, 5, 0, 0]} /></BarChart></ResponsiveContainer>}</div>;
-export const TopDealsChart = ({ sixMonths, year, gated }: { sixMonths: TopDeal[]; year: TopDeal[]; gated?: boolean }) => <section className="surface p-5"><h3 className="font-semibold">Top deals closed</h3>{gated ? <div className="mt-5 rounded-xl bg-amber-50 p-5 text-sm text-amber-800">Advanced deal reports require the Pro plan.</div> : <div className="mt-4 grid gap-4 sm:grid-cols-2"><div><p className="eyebrow mb-2">Last 6 months</p><Chart data={sixMonths} color="#4ADE80" /></div><div><p className="eyebrow mb-2">Top deals closed per year</p><Chart data={year} color="#111827" /></div></div>}</section>;
+"use client";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import type { TopDeal } from "@/types/deal.types";
+import { formatCurrency } from "@/lib/utils";
+const Chart = ({ data, color }: { data: TopDeal[]; color: string }) => (
+  <div className="h-48">
+    {data.length === 0 ? (
+      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+        No closed-deal data yet
+      </div>
+    ) : (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data.slice(0, 6)}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="title" tick={false} />
+          <YAxis tickFormatter={(value: number) => `${value / 1000}K`} />
+          <Tooltip
+            formatter={(value: number) => [formatCurrency(value), "Value"]}
+          />
+          <Bar dataKey="value" fill={color} radius={[5, 5, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    )}
+  </div>
+);
+export const TopDealsChart = ({
+  sixMonths,
+  year,
+  gated,
+}: {
+  sixMonths: TopDeal[];
+  year: TopDeal[];
+  gated?: boolean;
+}) => (
+  <section className="surface p-5">
+    <h3 className="font-semibold">Top deals closed</h3>
+    {gated ? (
+      <div className="mt-5 rounded-xl bg-amber-50 p-5 text-sm text-amber-800">
+        Advanced deal reports require the Pro plan.
+      </div>
+    ) : (
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <p className="eyebrow mb-2">Last 6 months</p>
+          <Chart data={sixMonths} color="#4ADE80" />
+        </div>
+        <div>
+          <p className="eyebrow mb-2">Top deals closed per year</p>
+          <Chart data={year} color="#111827" />
+        </div>
+      </div>
+    )}
+  </section>
+);

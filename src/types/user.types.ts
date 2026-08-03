@@ -1,4 +1,4 @@
-import type { PageParams, PlanTier, Role } from './api.types';
+import type { PageParams, PlanTier, Role } from "./api.types";
 
 export interface User {
   id: string;
@@ -16,7 +16,10 @@ export interface User {
   createdAt: string;
 }
 
-export type UserSummary = Pick<User, 'id' | 'firstName' | 'lastName' | 'role' | 'profilePhotoUrl'>;
+export type UserSummary = Pick<
+  User,
+  "id" | "firstName" | "lastName" | "role" | "profilePhotoUrl"
+>;
 
 export interface UserFilters extends PageParams {
   search?: string;

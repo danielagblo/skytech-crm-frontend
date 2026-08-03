@@ -1,4 +1,4 @@
-import type { PageParams, Priority, TaskStatus } from './api.types';
+import type { PageParams, Priority, TaskStatus } from "./api.types";
 
 export interface Task {
   id: string;
@@ -59,4 +59,8 @@ export interface CreateSubTaskRequest {
   complete?: boolean;
 }
 
-export interface TaskStats { total: number; done: number; overdue: number }
+export interface TaskStats {
+  total: number;
+  done: number;
+  overdue: number;
+}

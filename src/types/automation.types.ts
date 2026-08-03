@@ -1,4 +1,4 @@
-import type { AutomationType, PageParams } from './api.types';
+import type { AutomationType, PageParams } from "./api.types";
 
 export interface Automation {
   id: string;
@@ -11,7 +11,9 @@ export interface Automation {
   createdAt: string;
 }
 
-export interface AutomationFilters extends PageParams { type?: AutomationType }
+export interface AutomationFilters extends PageParams {
+  type?: AutomationType;
+}
 
 export interface CreateAutomationRequest {
   automationType: AutomationType;

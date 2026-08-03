@@ -1,6 +1,60 @@
-'use client';
-import { useContactSegments } from '@/hooks/useBroadcast';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Skeleton } from '@/components/ui/skeleton';
-const options = [['all', 'All leads'], ['NEGOTIATION', 'Negotiations'], ['SETTLEMENT', 'Settlement'], ['PAYMENT', 'Payment']] as const;
-export const ContactSegmentSelector = ({ selected, onChange }: { selected: string[]; onChange: (ids: string[]) => void }) => { const segments = useContactSegments(); return <aside className="surface h-fit overflow-hidden"><div className="border-b p-4"><h3 className="font-semibold">Contact segments</h3><p className="text-xs text-muted-foreground">Choose one recipient segment</p></div>{segments.isLoading ? <div className="space-y-2 p-4">{options.map(([id]) => <Skeleton key={id} className="h-10" />)}</div> : <div className="divide-y">{options.map(([id, name]) => { const count = id === 'all' ? segments.data?.all ?? 0 : segments.data?.byStage[id] ?? 0; return <label key={id} className="flex cursor-pointer items-center gap-3 p-4 hover:bg-muted/50"><Checkbox checked={selected.includes(id)} onCheckedChange={(checked) => onChange(checked ? [id] : [])} /><span className="flex-1 text-sm font-medium">{name}</span><span className="rounded-full bg-muted px-2 py-1 text-xs">{count.toLocaleString()}</span></label>; })}</div>}</aside>; };
+"use client";
+import { useContactSegments } from "@/hooks/useBroadcast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+const options = [
+  ["all", "All leads"],
+  ["NEGOTIATION", "Negotiations"],
+  ["SETTLEMENT", "Settlement"],
+  ["PAYMENT", "Payment"],
+] as const;
+export const ContactSegmentSelector = ({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (ids: string[]) => void;
+}) => {
+  const segments = useContactSegments();
+  return (
+    <aside className="surface h-fit overflow-hidden">
+      <div className="border-b p-4">
+        <h3 className="font-semibold">Contact segments</h3>
+        <p className="text-xs text-muted-foreground">
+          Choose one recipient segment
+        </p>
+      </div>
+      {segments.isLoading ? (
+        <div className="space-y-2 p-4">
+          {options.map(([id]) => (
+            <Skeleton key={id} className="h-10" />
+          ))}
+        </div>
+      ) : (
+        <div className="divide-y">
+          {options.map(([id, name]) => {
+            const count =
+              id === "all"
+                ? (segments.data?.all ?? 0)
+                : (segments.data?.byStage[id] ?? 0);
+            return (
+              <label
+                key={id}
+                className="flex cursor-pointer items-center gap-3 p-4 hover:bg-muted/50"
+              >
+                <Checkbox
+                  checked={selected.includes(id)}
+                  onCheckedChange={(checked) => onChange(checked ? [id] : [])}
+                />
+                <span className="flex-1 text-sm font-medium">{name}</span>
+                <span className="rounded-full bg-muted px-2 py-1 text-xs">
+                  {count.toLocaleString()}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </aside>
+  );
+};

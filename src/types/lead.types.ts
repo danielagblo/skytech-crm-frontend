@@ -1,6 +1,7 @@
-import type { LeadSource, LeadStatus, PageParams, Priority } from './api.types';
+import type { LeadSource, LeadStatus, PageParams, Priority } from "./api.types";
 
-export type LaunchTimeline = 'IN_1_WEEK' | 'ONE_TO_TWO_MONTHS' | 'THREE_PLUS_MONTHS';
+export type LaunchTimeline =
+  "IN_1_WEEK" | "ONE_TO_TWO_MONTHS" | "THREE_PLUS_MONTHS";
 
 export interface Lead {
   id: string;

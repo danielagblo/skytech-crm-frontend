@@ -1,19 +1,164 @@
-'use client';
-import { useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import type { Deal, DealLog } from '@/types/deal.types';
-import type { User } from '@/types/user.types';
-import type { ServiceType } from '@/types/api.types';
-import { Calendar, Globe, Server, Settings2 } from 'lucide-react';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import { useAddDealLog } from '@/hooks/useDeals';
-import { LogFeed } from '../LogFeed';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+"use client";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Deal, DealLog } from "@/types/deal.types";
+import type { User } from "@/types/user.types";
+import type { ServiceType } from "@/types/api.types";
+import { Calendar, Globe, Server, Settings2 } from "lucide-react";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import { useAddDealLog } from "@/hooks/useDeals";
+import { LogFeed } from "../LogFeed";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 const icon = { DOMAIN: Globe, HOSTING: Server, MAINTENANCE: Settings2 };
-const schema = z.object({ invoice: z.string().min(1, 'Enter an invoice number.'), receipt: z.string().min(1, 'Enter a receipt number.'), amount: z.coerce.number().positive('Enter a positive amount.'), expiry: z.string().min(1, 'Choose an expiry date.'), service: z.enum(['DOMAIN', 'HOSTING', 'MAINTENANCE']) });
+const schema = z.object({
+  invoice: z.string().min(1, "Enter an invoice number."),
+  receipt: z.string().min(1, "Enter a receipt number."),
+  amount: z.coerce.number().positive("Enter a positive amount."),
+  expiry: z.string().min(1, "Choose an expiry date."),
+  service: z.enum(["DOMAIN", "HOSTING", "MAINTENANCE"]),
+});
 type Values = z.infer<typeof schema>;
-export const ClientRetentionLog = ({ deal, logs, users }: { deal: Deal; logs: DealLog[]; users: User[] }) => { const mutation = useAddDealLog(); const services = [{ type: 'DOMAIN' as const, expiry: deal.domainExpiry, cost: deal.domainCost }, { type: 'HOSTING' as const, expiry: deal.hostingExpiry, cost: deal.hostingCost }, { type: 'MAINTENANCE' as const, expiry: deal.maintenanceExpiry, cost: deal.maintenanceCost }]; const { register, control, setValue, reset, handleSubmit, formState: { errors } } = useForm<Values>({ resolver: zodResolver(schema), mode: 'onBlur', defaultValues: { service: 'DOMAIN' } }); const values = useWatch({ control }); const submit = handleSubmit((data) => mutation.mutate({ dealId: deal.id, data: { logType: 'CLIENT_RETENTION', retentionInvoice: data.invoice, retentionReceipt: data.receipt, retentionAmount: data.amount, expiryDate: data.expiry, serviceType: data.service as ServiceType, body: `${data.service.toLowerCase()} service renewed.` } }, { onSuccess: () => reset() })); return <div className="space-y-5"><div className="grid gap-2">{services.map((service) => { const Icon = icon[service.type]; return <div key={service.type} className="flex items-center gap-3 rounded-xl border p-3"><Icon className="h-5 w-5 text-green-600" /><div className="flex-1"><p className="text-sm font-semibold capitalize">{service.type.toLowerCase()}</p><p className="flex items-center gap-1 text-xs text-muted-foreground"><Calendar className="h-3 w-3" />{service.expiry ? `Expires ${formatDate(service.expiry)}` : 'Expiry not set'}</p></div><strong className="text-sm">{formatCurrency(service.cost)}</strong></div>; })}</div><LogFeed dealId={deal.id} logs={logs} users={users} /><form onSubmit={submit} className="grid gap-3 border-t pt-4"><div className="grid grid-cols-2 gap-3"><div><Label>Invoice</Label><Input {...register('invoice')} /></div><div><Label>Receipt</Label><Input {...register('receipt')} /></div><div><Label>Amount</Label><Input type="number" step="0.01" {...register('amount')} /></div><div><Label>Expiry date</Label><Input type="date" {...register('expiry')} /></div></div>{Object.keys(errors).length > 0 && <p className="text-xs text-danger">Complete all retention fields before saving.</p>}<div><Label>Service type</Label><Select value={values.service} onValueChange={(value: ServiceType) => setValue('service', value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="DOMAIN">Domain</SelectItem><SelectItem value="HOSTING">Hosting</SelectItem><SelectItem value="MAINTENANCE">Maintenance</SelectItem></SelectContent></Select></div><Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? 'Saving…' : 'Save retention log'}</Button></form></div>; };
+export const ClientRetentionLog = ({
+  deal,
+  logs,
+  users,
+}: {
+  deal: Deal;
+  logs: DealLog[];
+  users: User[];
+}) => {
+  const mutation = useAddDealLog();
+  const services = [
+    {
+      type: "DOMAIN" as const,
+      expiry: deal.domainExpiry,
+      cost: deal.domainCost,
+    },
+    {
+      type: "HOSTING" as const,
+      expiry: deal.hostingExpiry,
+      cost: deal.hostingCost,
+    },
+    {
+      type: "MAINTENANCE" as const,
+      expiry: deal.maintenanceExpiry,
+      cost: deal.maintenanceCost,
+    },
+  ];
+  const {
+    register,
+    control,
+    setValue,
+    reset,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Values>({
+    resolver: zodResolver(schema),
+    mode: "onBlur",
+    defaultValues: { service: "DOMAIN" },
+  });
+  const values = useWatch({ control });
+  const submit = handleSubmit((data) =>
+    mutation.mutate(
+      {
+        dealId: deal.id,
+        data: {
+          logType: "CLIENT_RETENTION",
+          retentionInvoice: data.invoice,
+          retentionReceipt: data.receipt,
+          retentionAmount: data.amount,
+          expiryDate: data.expiry,
+          serviceType: data.service as ServiceType,
+          body: `${data.service.toLowerCase()} service renewed.`,
+        },
+      },
+      { onSuccess: () => reset() },
+    ),
+  );
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-2">
+        {services.map((service) => {
+          const Icon = icon[service.type];
+          return (
+            <div
+              key={service.type}
+              className="flex items-center gap-3 rounded-xl border p-3"
+            >
+              <Icon className="h-5 w-5 text-green-600" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold capitalize">
+                  {service.type.toLowerCase()}
+                </p>
+                <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  {service.expiry
+                    ? `Expires ${formatDate(service.expiry)}`
+                    : "Expiry not set"}
+                </p>
+              </div>
+              <strong className="text-sm">
+                {formatCurrency(service.cost)}
+              </strong>
+            </div>
+          );
+        })}
+      </div>
+      <LogFeed dealId={deal.id} logs={logs} users={users} />
+      <form onSubmit={submit} className="grid gap-3 border-t pt-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>Invoice</Label>
+            <Input {...register("invoice")} />
+          </div>
+          <div>
+            <Label>Receipt</Label>
+            <Input {...register("receipt")} />
+          </div>
+          <div>
+            <Label>Amount</Label>
+            <Input type="number" step="0.01" {...register("amount")} />
+          </div>
+          <div>
+            <Label>Expiry date</Label>
+            <Input type="date" {...register("expiry")} />
+          </div>
+        </div>
+        {Object.keys(errors).length > 0 && (
+          <p className="text-xs text-danger">
+            Complete all retention fields before saving.
+          </p>
+        )}
+        <div>
+          <Label>Service type</Label>
+          <Select
+            value={values.service}
+            onValueChange={(value: ServiceType) => setValue("service", value)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DOMAIN">Domain</SelectItem>
+              <SelectItem value="HOSTING">Hosting</SelectItem>
+              <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Saving…" : "Save retention log"}
+        </Button>
+      </form>
+    </div>
+  );
+};

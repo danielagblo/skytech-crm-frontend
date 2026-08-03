@@ -1,5 +1,48 @@
-import { UserCog } from 'lucide-react';
-import type { Automation } from '@/types/automation.types';
-import { Switch } from '@/components/ui/switch';
-import { EmptyState } from '@/components/shared/EmptyState';
-export const PersonalAutomation = ({ items, onToggle, pending }: { items: Automation[]; onToggle: (id: string) => void; pending: boolean }) => <section className="space-y-4"><div><h2 className="text-lg font-semibold">Personal automations</h2><p className="text-sm text-muted-foreground">Agent-owned follow-up sequences and reminders.</p></div>{items.length === 0 ? <EmptyState icon={UserCog} title="No personal automations" message="Agent-owned workflows will appear here after they are created." /> : items.map((item) => <div key={item.id} className="surface flex items-center gap-4 p-4"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 font-semibold">{item.name.slice(0, 2).toUpperCase()}</span><div className="flex-1"><p className="font-semibold">{item.name}</p><p className="text-xs text-muted-foreground">Personal automation · {item.steps.length} steps</p></div><Switch checked={item.active} disabled={pending} onCheckedChange={() => onToggle(item.id)} /></div>)}</section>;
+import { UserCog } from "lucide-react";
+import type { Automation } from "@/types/automation.types";
+import { Switch } from "@/components/ui/switch";
+import { EmptyState } from "@/components/shared/EmptyState";
+export const PersonalAutomation = ({
+  items,
+  onToggle,
+  pending,
+}: {
+  items: Automation[];
+  onToggle: (id: string) => void;
+  pending: boolean;
+}) => (
+  <section className="space-y-4">
+    <div>
+      <h2 className="text-lg font-semibold">Personal automations</h2>
+      <p className="text-sm text-muted-foreground">
+        Agent-owned follow-up sequences and reminders.
+      </p>
+    </div>
+    {items.length === 0 ? (
+      <EmptyState
+        icon={UserCog}
+        title="No personal automations"
+        message="Agent-owned workflows will appear here after they are created."
+      />
+    ) : (
+      items.map((item) => (
+        <div key={item.id} className="surface flex items-center gap-4 p-4">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 font-semibold">
+            {item.name.slice(0, 2).toUpperCase()}
+          </span>
+          <div className="flex-1">
+            <p className="font-semibold">{item.name}</p>
+            <p className="text-xs text-muted-foreground">
+              Personal automation · {item.steps.length} steps
+            </p>
+          </div>
+          <Switch
+            checked={item.active}
+            disabled={pending}
+            onCheckedChange={() => onToggle(item.id)}
+          />
+        </div>
+      ))
+    )}
+  </section>
+);

@@ -1,14 +1,60 @@
-'use client';
-import { AlertCircle } from 'lucide-react';
-import { useDashboard, useTopDeals } from '@/hooks/useDashboard';
-import { useAuthStore } from '@/store/authStore';
-import { CallStatsCard } from './CallStatsCard';
-import { ExecutivePerformanceTable } from './ExecutivePerformanceTable';
-import { AgentRankCard } from './AgentRankCard';
-import { RevenueChart } from './RevenueChart';
-import { TopDealsChart } from './TopDealsChart';
-import { FollowUpReminders } from './FollowUpReminders';
-import { ActivityLog } from '@/components/activity/ActivityLog';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Skeleton } from '@/components/ui/skeleton';
-export const HomeDashboard = () => { const overview = useDashboard(); const sixMonths = useTopDeals('last_6_months'); const year = useTopDeals('last_year'); const user = useAuthStore((state) => state.user); if (overview.isLoading) return <div className="space-y-4"><div className="grid gap-4 xl:grid-cols-2"><Skeleton className="h-72" /><Skeleton className="h-72" /></div><Skeleton className="h-96" /></div>; if (overview.isError || !overview.data) return <EmptyState icon={AlertCircle} title="Dashboard could not be loaded" message="Check your connection and refresh this page. Your CRM records are not affected." />; const data = overview.data; return <div className="space-y-6"><div className="grid gap-4 xl:grid-cols-2"><CallStatsCard title="Outgoing calls" stats={data.outgoingCalls} /><CallStatsCard title="Incoming calls" stats={data.incomingCalls} /></div><div className="grid gap-4 xl:grid-cols-[1fr_320px]"><ExecutivePerformanceTable rows={data.executivePerformance} /><AgentRankCard user={user} rank={data.agentRank} /></div><div className="grid gap-4 xl:grid-cols-2"><RevenueChart data={data.topRevenuePerAgent} /><TopDealsChart sixMonths={sixMonths.data?.content ?? []} year={year.data?.content ?? []} gated={sixMonths.isError || year.isError} /></div><FollowUpReminders rows={data.followUpReminders} /><ActivityLog /></div>; };
+"use client";
+import { AlertCircle } from "lucide-react";
+import { useDashboard, useTopDeals } from "@/hooks/useDashboard";
+import { useAuthStore } from "@/store/authStore";
+import { CallStatsCard } from "./CallStatsCard";
+import { ExecutivePerformanceTable } from "./ExecutivePerformanceTable";
+import { AgentRankCard } from "./AgentRankCard";
+import { RevenueChart } from "./RevenueChart";
+import { TopDealsChart } from "./TopDealsChart";
+import { FollowUpReminders } from "./FollowUpReminders";
+import { ActivityLog } from "@/components/activity/ActivityLog";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
+export const HomeDashboard = () => {
+  const overview = useDashboard();
+  const sixMonths = useTopDeals("last_6_months");
+  const year = useTopDeals("last_year");
+  const user = useAuthStore((state) => state.user);
+  if (overview.isLoading)
+    return (
+      <div className="space-y-4">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Skeleton className="h-72" />
+          <Skeleton className="h-72" />
+        </div>
+        <Skeleton className="h-96" />
+      </div>
+    );
+  if (overview.isError || !overview.data)
+    return (
+      <EmptyState
+        icon={AlertCircle}
+        title="Dashboard could not be loaded"
+        message="Check your connection and refresh this page. Your CRM records are not affected."
+      />
+    );
+  const data = overview.data;
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 xl:grid-cols-2">
+        <CallStatsCard title="Outgoing calls" stats={data.outgoingCalls} />
+        <CallStatsCard title="Incoming calls" stats={data.incomingCalls} />
+      </div>
+      <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+        <ExecutivePerformanceTable rows={data.executivePerformance} />
+        <AgentRankCard user={user} rank={data.agentRank} />
+      </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <RevenueChart data={data.topRevenuePerAgent} />
+        <TopDealsChart
+          sixMonths={sixMonths.data?.content ?? []}
+          year={year.data?.content ?? []}
+          gated={sixMonths.isError || year.isError}
+        />
+      </div>
+      <FollowUpReminders rows={data.followUpReminders} />
+      <ActivityLog />
+    </div>
+  );
+};

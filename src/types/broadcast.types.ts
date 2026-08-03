@@ -1,6 +1,14 @@
-import type { BroadcastChannel, BroadcastStatus, DealStage, PageParams } from './api.types';
+import type {
+  BroadcastChannel,
+  BroadcastStatus,
+  DealStage,
+  PageParams,
+} from "./api.types";
 
-export interface ContactSegments { all: number; byStage: Partial<Record<DealStage, number>> }
+export interface ContactSegments {
+  all: number;
+  byStage: Partial<Record<DealStage, number>>;
+}
 
 export interface Broadcast {
   id: string;
@@ -16,7 +24,9 @@ export interface Broadcast {
   createdAt: string;
 }
 
-export interface BroadcastFilters extends PageParams { days?: number }
+export interface BroadcastFilters extends PageParams {
+  days?: number;
+}
 
 export interface CreateBroadcastRequest {
   name: string;

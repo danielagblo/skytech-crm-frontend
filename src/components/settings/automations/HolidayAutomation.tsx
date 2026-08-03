@@ -1,6 +1,82 @@
-import { CalendarHeart, Mail, MessageSquare, Pause, SkipForward } from 'lucide-react';
-import type { Automation } from '@/types/automation.types';
-import { Switch } from '@/components/ui/switch';
-import { EmptyState } from '@/components/shared/EmptyState';
-const Flow = ({ item, onToggle, pending }: { item: Automation; onToggle: (id: string) => void; pending: boolean }) => <div className="rounded-xl border bg-white p-3"><div className="flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold">{item.name[0]}</span><strong className="flex-1 text-sm">{item.name}</strong><Switch checked={item.active} disabled={pending} onCheckedChange={() => onToggle(item.id)} /></div><div className="ml-3.5 mt-2 h-5 border-l-2 border-dashed border-primary" /><div className="rounded-lg bg-muted p-2 text-xs">{item.steps.length ? `${item.steps.length} configured workflow step${item.steps.length === 1 ? '' : 's'}` : 'Wait until holiday → Send SMS & Email'}</div><div className="mt-2 flex gap-1">{[Pause, MessageSquare, Mail, SkipForward].map((Icon, index) => <span key={index} className="rounded border p-1.5"><Icon className="h-3 w-3" /></span>)}</div></div>;
-export const HolidayAutomation = ({ items, onToggle, pending }: { items: Automation[]; onToggle: (id: string) => void; pending: boolean }) => <section className="space-y-6"><div><h2 className="text-lg font-semibold">Celebrations & Public Holidays</h2><p className="text-sm text-muted-foreground">Fixed and calculated national celebration workflows.</p></div>{items.length === 0 ? <EmptyState icon={CalendarHeart} title="No holiday automations" message="Holiday workflows will appear here after they are configured." /> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{items.map((item) => <Flow key={item.id} item={item} onToggle={onToggle} pending={pending} />)}</div>}</section>;
+import {
+  CalendarHeart,
+  Mail,
+  MessageSquare,
+  Pause,
+  SkipForward,
+} from "lucide-react";
+import type { Automation } from "@/types/automation.types";
+import { Switch } from "@/components/ui/switch";
+import { EmptyState } from "@/components/shared/EmptyState";
+const Flow = ({
+  item,
+  onToggle,
+  pending,
+}: {
+  item: Automation;
+  onToggle: (id: string) => void;
+  pending: boolean;
+}) => (
+  <div className="rounded-xl border bg-white p-3">
+    <div className="flex items-center gap-2">
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold">
+        {item.name[0]}
+      </span>
+      <strong className="flex-1 text-sm">{item.name}</strong>
+      <Switch
+        checked={item.active}
+        disabled={pending}
+        onCheckedChange={() => onToggle(item.id)}
+      />
+    </div>
+    <div className="ml-3.5 mt-2 h-5 border-l-2 border-dashed border-primary" />
+    <div className="rounded-lg bg-muted p-2 text-xs">
+      {item.steps.length
+        ? `${item.steps.length} configured workflow step${item.steps.length === 1 ? "" : "s"}`
+        : "Wait until holiday → Send SMS & Email"}
+    </div>
+    <div className="mt-2 flex gap-1">
+      {[Pause, MessageSquare, Mail, SkipForward].map((Icon, index) => (
+        <span key={index} className="rounded border p-1.5">
+          <Icon className="h-3 w-3" />
+        </span>
+      ))}
+    </div>
+  </div>
+);
+export const HolidayAutomation = ({
+  items,
+  onToggle,
+  pending,
+}: {
+  items: Automation[];
+  onToggle: (id: string) => void;
+  pending: boolean;
+}) => (
+  <section className="space-y-6">
+    <div>
+      <h2 className="text-lg font-semibold">Celebrations & Public Holidays</h2>
+      <p className="text-sm text-muted-foreground">
+        Fixed and calculated national celebration workflows.
+      </p>
+    </div>
+    {items.length === 0 ? (
+      <EmptyState
+        icon={CalendarHeart}
+        title="No holiday automations"
+        message="Holiday workflows will appear here after they are configured."
+      />
+    ) : (
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {items.map((item) => (
+          <Flow
+            key={item.id}
+            item={item}
+            onToggle={onToggle}
+            pending={pending}
+          />
+        ))}
+      </div>
+    )}
+  </section>
+);

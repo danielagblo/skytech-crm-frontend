@@ -1,1 +1,1 @@
-export { CommentThread as LogComments } from '@/components/shared/CommentThread';
+export { CommentThread as LogComments } from "@/components/shared/CommentThread";

@@ -1,1 +1,25 @@
-import type { UserSummary } from '@/types/user.types'; import { UserAvatar } from './UserAvatar'; export const AssigneeStack=({users,max=3}:{users:UserSummary[];max?:number})=><div className="flex -space-x-2">{users.slice(0,max).map((u)=><UserAvatar key={u.id} name={`${u.firstName} ${u.lastName}`} src={u.profilePhotoUrl??undefined} className="h-7 w-7 border-2 border-white"/>)}{users.length>max&&<span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-primary text-[10px] font-semibold text-black">+{users.length-max}</span>}</div>;
+import type { UserSummary } from "@/types/user.types";
+import { UserAvatar } from "./UserAvatar";
+export const AssigneeStack = ({
+  users,
+  max = 3,
+}: {
+  users: UserSummary[];
+  max?: number;
+}) => (
+  <div className="flex -space-x-2">
+    {users.slice(0, max).map((u) => (
+      <UserAvatar
+        key={u.id}
+        name={`${u.firstName} ${u.lastName}`}
+        src={u.profilePhotoUrl ?? undefined}
+        className="h-7 w-7 border-2 border-white"
+      />
+    ))}
+    {users.length > max && (
+      <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-primary text-[10px] font-semibold text-black">
+        +{users.length - max}
+      </span>
+    )}
+  </div>
+);

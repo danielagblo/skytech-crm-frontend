@@ -1,7 +1,82 @@
-import { Cake, Mail, MessageSquare, Pause, SkipForward } from 'lucide-react';
-import type { Automation } from '@/types/automation.types';
-import { Switch } from '@/components/ui/switch';
-import { EmptyState } from '@/components/shared/EmptyState';
-const controls = [['Stop trigger', Pause], ['Stop SMS', MessageSquare], ['Stop Email', Mail], ['Jump step', SkipForward]] as const;
-const textValue = (value: unknown, fallback: string) => typeof value === 'string' ? value : fallback;
-export const BirthdayAutomation = ({ items, onToggle, pending }: { items: Automation[]; onToggle: (id: string) => void; pending: boolean }) => <section className="space-y-4"><div><h2 className="text-lg font-semibold">Birthday automation</h2><p className="text-sm text-muted-foreground">Celebrate contacts automatically on their birthday.</p></div>{items.length === 0 ? <EmptyState icon={Cake} title="No birthday automations" message="Create a birthday automation through the automation API to configure the first workflow." /> : items.map((item) => <article key={item.id} className="surface overflow-hidden"><div className="flex items-center gap-3 border-b p-4"><span className="rounded-full bg-pink-50 p-3"><Cake className="h-5 w-5 text-pink-600" /></span><div className="flex-1"><h3 className="font-semibold">{item.name}</h3><p className="text-xs text-muted-foreground">Trigger: {textValue(item.triggerConfig.date, textValue(item.triggerConfig.trigger, 'Contact birthday'))}</p></div><Switch checked={item.active} disabled={pending} onCheckedChange={() => onToggle(item.id)} /></div><div className="p-4"><p className="eyebrow">Message preview</p><p className="mt-2 rounded-xl bg-muted p-3 text-sm">{textValue(item.steps[0]?.message, 'Birthday greeting configured in this workflow.')}</p><div className="mt-3 flex flex-wrap gap-2">{controls.map(([label, Icon]) => <span key={label} className="flex items-center gap-1 rounded-lg border px-2 py-1.5 text-xs"><Icon className="h-3 w-3" />{label}</span>)}</div></div></article>)}</section>;
+import { Cake, Mail, MessageSquare, Pause, SkipForward } from "lucide-react";
+import type { Automation } from "@/types/automation.types";
+import { Switch } from "@/components/ui/switch";
+import { EmptyState } from "@/components/shared/EmptyState";
+const controls = [
+  ["Stop trigger", Pause],
+  ["Stop SMS", MessageSquare],
+  ["Stop Email", Mail],
+  ["Jump step", SkipForward],
+] as const;
+const textValue = (value: unknown, fallback: string) =>
+  typeof value === "string" ? value : fallback;
+export const BirthdayAutomation = ({
+  items,
+  onToggle,
+  pending,
+}: {
+  items: Automation[];
+  onToggle: (id: string) => void;
+  pending: boolean;
+}) => (
+  <section className="space-y-4">
+    <div>
+      <h2 className="text-lg font-semibold">Birthday automation</h2>
+      <p className="text-sm text-muted-foreground">
+        Celebrate contacts automatically on their birthday.
+      </p>
+    </div>
+    {items.length === 0 ? (
+      <EmptyState
+        icon={Cake}
+        title="No birthday automations"
+        message="Create a birthday automation through the automation API to configure the first workflow."
+      />
+    ) : (
+      items.map((item) => (
+        <article key={item.id} className="surface overflow-hidden">
+          <div className="flex items-center gap-3 border-b p-4">
+            <span className="rounded-full bg-pink-50 p-3">
+              <Cake className="h-5 w-5 text-pink-600" />
+            </span>
+            <div className="flex-1">
+              <h3 className="font-semibold">{item.name}</h3>
+              <p className="text-xs text-muted-foreground">
+                Trigger:{" "}
+                {textValue(
+                  item.triggerConfig.date,
+                  textValue(item.triggerConfig.trigger, "Contact birthday"),
+                )}
+              </p>
+            </div>
+            <Switch
+              checked={item.active}
+              disabled={pending}
+              onCheckedChange={() => onToggle(item.id)}
+            />
+          </div>
+          <div className="p-4">
+            <p className="eyebrow">Message preview</p>
+            <p className="mt-2 rounded-xl bg-muted p-3 text-sm">
+              {textValue(
+                item.steps[0]?.message,
+                "Birthday greeting configured in this workflow.",
+              )}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {controls.map(([label, Icon]) => (
+                <span
+                  key={label}
+                  className="flex items-center gap-1 rounded-lg border px-2 py-1.5 text-xs"
+                >
+                  <Icon className="h-3 w-3" />
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+      ))
+    )}
+  </section>
+);

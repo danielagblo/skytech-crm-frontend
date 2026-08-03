@@ -1,4 +1,4 @@
-import type { CalendarEventType, PageParams } from './api.types';
+import type { CalendarEventType, PageParams } from "./api.types";
 
 export interface CalendarEvent {
   id: string;
@@ -14,7 +14,10 @@ export interface CalendarEvent {
   createdAt: string;
 }
 
-export interface CalendarFilters extends PageParams { from?: string; to?: string }
+export interface CalendarFilters extends PageParams {
+  from?: string;
+  to?: string;
+}
 
 export interface CreateCalendarEventRequest {
   title: string;

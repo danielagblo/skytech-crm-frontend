@@ -1,4 +1,13 @@
-import type { ContactMode, DealStage, LogType, PageParams, PaymentMode, Priority, ResponseType, ServiceType } from './api.types';
+import type {
+  ContactMode,
+  DealStage,
+  LogType,
+  PageParams,
+  PaymentMode,
+  Priority,
+  ResponseType,
+  ServiceType,
+} from "./api.types";
 
 export interface Deal {
   id: string;
@@ -59,9 +68,14 @@ export interface DealLog {
   logType: LogType;
   contactMode: ContactMode | null;
   responseType: ResponseType | null;
-  callDirection: 'OUTGOING' | 'INCOMING' | null;
+  callDirection: "OUTGOING" | "INCOMING" | null;
   callDurationSeconds: number | null;
-  callOutcome: 'COMPLETED' | 'NETWORK_INTERRUPTION' | 'CUSTOMER_HUNG_UP' | 'NO_RESPONSE' | null;
+  callOutcome:
+    | "COMPLETED"
+    | "NETWORK_INTERRUPTION"
+    | "CUSTOMER_HUNG_UP"
+    | "NO_RESPONSE"
+    | null;
   followUpAt: string | null;
   settlementValue: number | null;
   settlementFollowUp: string | null;
@@ -81,7 +95,12 @@ export interface DealLog {
   createdAt: string;
 }
 
-export type CreateDealLogRequest = Partial<Omit<DealLog, 'id' | 'dealId' | 'createdById' | 'createdAt' | 'autoReviewScore'>> & { logType: LogType };
+export type CreateDealLogRequest = Partial<
+  Omit<
+    DealLog,
+    "id" | "dealId" | "createdById" | "createdAt" | "autoReviewScore"
+  >
+> & { logType: LogType };
 
 export interface Comment {
   id: string;
@@ -92,4 +111,9 @@ export interface Comment {
   createdAt: string;
 }
 
-export interface TopDeal { id: string; title: string; value: number; stage: DealStage }
+export interface TopDeal {
+  id: string;
+  title: string;
+  value: number;
+  stage: DealStage;
+}

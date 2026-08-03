@@ -1,1 +1,17 @@
-import type { Metadata } from 'next'; import { PageHeader } from '@/components/shared/PageHeader'; import { BroadcastComposer } from '@/components/settings/broadcast/BroadcastComposer'; import { BroadcastHistory } from '@/components/settings/broadcast/BroadcastHistory'; export const metadata:Metadata={title:'Broadcast'};export default function BroadcastPage(){return <div className="space-y-5"><PageHeader title="Broadcast" description="Compose, schedule and review SMS campaigns"/><BroadcastComposer/><BroadcastHistory/></div>}
+import type { Metadata } from "next";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { BroadcastComposer } from "@/components/settings/broadcast/BroadcastComposer";
+import { BroadcastHistory } from "@/components/settings/broadcast/BroadcastHistory";
+export const metadata: Metadata = { title: "Broadcast" };
+export default function BroadcastPage() {
+  return (
+    <div className="space-y-5">
+      <PageHeader
+        title="Broadcast"
+        description="Compose, schedule and review SMS campaigns"
+      />
+      <BroadcastComposer />
+      <BroadcastHistory />
+    </div>
+  );
+}

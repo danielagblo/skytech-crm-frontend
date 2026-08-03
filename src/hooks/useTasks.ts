@@ -1,24 +1,210 @@
-'use client';
+"use client";
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { getApiErrorMessage } from '@/lib/api-error';
-import { tasksService } from '@/services/tasks.service';
-import type { TaskStatus } from '@/types/api.types';
-import type { CreateSubTaskRequest, CreateTaskRequest, TaskFilters, UpdateTaskRequest } from '@/types/task.types';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error";
+import { tasksService } from "@/services/tasks.service";
+import type { TaskStatus } from "@/types/api.types";
+import type {
+  CreateSubTaskRequest,
+  CreateTaskRequest,
+  TaskFilters,
+  UpdateTaskRequest,
+} from "@/types/task.types";
 
-const invalidate = (client: ReturnType<typeof useQueryClient>) => Promise.all([client.invalidateQueries({ queryKey: ['tasks'] }), client.invalidateQueries({ queryKey: ['task-stats'] })]);
-export const useTasks = (filters: TaskFilters = {}) => useQuery({ queryKey: ['tasks', filters], queryFn: () => tasksService.getAll(filters), select: (response) => response.data.data });
-export const useTask = (id: string) => useQuery({ queryKey: ['tasks', id], queryFn: () => tasksService.getById(id), select: (response) => response.data.data, enabled: Boolean(id) });
-export const useTaskStats = () => useQuery({ queryKey: ['task-stats'], queryFn: tasksService.getStats, select: (response) => response.data.data });
-export const useTaskSubtasks = (taskId: string) => useQuery({ queryKey: ['task-subtasks', taskId], queryFn: () => tasksService.getSubtasks(taskId), select: (response) => response.data.data.content, enabled: Boolean(taskId) });
-export const useTaskComments = (taskId: string) => useQuery({ queryKey: ['task-comments', taskId], queryFn: () => tasksService.getComments(taskId), select: (response) => response.data.data.content, enabled: Boolean(taskId) });
-export const useCreateTask = () => { const client = useQueryClient(); return useMutation({ mutationFn: (data: CreateTaskRequest) => tasksService.create(data), onSuccess: () => { void invalidate(client); toast.success('Task created.'); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The task could not be created.')) }); };
-export const useCreateTaskWithSubtasks = () => { const client = useQueryClient(); return useMutation({ mutationFn: async ({ task, subtasks }: { task: CreateTaskRequest; subtasks: CreateSubTaskRequest[] }) => { const response = await tasksService.create(task); await Promise.all(subtasks.map((subtask) => tasksService.createSubtask(response.data.data.id, subtask))); return response; }, onSuccess: () => { void invalidate(client); toast.success('Task and subtasks created.'); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The task could not be created.')) }); };
-export const useUpdateTask = () => { const client = useQueryClient(); return useMutation({ mutationFn: ({ id, data }: { id: string; data: UpdateTaskRequest }) => tasksService.update(id, data), onSuccess: () => { void invalidate(client); toast.success('Task updated.'); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The task could not be updated.')) }); };
-export const useDeleteTask = () => { const client = useQueryClient(); return useMutation({ mutationFn: tasksService.delete, onSuccess: () => { void invalidate(client); toast.success('Task deleted.'); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The task could not be deleted.')) }); };
-export const useUpdateTaskStatus = () => { const client = useQueryClient(); return useMutation({ mutationFn: ({ id, status }: { id: string; status: TaskStatus }) => tasksService.updateStatus(id, status), onSuccess: () => { void invalidate(client); toast.success('Task status updated.'); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The task could not be moved.')) }); };
-export const useCreateSubtask = () => { const client = useQueryClient(); return useMutation({ mutationFn: ({ taskId, data }: { taskId: string; data: CreateSubTaskRequest }) => tasksService.createSubtask(taskId, data), onSuccess: (_, variables) => { void client.invalidateQueries({ queryKey: ['task-subtasks', variables.taskId] }); toast.success('Subtask added.'); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The subtask could not be added.')) }); };
-export const useToggleSubtask = () => { const client = useQueryClient(); return useMutation({ mutationFn: ({ taskId, subtaskId, data }: { taskId: string; subtaskId: string; data: CreateSubTaskRequest }) => tasksService.updateSubtask(taskId, subtaskId, data), onSuccess: (_, variables) => { void client.invalidateQueries({ queryKey: ['task-subtasks', variables.taskId] }); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The subtask could not be updated.')) }); };
-export const useAddTaskComment = () => { const client = useQueryClient(); return useMutation({ mutationFn: ({ taskId, body }: { taskId: string; body: string }) => tasksService.addComment(taskId, body), onSuccess: (_, variables) => { void client.invalidateQueries({ queryKey: ['task-comments', variables.taskId] }); toast.success('Comment posted.'); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The comment could not be posted.')) }); };
-export const useReplyTaskComment = () => { const client = useQueryClient(); return useMutation({ mutationFn: ({ taskId, commentId, body }: { taskId: string; commentId: string; body: string }) => tasksService.replyToComment(taskId, commentId, body), onSuccess: (_, variables) => { void client.invalidateQueries({ queryKey: ['task-comments', variables.taskId] }); toast.success('Reply posted.'); }, onError: (error) => toast.error(getApiErrorMessage(error, 'The reply could not be posted.')) }); };
+const invalidate = (client: ReturnType<typeof useQueryClient>) =>
+  Promise.all([
+    client.invalidateQueries({ queryKey: ["tasks"] }),
+    client.invalidateQueries({ queryKey: ["task-stats"] }),
+  ]);
+export const useTasks = (filters: TaskFilters = {}) =>
+  useQuery({
+    queryKey: ["tasks", filters],
+    queryFn: () => tasksService.getAll(filters),
+    select: (response) => response.data.data,
+  });
+export const useTask = (id: string) =>
+  useQuery({
+    queryKey: ["tasks", id],
+    queryFn: () => tasksService.getById(id),
+    select: (response) => response.data.data,
+    enabled: Boolean(id),
+  });
+export const useTaskStats = () =>
+  useQuery({
+    queryKey: ["task-stats"],
+    queryFn: tasksService.getStats,
+    select: (response) => response.data.data,
+  });
+export const useTaskSubtasks = (taskId: string) =>
+  useQuery({
+    queryKey: ["task-subtasks", taskId],
+    queryFn: () => tasksService.getSubtasks(taskId),
+    select: (response) => response.data.data.content,
+    enabled: Boolean(taskId),
+  });
+export const useTaskComments = (taskId: string) =>
+  useQuery({
+    queryKey: ["task-comments", taskId],
+    queryFn: () => tasksService.getComments(taskId),
+    select: (response) => response.data.data.content,
+    enabled: Boolean(taskId),
+  });
+export const useCreateTask = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateTaskRequest) => tasksService.create(data),
+    onSuccess: () => {
+      void invalidate(client);
+      toast.success("Task created.");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "The task could not be created.")),
+  });
+};
+export const useCreateTaskWithSubtasks = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      task,
+      subtasks,
+    }: {
+      task: CreateTaskRequest;
+      subtasks: CreateSubTaskRequest[];
+    }) => {
+      const response = await tasksService.create(task);
+      await Promise.all(
+        subtasks.map((subtask) =>
+          tasksService.createSubtask(response.data.data.id, subtask),
+        ),
+      );
+      return response;
+    },
+    onSuccess: () => {
+      void invalidate(client);
+      toast.success("Task and subtasks created.");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "The task could not be created.")),
+  });
+};
+export const useUpdateTask = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateTaskRequest }) =>
+      tasksService.update(id, data),
+    onSuccess: () => {
+      void invalidate(client);
+      toast.success("Task updated.");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "The task could not be updated.")),
+  });
+};
+export const useDeleteTask = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: tasksService.delete,
+    onSuccess: () => {
+      void invalidate(client);
+      toast.success("Task deleted.");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "The task could not be deleted.")),
+  });
+};
+export const useUpdateTaskStatus = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: TaskStatus }) =>
+      tasksService.updateStatus(id, status),
+    onSuccess: () => {
+      void invalidate(client);
+      toast.success("Task status updated.");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "The task could not be moved.")),
+  });
+};
+export const useCreateSubtask = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      data,
+    }: {
+      taskId: string;
+      data: CreateSubTaskRequest;
+    }) => tasksService.createSubtask(taskId, data),
+    onSuccess: (_, variables) => {
+      void client.invalidateQueries({
+        queryKey: ["task-subtasks", variables.taskId],
+      });
+      toast.success("Subtask added.");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "The subtask could not be added.")),
+  });
+};
+export const useToggleSubtask = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      subtaskId,
+      data,
+    }: {
+      taskId: string;
+      subtaskId: string;
+      data: CreateSubTaskRequest;
+    }) => tasksService.updateSubtask(taskId, subtaskId, data),
+    onSuccess: (_, variables) => {
+      void client.invalidateQueries({
+        queryKey: ["task-subtasks", variables.taskId],
+      });
+    },
+    onError: (error) =>
+      toast.error(
+        getApiErrorMessage(error, "The subtask could not be updated."),
+      ),
+  });
+};
+export const useAddTaskComment = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, body }: { taskId: string; body: string }) =>
+      tasksService.addComment(taskId, body),
+    onSuccess: (_, variables) => {
+      void client.invalidateQueries({
+        queryKey: ["task-comments", variables.taskId],
+      });
+      toast.success("Comment posted.");
+    },
+    onError: (error) =>
+      toast.error(
+        getApiErrorMessage(error, "The comment could not be posted."),
+      ),
+  });
+};
+export const useReplyTaskComment = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      commentId,
+      body,
+    }: {
+      taskId: string;
+      commentId: string;
+      body: string;
+    }) => tasksService.replyToComment(taskId, commentId, body),
+    onSuccess: (_, variables) => {
+      void client.invalidateQueries({
+        queryKey: ["task-comments", variables.taskId],
+      });
+      toast.success("Reply posted.");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "The reply could not be posted.")),
+  });
+};
