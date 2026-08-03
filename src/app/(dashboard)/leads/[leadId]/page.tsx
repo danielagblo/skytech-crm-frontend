@@ -1,13 +1,2 @@
-import { notFound } from 'next/navigation';
-import { leads } from '@/lib/mock-data';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { PriorityBadge } from '@/components/shared/PriorityBadge';
-import { AssigneeStack } from '@/components/shared/AssigneeStack';
-
-export default async function Page({params}:{params:Promise<{leadId:string}>}){
-  const {leadId}=await params;
-  const lead=leads.find((item)=>item.id===leadId);
-  if(!lead)notFound();
-
-  return <div className="space-y-5"><PageHeader title={`${lead.firstName} ${lead.lastName}`} description={`${lead.company} · ${lead.role}`}/><section className="surface max-w-3xl p-6"><div className="flex items-center justify-between"><AssigneeStack users={lead.assignees}/><PriorityBadge priority={lead.priority}/></div><dl className="mt-6 grid gap-4 sm:grid-cols-2">{[['Phone',lead.phone],['Email',lead.email],['Location',lead.location],['Category',lead.category],['Lead source',lead.sources.join(', ')],['Conversion',`${lead.conversion}%`]].map(([label,value])=><div key={label}><dt className="eyebrow">{label}</dt><dd className="mt-1 text-sm font-medium">{value}</dd></div>)}</dl><p className="mt-6 text-sm leading-relaxed text-muted-foreground">{lead.description}</p></section></div>;
-}
+import { LeadDetailPage } from '@/components/leads/LeadDetailPage';
+export default async function Page({ params }: { params: Promise<{ leadId: string }> }) { const { leadId } = await params; return <LeadDetailPage leadId={leadId} />; }

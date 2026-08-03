@@ -1,1 +1,1 @@
-import type { DealLog } from '@/types/deal.types'; import { CommentThread } from '@/components/shared/CommentThread'; export const LogComments=({log}:{log:DealLog})=><div className="mt-3 border-t pt-3"><CommentThread comments={log.comments}/></div>;
+export { CommentThread as LogComments } from '@/components/shared/CommentThread';

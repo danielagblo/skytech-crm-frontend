@@ -1,1 +1,30 @@
-import type { UserSummary } from './user.types'; export type CalendarEventType='CALL'|'MEETING'|'PAYMENT'|'TASK'; export interface CalendarEvent{id:string;title:string;start:string;end:string;type:CalendarEventType;assignees:UserSummary[];linkedType:'LEAD'|'DEAL';linkedId:string;linkedName:string} export interface CalendarFilters{from:string;to:string}
+import type { CalendarEventType, PageParams } from './api.types';
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  ownerId: string;
+  linkedLeadId: string | null;
+  linkedDealId: string | null;
+  startTime: string;
+  endTime: string;
+  eventType: CalendarEventType;
+  assignees: string[];
+  createdAt: string;
+}
+
+export interface CalendarFilters extends PageParams { from?: string; to?: string }
+
+export interface CreateCalendarEventRequest {
+  title: string;
+  description?: string;
+  linkedLeadId?: string;
+  linkedDealId?: string;
+  startTime: string;
+  endTime: string;
+  eventType: CalendarEventType;
+  assignees?: string[];
+}
+
+export type UpdateCalendarEventRequest = CreateCalendarEventRequest;

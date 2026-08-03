@@ -1,1 +1,62 @@
-import type { Priority,TaskStatus } from './api.types'; import type { UserSummary } from './user.types'; import type { LogComment } from './deal.types'; export interface SubTask{id:string;title:string;priority:Priority;description:string;done:boolean} export interface Task{id:string;title:string;status:TaskStatus;priority:Priority;assignees:UserSummary[];createdBy:UserSummary;dueAt:string;description:string;reminder:boolean;subTasks:SubTask[];comments:LogComment[]} export interface TaskFilters{status?:TaskStatus;assigneeId?:string;priority?:Priority} export interface CreateTaskRequest{title:string;priority:Priority;createdById:string;reminder:boolean;description:string;subTasks:Omit<SubTask,'id'|'done'>[];caseId?:string} export type UpdateTaskRequest=Partial<CreateTaskRequest>;
+import type { PageParams, Priority, TaskStatus } from './api.types';
+
+export interface Task {
+  id: string;
+  companyId: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: Priority | null;
+  createdById: string;
+  allowReminder: boolean;
+  linkedLeadId: string | null;
+  linkedDealId: string | null;
+  dueDate: string | null;
+  assigneeIds: string[];
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskFilters extends PageParams {
+  search?: string;
+  status?: TaskStatus;
+  assigneeId?: string;
+  priority?: Priority;
+  overdue?: boolean;
+}
+
+export interface CreateTaskRequest {
+  title: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: Priority;
+  allowReminder?: boolean;
+  linkedLeadId?: string;
+  linkedDealId?: string;
+  dueDate?: string;
+  assigneeIds?: string[];
+  version?: number;
+}
+
+export type UpdateTaskRequest = CreateTaskRequest;
+
+export interface SubTask {
+  id: string;
+  taskId: string;
+  title: string;
+  description: string | null;
+  priority: Priority | null;
+  complete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSubTaskRequest {
+  title: string;
+  description?: string;
+  priority?: Priority;
+  complete?: boolean;
+}
+
+export interface TaskStats { total: number; done: number; overdue: number }

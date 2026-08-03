@@ -1,1 +1,95 @@
-import type { ContactMode,DealStage,LogType,PaymentMode,Priority,ResponseType } from './api.types'; import type { UserSummary } from './user.types'; export interface LogComment{id:string;author:UserSummary;body:string;createdAt:string;replies?:LogComment[]} export interface DealLog{id:string;type:LogType;reviewer:UserSummary;createdAt:string;rating:number;body:string;contactMode?:ContactMode;response?:ResponseType;followUpAt?:string;amount?:number;paymentMode?:PaymentMode;invoiceNumber?:string;receiptNumber?:string;comments:LogComment[]} export interface Deal{id:string;title:string;stage:DealStage;value:number;priority:Priority;manager:UserSummary;assignees:UserSummary[];company:string;phone:string;contactPerson:string;contactRole:string;followUpAt:string;notesCount:number;description:string;arrears?:number;services?:{type:'DOMAIN'|'HOSTING'|'MAINTENANCE';expiry:string;cost:number}[];logs:DealLog[]} export interface DealFilters{stage?:DealStage;assigneeId?:string;page?:number;size?:number} export interface CreateDealRequest{title:string;value:number;priority:Priority;company:string;phone:string} export type UpdateDealRequest=Partial<CreateDealRequest>;
+import type { ContactMode, DealStage, LogType, PageParams, PaymentMode, Priority, ResponseType, ServiceType } from './api.types';
+
+export interface Deal {
+  id: string;
+  companyId: string;
+  leadId: string | null;
+  createdById: string;
+  assignedToId: string | null;
+  title: string;
+  stage: DealStage;
+  priority: Priority | null;
+  contractValue: number;
+  totalPaid: number;
+  arrears: number;
+  paidInFull: boolean;
+  hostingExpiry: string | null;
+  domainExpiry: string | null;
+  maintenanceExpiry: string | null;
+  hostingCost: number;
+  domainCost: number;
+  maintenanceCost: number;
+  notes: string | null;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DealFilters extends PageParams {
+  search?: string;
+  stage?: DealStage;
+  assigneeId?: string;
+  priority?: Priority;
+}
+
+export interface CreateDealRequest {
+  leadId?: string;
+  assignedToId?: string;
+  title: string;
+  stage?: DealStage;
+  priority?: Priority;
+  contractValue?: number;
+  totalPaid?: number;
+  hostingExpiry?: string;
+  domainExpiry?: string;
+  maintenanceExpiry?: string;
+  hostingCost?: number;
+  domainCost?: number;
+  maintenanceCost?: number;
+  notes?: string;
+  version?: number;
+}
+
+export type UpdateDealRequest = CreateDealRequest;
+
+export interface DealLog {
+  id: string;
+  dealId: string;
+  createdById: string;
+  logType: LogType;
+  contactMode: ContactMode | null;
+  responseType: ResponseType | null;
+  callDirection: 'OUTGOING' | 'INCOMING' | null;
+  callDurationSeconds: number | null;
+  callOutcome: 'COMPLETED' | 'NETWORK_INTERRUPTION' | 'CUSTOMER_HUNG_UP' | 'NO_RESPONSE' | null;
+  followUpAt: string | null;
+  settlementValue: number | null;
+  settlementFollowUp: string | null;
+  specialConditions: string | null;
+  amountPaid: number | null;
+  paymentMode: PaymentMode | null;
+  invoiceNumber: string | null;
+  receiptNumber: string | null;
+  invoiceIssued: boolean | null;
+  serviceType: ServiceType | null;
+  expiryDate: string | null;
+  retentionAmount: number | null;
+  retentionInvoice: string | null;
+  retentionReceipt: string | null;
+  autoReviewScore: number | null;
+  body: string | null;
+  createdAt: string;
+}
+
+export type CreateDealLogRequest = Partial<Omit<DealLog, 'id' | 'dealId' | 'createdById' | 'createdAt' | 'autoReviewScore'>> & { logType: LogType };
+
+export interface Comment {
+  id: string;
+  parentCommentId: string | null;
+  authorId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface TopDeal { id: string; title: string; value: number; stage: DealStage }

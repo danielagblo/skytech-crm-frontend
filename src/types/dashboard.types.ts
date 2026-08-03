@@ -1,0 +1,20 @@
+export interface CallStats {
+  total: number;
+  nonResponses: number;
+  networkInterruptions: number;
+  customerHungUp: number;
+  avgDuration: number;
+  successRate: number;
+}
+
+export interface DashboardOverview {
+  outgoingCalls: CallStats;
+  incomingCalls: CallStats;
+  topRevenuePerAgent: { userId: string; name: string; revenue: number }[];
+  executivePerformance: { userId: string; name: string; closedDeals: number; revenue: number; conversionRate: number; rating: number }[];
+  followUpReminders: { dealId: string; dealTitle: string; followUpAt: string; type: string }[];
+  recentPayments: { dealId: string; dealTitle: string; amount: number; paidAt: string }[];
+  agentRank: { rank: number; totalAgents: number; screenTime: number; targetAchievement: number; salesRevenue: number };
+}
+
+export interface AgentStats { userId: string; name: string; deals: number; revenue: number; tasksDone: number }
