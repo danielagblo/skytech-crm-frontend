@@ -1,0 +1,1 @@
+import api from '@/lib/axios'; import type { ApiResponse } from '@/types/api.types'; export interface DashboardData{outgoingCalls:number;incomingCalls:number;successRate:number;revenue:number;dealsClosed:number} export const dashboardService={get:()=>api.get<ApiResponse<DashboardData>>('/dashboard')};

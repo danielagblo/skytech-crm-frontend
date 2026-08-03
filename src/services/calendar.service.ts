@@ -1,0 +1,1 @@
+import api from '@/lib/axios'; import type { ApiResponse } from '@/types/api.types'; import type { CalendarEvent,CalendarFilters } from '@/types/calendar.types'; export const calendarService={getAll:(params:CalendarFilters)=>api.get<ApiResponse<CalendarEvent[]>>('/calendar',{params}),getById:(id:string)=>api.get<ApiResponse<CalendarEvent>>(`/calendar/${id}`)};

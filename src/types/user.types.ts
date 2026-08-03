@@ -1,0 +1,1 @@
+import type { Role } from './api.types'; export interface User{id:string;firstName:string;lastName:string;email:string;role:Role;phone?:string;avatar?:string;status?:string;revenue?:number;hoursSpent?:number;dateAdded?:string} export type UserSummary=Pick<User,'id'|'firstName'|'lastName'|'avatar'|'role'>;

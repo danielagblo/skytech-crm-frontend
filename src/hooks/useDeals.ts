@@ -1,0 +1,14 @@
+'use client';
+import { useMutation,useQuery,useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { dealsService } from '@/services/deals.service';
+import type { CreateDealRequest,DealFilters,DealLog,UpdateDealRequest } from '@/types/deal.types';
+import type { DealStage } from '@/types/api.types';
+export const useDeals=(filters:DealFilters={})=>useQuery({queryKey:['deals',filters],queryFn:()=>dealsService.getAll(filters)});
+export const useDeal=(id:string)=>useQuery({queryKey:['deals',id],queryFn:()=>dealsService.getById(id),enabled:Boolean(id)});
+const invalidate=(client:ReturnType<typeof useQueryClient>)=>client.invalidateQueries({queryKey:['deals']});
+export const useCreateDeal=()=>{const client=useQueryClient();return useMutation({mutationFn:(data:CreateDealRequest)=>dealsService.create(data),onSuccess:()=>{void invalidate(client);toast.success('Deal created')},onError:()=>toast.error('Could not create deal')})};
+export const useUpdateDeal=()=>{const client=useQueryClient();return useMutation({mutationFn:({id,data}:{id:string;data:UpdateDealRequest})=>dealsService.update(id,data),onSuccess:()=>void invalidate(client),onError:()=>toast.error('Could not update deal')})};
+export const useDeleteDeal=()=>{const client=useQueryClient();return useMutation({mutationFn:dealsService.delete,onSuccess:()=>{void invalidate(client);toast.success('Deal deleted')},onError:()=>toast.error('Could not delete deal')})};
+export const useUpdateDealStage=()=>{const client=useQueryClient();return useMutation({mutationFn:({id,stage}:{id:string;stage:DealStage})=>dealsService.updateStage(id,stage),onSuccess:()=>void invalidate(client),onError:()=>toast.error('Could not move this deal')})};
+export const useAddDealLog=()=>{const client=useQueryClient();return useMutation({mutationFn:({id,data}:{id:string;data:Partial<DealLog>})=>dealsService.addLog(id,data),onSuccess:()=>{void invalidate(client);toast.success('Deal log saved')},onError:()=>toast.error('Could not save the log')})};

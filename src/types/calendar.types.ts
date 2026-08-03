@@ -1,0 +1,1 @@
+import type { UserSummary } from './user.types'; export type CalendarEventType='CALL'|'MEETING'|'PAYMENT'|'TASK'; export interface CalendarEvent{id:string;title:string;start:string;end:string;type:CalendarEventType;assignees:UserSummary[];linkedType:'LEAD'|'DEAL';linkedId:string;linkedName:string} export interface CalendarFilters{from:string;to:string}

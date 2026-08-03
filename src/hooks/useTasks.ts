@@ -1,0 +1,14 @@
+'use client';
+import { useMutation,useQuery,useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { tasksService } from '@/services/tasks.service';
+import type { TaskFilters,UpdateTaskRequest } from '@/types/task.types';
+import type { TaskStatus } from '@/types/api.types';
+export const useTasks=(filters:TaskFilters={})=>useQuery({queryKey:['tasks',filters],queryFn:()=>tasksService.getAll(filters)});
+export const useTask=(id:string)=>useQuery({queryKey:['tasks',id],queryFn:()=>tasksService.getById(id),enabled:Boolean(id)});
+const invalidate=(client:ReturnType<typeof useQueryClient>)=>client.invalidateQueries({queryKey:['tasks']});
+export const useCreateTask=()=>{const client=useQueryClient();return useMutation({mutationFn:tasksService.create,onSuccess:()=>{void invalidate(client);toast.success('Task created')},onError:()=>toast.error('Failed to create task')})};
+export const useUpdateTask=()=>{const client=useQueryClient();return useMutation({mutationFn:({id,data}:{id:string;data:UpdateTaskRequest})=>tasksService.update(id,data),onSuccess:()=>void invalidate(client),onError:()=>toast.error('Failed to update task')})};
+export const useDeleteTask=()=>{const client=useQueryClient();return useMutation({mutationFn:tasksService.delete,onSuccess:()=>{void invalidate(client);toast.success('Task deleted')},onError:()=>toast.error('Failed to delete task')})};
+export const useUpdateTaskStatus=()=>{const client=useQueryClient();return useMutation({mutationFn:({id,status}:{id:string;status:TaskStatus})=>tasksService.updateStatus(id,status),onSuccess:()=>void invalidate(client),onError:()=>toast.error('Could not move task')})};
+export const useToggleSubtask=()=>{const client=useQueryClient();return useMutation({mutationFn:({taskId,subtaskId,done}:{taskId:string;subtaskId:string;done:boolean})=>tasksService.toggleSubtask(taskId,subtaskId,done),onSuccess:()=>void invalidate(client),onError:()=>toast.error('Could not update subtask')})};

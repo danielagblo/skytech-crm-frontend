@@ -1,0 +1,12 @@
+'use client';
+import { useMutation,useQuery,useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { leadsService } from '@/services/leads.service';
+import type { LeadFilters,UpdateLeadRequest } from '@/types/lead.types';
+const refresh=(client:ReturnType<typeof useQueryClient>)=>client.invalidateQueries({queryKey:['leads']});
+export const useLeads=(filters:LeadFilters={})=>useQuery({queryKey:['leads',filters],queryFn:()=>leadsService.getAll(filters)});
+export const useLead=(id:string)=>useQuery({queryKey:['leads',id],queryFn:()=>leadsService.getById(id),enabled:Boolean(id)});
+export const useCreateLead=()=>{const client=useQueryClient();return useMutation({mutationFn:leadsService.create,onSuccess:()=>{void refresh(client);toast.success('Lead created successfully')},onError:()=>toast.error('Failed to create lead')})};
+export const useUpdateLead=()=>{const client=useQueryClient();return useMutation({mutationFn:({id,data}:{id:string;data:UpdateLeadRequest})=>leadsService.update(id,data),onSuccess:()=>{void refresh(client);toast.success('Lead updated')},onError:()=>toast.error('Failed to update lead')})};
+export const useDeleteLead=()=>{const client=useQueryClient();return useMutation({mutationFn:leadsService.delete,onSuccess:()=>{void refresh(client);toast.success('Lead deleted')},onError:()=>toast.error('Failed to delete lead')})};
+export const useConvertLead=()=>{const client=useQueryClient();return useMutation({mutationFn:leadsService.convert,onSuccess:()=>{void refresh(client);void client.invalidateQueries({queryKey:['deals']});toast.success('Lead converted to a deal')},onError:()=>toast.error('Failed to convert lead')})};

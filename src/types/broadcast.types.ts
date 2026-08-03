@@ -1,0 +1,1 @@
+import type { BroadcastStatus } from './api.types'; export interface ContactSegment{id:string;name:string;count:number} export interface Broadcast{id:string;name:string;status:BroadcastStatus;recipientCount:number;createdAt:string;message:string;scheduledAt?:string} export interface CreateBroadcastRequest{name:string;message:string;segmentIds:string[];scheduledAt?:string}

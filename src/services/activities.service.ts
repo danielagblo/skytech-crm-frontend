@@ -1,0 +1,1 @@
+import api from '@/lib/axios'; import type { ApiResponse } from '@/types/api.types'; import type { Activity } from '@/types/activity.types'; export const activitiesService={getAll:()=>api.get<ApiResponse<Activity[]>>('/activities')};

@@ -1,0 +1,8 @@
+'use client';
+import { create } from 'zustand';
+import type { User } from '@/types/user.types';
+interface AuthState{user:User|null;accessToken:string|null;refreshToken:string|null;isAuthenticated:boolean;setAuth:(user:User,accessToken:string,refreshToken:string)=>void;setUser:(user:User|null)=>void;clearAuth:()=>void;rehydrate:()=>void}
+const read=(key:string)=>typeof window==='undefined'?null:localStorage.getItem(key);
+const isTokenValid=(token:string|null)=>{if(!token)return false;try{const payload=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))) as {exp?:number};return typeof payload.exp!=='number'||payload.exp*1000>Date.now()}catch{return token.length>0}};
+const clearPersisted=()=>{localStorage.removeItem('skytech_access');localStorage.removeItem('skytech_refresh');document.cookie='skytech_access=; Path=/; Max-Age=0; SameSite=Lax'};
+export const useAuthStore=create<AuthState>((set)=>({user:null,accessToken:null,refreshToken:null,isAuthenticated:false,setAuth:(user,accessToken,refreshToken)=>{localStorage.setItem('skytech_access',accessToken);localStorage.setItem('skytech_refresh',refreshToken);document.cookie=`skytech_access=${encodeURIComponent(accessToken)}; Path=/; SameSite=Lax`;set({user,accessToken,refreshToken,isAuthenticated:true})},setUser:(user)=>set({user}),clearAuth:()=>{if(typeof window!=='undefined')clearPersisted();set({user:null,accessToken:null,refreshToken:null,isAuthenticated:false})},rehydrate:()=>{const accessToken=read('skytech_access');const refreshToken=read('skytech_refresh');if(!isTokenValid(accessToken)){clearPersisted();set({accessToken:null,refreshToken:null,isAuthenticated:false});return}set({accessToken,refreshToken,isAuthenticated:true})}}));

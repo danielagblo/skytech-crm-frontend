@@ -1,0 +1,1 @@
+export type AutomationType='BIRTHDAY'|'HOLIDAY'|'PAYMENT'|'PERSONAL'; export interface AutomationStep{id:string;label:string;waitValue:number;waitUnit:'DAYS'|'MONTHS';sms:boolean;email:boolean;enabled:boolean} export interface Automation{id:string;name:string;type:AutomationType;enabled:boolean;trigger:string;message:string;steps:AutomationStep[]}

@@ -1,0 +1,1 @@
+'use client'; import { useQuery } from '@tanstack/react-query'; import { activitiesService } from '@/services/activities.service'; export const useActivities=()=>useQuery({queryKey:['activities'],queryFn:activitiesService.getAll});

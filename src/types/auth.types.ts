@@ -1,0 +1,1 @@
+import type { User } from './user.types'; export interface LoginRequest{email:string;password:string} export interface LoginResponse{userId:string} export interface VerifyOtpRequest{userId:string;otp:string} export interface AuthTokens{accessToken:string;refreshToken:string;user:User}

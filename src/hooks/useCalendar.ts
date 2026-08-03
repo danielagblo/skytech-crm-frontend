@@ -1,0 +1,1 @@
+'use client'; import { useQuery } from '@tanstack/react-query'; import { calendarService } from '@/services/calendar.service'; import type { CalendarFilters } from '@/types/calendar.types'; export const useCalendar=(filters:CalendarFilters)=>useQuery({queryKey:['calendar',filters],queryFn:()=>calendarService.getAll(filters)});
