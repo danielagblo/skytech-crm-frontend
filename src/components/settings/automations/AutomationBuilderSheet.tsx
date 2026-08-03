@@ -75,6 +75,57 @@ const fallbackTypes: Array<{ value: AutomationType; label: string }> = [
   { value: "PAYMENT", label: "Payment acknowledgement" },
   { value: "PERSONAL", label: "Personal (stored only)" },
 ];
+const supportedTypes = new Set<AutomationType>(
+  fallbackTypes.map((item) => item.value),
+);
+const supportedChannels = new Set<AutomationChannel>(["SMS", "EMAIL", "BOTH"]);
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const isAutomationType = (value: unknown): value is AutomationType =>
+  typeof value === "string" && supportedTypes.has(value as AutomationType);
+const isAutomationChannel = (value: unknown): value is AutomationChannel =>
+  typeof value === "string" &&
+  supportedChannels.has(value as AutomationChannel);
+const optionLabel = (value: AutomationType) =>
+  fallbackTypes.find((item) => item.value === value)?.label ?? value;
+
+const normalizeTypeOption = (input: unknown): AutomationTypeOption | null => {
+  if (isAutomationType(input))
+    return { value: input, label: optionLabel(input) };
+  if (!isRecord(input)) return null;
+  const value = [
+    input.value,
+    input.type,
+    input.automationType,
+    input.automation_type,
+    input.name,
+  ].find(isAutomationType);
+  if (!value) return null;
+  const label = [input.label, input.displayName, input.display_name].find(
+    (item): item is string => typeof item === "string" && item.length > 0,
+  );
+  return {
+    value,
+    label: label ?? optionLabel(value),
+    executable:
+      typeof input.executable === "boolean" ? input.executable : undefined,
+    requiresDate:
+      typeof input.requiresDate === "boolean"
+        ? input.requiresDate
+        : typeof input.requires_date === "boolean"
+          ? input.requires_date
+          : undefined,
+  };
+};
+
+const normalizeChannel = (input: unknown): AutomationChannel | null => {
+  if (isAutomationChannel(input)) return input;
+  if (!isRecord(input)) return null;
+  const value = [input.value, input.channel, input.name].find(
+    isAutomationChannel,
+  );
+  return value ?? null;
+};
 
 const defaults = (): Values => ({
   automationType: "BIRTHDAY",
@@ -113,16 +164,25 @@ export const AutomationBuilderSheet = ({
   });
   const active = useWatch({ control: form.control, name: "active" });
   const configuredSteps = useWatch({ control: form.control, name: "steps" });
-  const rawTypes = options?.types ?? options?.automationTypes;
-  const typeOptions: AutomationTypeOption[] = rawTypes?.length
-    ? rawTypes.map((item) =>
-        typeof item === "string"
-          ? { value: item, label: item.replaceAll("_", " ") }
-          : item,
-      )
-    : fallbackTypes;
-  const channelOptions = options?.channels?.length
+  const rawTypes: unknown[] = Array.isArray(options?.types)
+    ? options.types
+    : Array.isArray(options?.automationTypes)
+      ? options.automationTypes
+      : [];
+  const providedTypes = rawTypes
+    .map(normalizeTypeOption)
+    .filter((item): item is AutomationTypeOption => item !== null);
+  const typeOptions: AutomationTypeOption[] = fallbackTypes.map((fallback) => ({
+    ...fallback,
+    ...providedTypes.find((item) => item.value === fallback.value),
+  }));
+  const providedChannels = Array.isArray(options?.channels)
     ? options.channels
+        .map(normalizeChannel)
+        .filter((item): item is AutomationChannel => item !== null)
+    : [];
+  const channelOptions = providedChannels.length
+    ? providedChannels
     : (["SMS", "EMAIL", "BOTH"] as AutomationChannel[]);
   const personalExecutable =
     options?.triggerRequirements?.PERSONAL?.executable ??
@@ -212,7 +272,7 @@ export const AutomationBuilderSheet = ({
                   <SelectContent>
                     {typeOptions.map((item) => (
                       <SelectItem key={item.value} value={item.value}>
-                        {item.label ?? item.value.replaceAll("_", " ")}
+                        {item.label ?? optionLabel(item.value)}
                         {item.value === "PERSONAL" && !personalExecutable
                           ? " · no trigger"
                           : ""}
