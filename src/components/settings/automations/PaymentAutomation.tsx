@@ -6,23 +6,21 @@ import {
   Pause,
   SkipForward,
 } from "lucide-react";
-import type { Automation } from "@/types/automation.types";
+import type { Automation, AutomationStep } from "@/types/automation.types";
 import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/shared/EmptyState";
-const labelFor = (step: Record<string, unknown>, index: number) =>
-  typeof step.label === "string"
-    ? step.label
-    : typeof step.action === "string"
-      ? step.action
-      : `Step ${index + 1}`;
+const labelFor = (step: AutomationStep, index: number) =>
+  step.label ? step.label : step.action ? step.action : `Step ${index + 1}`;
 export const PaymentAutomation = ({
   items,
   onToggle,
   pending,
+  onEdit,
 }: {
   items: Automation[];
   onToggle: (id: string) => void;
   pending: boolean;
+  onEdit: (automation: Automation) => void;
 }) => (
   <section className="space-y-5">
     <div>
@@ -50,6 +48,13 @@ export const PaymentAutomation = ({
               disabled={pending}
               onCheckedChange={() => onToggle(item.id)}
             />
+            <button
+              type="button"
+              className="rounded-md border px-2 py-1 text-xs hover:bg-muted"
+              onClick={() => onEdit(item)}
+            >
+              Edit
+            </button>
           </div>
           <div className="mx-auto h-8 w-px bg-gray-300" />
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -72,8 +77,8 @@ export const PaymentAutomation = ({
                   <p className="text-sm font-medium">
                     {typeof step.wait === "string"
                       ? step.wait
-                      : typeof step.wait_days === "number"
-                        ? `Wait ${step.wait_days} days`
+                      : typeof step.waitDays === "number"
+                        ? `Wait ${step.waitDays} days`
                         : "Continue when conditions match"}
                   </p>
                   <div className="mt-2 flex gap-1">

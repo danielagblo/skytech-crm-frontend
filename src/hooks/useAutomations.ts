@@ -16,6 +16,20 @@ export const useAutomations = (filters: AutomationFilters = {}) =>
     queryFn: () => automationsService.getAll(filters),
     select: (response) => response.data.data,
   });
+export const useAutomationOptions = () =>
+  useQuery({
+    queryKey: ["automations", "options"],
+    queryFn: automationsService.getOptions,
+    select: (response) => response.data.data,
+    staleTime: 5 * 60_000,
+  });
+export const useAutomation = (id: string) =>
+  useQuery({
+    queryKey: ["automations", id],
+    queryFn: () => automationsService.getById(id),
+    select: (response) => response.data.data,
+    enabled: Boolean(id),
+  });
 export const useBirthdayAutomations = (filters: AutomationFilters = {}) =>
   useQuery({
     queryKey: ["automations", "birthday", filters],
@@ -75,6 +89,20 @@ export const useToggleAutomation = () => {
     onError: (error) =>
       toast.error(
         getApiErrorMessage(error, "The automation could not be toggled."),
+      ),
+  });
+};
+export const useDeleteAutomation = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => automationsService.delete(id),
+    onSuccess: () => {
+      void invalidate(client);
+      toast.success("Automation deleted.");
+    },
+    onError: (error) =>
+      toast.error(
+        getApiErrorMessage(error, "The automation could not be deleted."),
       ),
   });
 };

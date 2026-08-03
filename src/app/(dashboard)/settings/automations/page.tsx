@@ -1,7 +1,12 @@
 "use client";
 import { useState } from "react";
-import { AlertCircle } from "lucide-react";
-import { useAutomations, useToggleAutomation } from "@/hooks/useAutomations";
+import { AlertCircle, Plus } from "lucide-react";
+import type { Automation } from "@/types/automation.types";
+import {
+  useAutomationOptions,
+  useAutomations,
+  useToggleAutomation,
+} from "@/hooks/useAutomations";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,9 +15,14 @@ import { BirthdayAutomation } from "@/components/settings/automations/BirthdayAu
 import { HolidayAutomation } from "@/components/settings/automations/HolidayAutomation";
 import { PaymentAutomation } from "@/components/settings/automations/PaymentAutomation";
 import { PersonalAutomation } from "@/components/settings/automations/PersonalAutomation";
+import { AutomationBuilderSheet } from "@/components/settings/automations/AutomationBuilderSheet";
+import { Button } from "@/components/ui/button";
 export default function AutomationsPage() {
   const [active, setActive] = useState("birthday");
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [editing, setEditing] = useState<Automation | null>(null);
   const automations = useAutomations({ page: 0, size: 100 });
+  const options = useAutomationOptions();
   const toggle = useToggleAutomation();
   const items = automations.data?.content ?? [];
   const content =
@@ -21,24 +31,40 @@ export default function AutomationsPage() {
         items={items.filter((item) => item.automationType === "BIRTHDAY")}
         onToggle={(id) => toggle.mutate(id)}
         pending={toggle.isPending}
+        onEdit={(item) => {
+          setEditing(item);
+          setBuilderOpen(true);
+        }}
       />
     ) : active === "holidays" ? (
       <HolidayAutomation
         items={items.filter((item) => item.automationType === "PUBLIC_HOLIDAY")}
         onToggle={(id) => toggle.mutate(id)}
         pending={toggle.isPending}
+        onEdit={(item) => {
+          setEditing(item);
+          setBuilderOpen(true);
+        }}
       />
     ) : active === "payment" ? (
       <PaymentAutomation
         items={items.filter((item) => item.automationType === "PAYMENT")}
         onToggle={(id) => toggle.mutate(id)}
         pending={toggle.isPending}
+        onEdit={(item) => {
+          setEditing(item);
+          setBuilderOpen(true);
+        }}
       />
     ) : (
       <PersonalAutomation
         items={items.filter((item) => item.automationType === "PERSONAL")}
         onToggle={(id) => toggle.mutate(id)}
         pending={toggle.isPending}
+        onEdit={(item) => {
+          setEditing(item);
+          setBuilderOpen(true);
+        }}
       />
     );
   return (
@@ -46,6 +72,17 @@ export default function AutomationsPage() {
       <PageHeader
         title="Automations"
         description="Manage lifecycle messages and operational workflows"
+        actions={
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setBuilderOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Create automation
+          </Button>
+        }
       />
       <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
         <AutomationList active={active} onChange={setActive} />
@@ -61,6 +98,12 @@ export default function AutomationsPage() {
           content
         )}
       </div>
+      <AutomationBuilderSheet
+        open={builderOpen}
+        automation={editing}
+        options={options.data}
+        onOpenChange={setBuilderOpen}
+      />
     </div>
   );
 }

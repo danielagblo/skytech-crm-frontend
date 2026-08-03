@@ -1,0 +1,431 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarDays, Info, Plus, Trash2, Workflow } from "lucide-react";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { ConfirmModal } from "@/components/shared/ConfirmModal";
+import {
+  useCreateAutomation,
+  useDeleteAutomation,
+  useUpdateAutomation,
+} from "@/hooks/useAutomations";
+import type { AutomationType } from "@/types/api.types";
+import type {
+  Automation,
+  AutomationChannel,
+  AutomationOptions,
+  AutomationTypeOption,
+} from "@/types/automation.types";
+
+const stepSchema = z.object({
+  channel: z.enum(["SMS", "EMAIL", "BOTH"]),
+  subject: z.string().max(200),
+  message: z.string().trim().min(1, "Enter the message.").max(2000),
+});
+const schema = z
+  .object({
+    automationType: z.enum([
+      "BIRTHDAY",
+      "PUBLIC_HOLIDAY",
+      "PAYMENT",
+      "PERSONAL",
+    ]),
+    name: z.string().trim().min(3, "Name this automation.").max(255),
+    active: z.boolean(),
+    holidayDate: z.string(),
+    steps: z.array(stepSchema).min(1, "Add at least one delivery step."),
+  })
+  .superRefine((values, context) => {
+    if (
+      values.automationType === "PUBLIC_HOLIDAY" &&
+      !/^\d{4}-\d{2}-\d{2}$/.test(values.holidayDate)
+    )
+      context.addIssue({
+        code: "custom",
+        path: ["holidayDate"],
+        message: "Enter the holiday as YYYY-MM-DD.",
+      });
+  });
+type Values = z.infer<typeof schema>;
+
+const fallbackTypes: Array<{ value: AutomationType; label: string }> = [
+  { value: "BIRTHDAY", label: "Birthday greeting" },
+  { value: "PUBLIC_HOLIDAY", label: "Public holiday" },
+  { value: "PAYMENT", label: "Payment acknowledgement" },
+  { value: "PERSONAL", label: "Personal (stored only)" },
+];
+
+const defaults = (): Values => ({
+  automationType: "BIRTHDAY",
+  name: "",
+  active: true,
+  holidayDate: "",
+  steps: [{ channel: "BOTH", subject: "", message: "" }],
+});
+
+interface AutomationBuilderSheetProps {
+  open: boolean;
+  automation: Automation | null;
+  options?: AutomationOptions;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const AutomationBuilderSheet = ({
+  open,
+  automation,
+  options,
+  onOpenChange,
+}: AutomationBuilderSheetProps) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const create = useCreateAutomation();
+  const update = useUpdateAutomation();
+  const remove = useDeleteAutomation();
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    mode: "onBlur",
+    defaultValues: defaults(),
+  });
+  const steps = useFieldArray({ control: form.control, name: "steps" });
+  const automationType = useWatch({
+    control: form.control,
+    name: "automationType",
+  });
+  const active = useWatch({ control: form.control, name: "active" });
+  const configuredSteps = useWatch({ control: form.control, name: "steps" });
+  const rawTypes = options?.types ?? options?.automationTypes;
+  const typeOptions: AutomationTypeOption[] = rawTypes?.length
+    ? rawTypes.map((item) =>
+        typeof item === "string"
+          ? { value: item, label: item.replaceAll("_", " ") }
+          : item,
+      )
+    : fallbackTypes;
+  const channelOptions = options?.channels?.length
+    ? options.channels
+    : (["SMS", "EMAIL", "BOTH"] as AutomationChannel[]);
+  const personalExecutable =
+    options?.triggerRequirements?.PERSONAL?.executable ??
+    typeOptions.find((item) => item.value === "PERSONAL")?.executable ??
+    false;
+
+  useEffect(() => {
+    if (!open) return;
+    if (!automation) {
+      form.reset(defaults());
+      return;
+    }
+    form.reset({
+      automationType: automation.automationType,
+      name: automation.name,
+      active:
+        automation.automationType === "PERSONAL" && !personalExecutable
+          ? false
+          : automation.active,
+      holidayDate: automation.triggerConfig.date ?? "",
+      steps: automation.steps.map((step) => ({
+        channel: step.channel,
+        subject: step.subject ?? "",
+        message: step.message,
+      })),
+    });
+  }, [automation, form, open, personalExecutable]);
+
+  const pending = create.isPending || update.isPending;
+  const submit = form.handleSubmit(async (values) => {
+    const data = {
+      automationType: values.automationType,
+      name: values.name,
+      active:
+        values.automationType === "PERSONAL" && !personalExecutable
+          ? false
+          : values.active,
+      triggerConfig:
+        values.automationType === "PUBLIC_HOLIDAY"
+          ? { date: values.holidayDate }
+          : {},
+      steps: values.steps.map(({ channel, subject, message }) => ({
+        channel,
+        subject: subject || undefined,
+        message,
+      })),
+    };
+    if (automation) await update.mutateAsync({ id: automation.id, data });
+    else await create.mutateAsync(data);
+    onOpenChange(false);
+  });
+
+  return (
+    <>
+      <Sheet
+        open={open}
+        onOpenChange={(value) => !pending && onOpenChange(value)}
+      >
+        <SheetContent className="sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>
+              {automation ? "Edit automation" : "Create automation"}
+            </SheetTitle>
+            <SheetDescription>
+              Configure the trigger and every delivery step. Channel opt-ins are
+              enforced by the backend.
+            </SheetDescription>
+          </SheetHeader>
+          <form className="space-y-5" onSubmit={submit}>
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <Label>Automation type</Label>
+                <Select
+                  value={automationType}
+                  disabled={Boolean(automation)}
+                  onValueChange={(value: AutomationType) => {
+                    form.setValue("automationType", value, {
+                      shouldValidate: true,
+                    });
+                    if (value === "PERSONAL" && !personalExecutable)
+                      form.setValue("active", false);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {typeOptions.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label ?? item.value.replaceAll("_", " ")}
+                        {item.value === "PERSONAL" && !personalExecutable
+                          ? " · no trigger"
+                          : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <div className="flex h-10 items-center gap-2 rounded-lg border px-3">
+                  <Switch
+                    checked={active}
+                    disabled={
+                      automationType === "PERSONAL" && !personalExecutable
+                    }
+                    onCheckedChange={(checked) =>
+                      form.setValue("active", checked)
+                    }
+                  />
+                  <Label>Active</Label>
+                </div>
+              </div>
+            </div>
+            <div>
+              <Label>Name</Label>
+              <Input
+                placeholder="e.g. Independence Day greeting"
+                {...form.register("name")}
+              />
+              {form.formState.errors.name && (
+                <p className="text-xs text-danger">
+                  {form.formState.errors.name.message}
+                </p>
+              )}
+            </div>
+
+            {automationType === "BIRTHDAY" && (
+              <div className="flex gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-info" />
+                <p>
+                  Runs daily at 8 AM using birthdays saved on leads. No trigger
+                  date is required here.
+                </p>
+              </div>
+            )}
+            {automationType === "PUBLIC_HOLIDAY" && (
+              <div>
+                <Label>Holiday date</Label>
+                <div className="relative">
+                  <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    className="pl-9"
+                    {...form.register("holidayDate")}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Stored as YYYY-MM-DD. Create next year&apos;s configuration
+                  for annual recurrence.
+                </p>
+                {form.formState.errors.holidayDate && (
+                  <p className="text-xs text-danger">
+                    {form.formState.errors.holidayDate.message}
+                  </p>
+                )}
+              </div>
+            )}
+            {automationType === "PAYMENT" && (
+              <div className="flex gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
+                <Workflow className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                <p>
+                  Runs after a positive deal payment log, including payments
+                  recorded through an invoice.
+                </p>
+              </div>
+            )}
+            {automationType === "PERSONAL" && !personalExecutable && (
+              <div className="flex gap-3 rounded-xl border border-warning/30 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>
+                  This configuration can be stored, but the backend currently
+                  has no execution trigger. It will be saved inactive.
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">Delivery steps</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Each step needs a channel and message.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    steps.append({ channel: "SMS", subject: "", message: "" })
+                  }
+                >
+                  <Plus className="h-4 w-4" />
+                  Add step
+                </Button>
+              </div>
+              {steps.fields.map((field, index) => (
+                <div key={field.id} className="rounded-xl border p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <strong className="text-sm">Step {index + 1}</strong>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      disabled={steps.fields.length === 1}
+                      onClick={() => steps.remove(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <Label>Channel</Label>
+                      <Select
+                        value={configuredSteps[index]?.channel ?? "SMS"}
+                        onValueChange={(value: AutomationChannel) =>
+                          form.setValue(`steps.${index}.channel`, value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {channelOptions.map((channel) => (
+                            <SelectItem key={channel} value={channel}>
+                              {channel}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>
+                        Subject{" "}
+                        <span className="font-normal text-muted-foreground">
+                          (optional)
+                        </span>
+                      </Label>
+                      <Input {...form.register(`steps.${index}.subject`)} />
+                    </div>
+                    <div>
+                      <Label>Message</Label>
+                      <Textarea
+                        className="min-h-28"
+                        {...form.register(`steps.${index}.message`)}
+                      />
+                      {form.formState.errors.steps?.[index]?.message && (
+                        <p className="text-xs text-danger">
+                          {form.formState.errors.steps[index]?.message?.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap justify-between gap-2 border-t pt-4">
+              <div>
+                {automation && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setConfirmDelete(true)}
+                  >
+                    Delete automation
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={pending}>
+                  {pending
+                    ? "Saving…"
+                    : automation
+                      ? "Save configuration"
+                      : "Create automation"}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
+      <ConfirmModal
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Delete this automation?"
+        description="This workflow configuration will be permanently removed."
+        confirmLabel="Delete automation"
+        pending={remove.isPending}
+        onConfirm={async () => {
+          if (!automation) return;
+          await remove.mutateAsync(automation.id);
+          setConfirmDelete(false);
+          onOpenChange(false);
+        }}
+      />
+    </>
+  );
+};

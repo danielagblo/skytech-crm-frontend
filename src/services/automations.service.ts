@@ -3,11 +3,14 @@ import type { ApiResponse, PaginatedResponse } from "@/types/api.types";
 import type {
   Automation,
   AutomationFilters,
+  AutomationOptions,
   CreateAutomationRequest,
   UpdateAutomationRequest,
 } from "@/types/automation.types";
 
 export const automationsService = {
+  getOptions: () =>
+    api.get<ApiResponse<AutomationOptions>>("/automations/options"),
   getAll: (params: AutomationFilters = {}) =>
     api.get<PaginatedResponse<Automation>>("/automations", { params }),
   getBirthday: (params: AutomationFilters = {}) =>

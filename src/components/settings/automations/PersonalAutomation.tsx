@@ -6,10 +6,12 @@ export const PersonalAutomation = ({
   items,
   onToggle,
   pending,
+  onEdit,
 }: {
   items: Automation[];
   onToggle: (id: string) => void;
   pending: boolean;
+  onEdit: (automation: Automation) => void;
 }) => (
   <section className="space-y-4">
     <div>
@@ -41,6 +43,13 @@ export const PersonalAutomation = ({
             disabled={pending}
             onCheckedChange={() => onToggle(item.id)}
           />
+          <button
+            type="button"
+            className="rounded-md border px-2 py-1 text-xs hover:bg-muted"
+            onClick={() => onEdit(item)}
+          >
+            Edit
+          </button>
         </div>
       ))
     )}

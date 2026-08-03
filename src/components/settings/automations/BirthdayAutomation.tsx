@@ -32,10 +32,12 @@ export const BirthdayAutomation = ({
   items,
   onToggle,
   pending,
+  onEdit,
 }: {
   items: Automation[];
   onToggle: (id: string) => void;
   pending: boolean;
+  onEdit: (automation: Automation) => void;
 }) => {
   const [selected, setSelected] = useState<Automation | null>(null);
   return (
@@ -201,6 +203,15 @@ export const BirthdayAutomation = ({
                   </Button>
                 ))}
               </div>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  setSelected(null);
+                  onEdit(selected);
+                }}
+              >
+                Edit configuration
+              </Button>
             </div>
           )}
         </SheetContent>

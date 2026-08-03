@@ -12,10 +12,12 @@ const Flow = ({
   item,
   onToggle,
   pending,
+  onEdit,
 }: {
   item: Automation;
   onToggle: (id: string) => void;
   pending: boolean;
+  onEdit: (automation: Automation) => void;
 }) => (
   <div className="rounded-xl border bg-white p-3">
     <div className="flex items-center gap-2">
@@ -28,6 +30,13 @@ const Flow = ({
         disabled={pending}
         onCheckedChange={() => onToggle(item.id)}
       />
+      <button
+        type="button"
+        className="rounded-md border px-2 py-1 text-xs hover:bg-muted"
+        onClick={() => onEdit(item)}
+      >
+        Edit
+      </button>
     </div>
     <div className="ml-3.5 mt-2 h-5 border-l-2 border-dashed border-primary" />
     <div className="rounded-lg bg-muted p-2 text-xs">
@@ -48,10 +57,12 @@ export const HolidayAutomation = ({
   items,
   onToggle,
   pending,
+  onEdit,
 }: {
   items: Automation[];
   onToggle: (id: string) => void;
   pending: boolean;
+  onEdit: (automation: Automation) => void;
 }) => (
   <section className="space-y-6">
     <div>
@@ -74,6 +85,7 @@ export const HolidayAutomation = ({
             item={item}
             onToggle={onToggle}
             pending={pending}
+            onEdit={onEdit}
           />
         ))}
       </div>
