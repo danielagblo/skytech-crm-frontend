@@ -1,0 +1,1 @@
+import { notFound } from 'next/navigation'; import { deals } from '@/lib/mock-data'; import { DealDetailPage } from '@/components/pipeline/DealDetailPage'; export default function Page({params}:{params:{dealId:string}}){const deal=deals.find((d)=>d.id===params.dealId);if(!deal)notFound();return <DealDetailPage deal={deal}/>}

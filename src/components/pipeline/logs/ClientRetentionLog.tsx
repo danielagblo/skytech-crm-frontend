@@ -1,0 +1,16 @@
+'use client';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { Deal } from '@/types/deal.types';
+import { Calendar,Globe,Server,Settings2 } from 'lucide-react';
+import { formatCurrency,formatDate } from '@/lib/utils';
+import { LogFeed } from '../LogFeed';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from '@/components/ui/select';
+const icon={DOMAIN:Globe,HOSTING:Server,MAINTENANCE:Settings2};
+const schema=z.object({invoice:z.string().min(1),receipt:z.string().min(1),amount:z.coerce.number().positive(),expiry:z.string().min(1),service:z.enum(['DOMAIN','HOSTING','MAINTENANCE'])});
+type Values=z.infer<typeof schema>;
+export const ClientRetentionLog=({deal}:{deal:Deal})=>{const {register,setValue,handleSubmit,formState:{errors}}=useForm<Values>({resolver:zodResolver(schema),mode:'onBlur'});return <div className="space-y-5"><div className="grid gap-2">{deal.services?.map((service)=>{const Icon=icon[service.type];return <div key={service.type} className="flex items-center gap-3 rounded-xl border p-3"><Icon className="h-5 w-5 text-green-600"/><div className="flex-1"><p className="text-sm font-semibold capitalize">{service.type.toLowerCase()}</p><p className="flex items-center gap-1 text-xs text-muted-foreground"><Calendar className="h-3 w-3"/>Expires {formatDate(service.expiry)}</p></div><strong className="text-sm">{formatCurrency(service.cost)}</strong></div>})}</div><LogFeed logs={deal.logs.filter((l)=>l.type==='CLIENT_RETENTION')}/><form onSubmit={handleSubmit(()=>undefined)} className="grid gap-3 border-t pt-4"><div className="grid grid-cols-2 gap-3"><div><Label>Invoice</Label><Input {...register('invoice')}/></div><div><Label>Receipt</Label><Input {...register('receipt')}/></div><div><Label>Amount</Label><Input type="number" {...register('amount')}/></div><div><Label>Expiry date</Label><Input type="date" {...register('expiry')}/></div></div>{Object.keys(errors).length>0&&<p className="text-xs text-danger">Complete all retention fields before saving.</p>}<div><Label>Service type</Label><Select onValueChange={(v:'DOMAIN'|'HOSTING'|'MAINTENANCE')=>setValue('service',v)}><SelectTrigger><SelectValue placeholder="Select service"/></SelectTrigger><SelectContent><SelectItem value="DOMAIN">Domain</SelectItem><SelectItem value="HOSTING">Hosting</SelectItem><SelectItem value="MAINTENANCE">Maintenance</SelectItem></SelectContent></Select></div><Button type="submit">Save retention log</Button></form></div>};

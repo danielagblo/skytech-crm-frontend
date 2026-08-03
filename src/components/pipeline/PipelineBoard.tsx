@@ -1,0 +1,11 @@
+'use client';
+import { useState } from 'react';
+import { DragDropContext,type DropResult } from 'react-beautiful-dnd';
+import type { Deal } from '@/types/deal.types';
+import type { DealStage } from '@/types/api.types';
+import { deals as initialDeals } from '@/lib/mock-data';
+import { useUpdateDealStage } from '@/hooks/useDeals';
+import { PipelineColumn } from './PipelineColumn';
+import { DealDetail } from './DealDetail';
+const stages:DealStage[]=['PROSPECTING','NEGOTIATION','SETTLEMENT','PAYMENT','CLIENT_RETENTION'];
+export const PipelineBoard=()=>{const [deals,setDeals]=useState(initialDeals);const [selected,setSelected]=useState<Deal|null>(null);const updateStage=useUpdateDealStage();const drop=(result:DropResult)=>{if(!result.destination)return;const stage=result.destination.droppableId as DealStage;if(result.source.droppableId===stage&&result.source.index===result.destination.index)return;setDeals((items)=>items.map((deal)=>deal.id===result.draggableId?{...deal,stage}:deal));updateStage.mutate({id:result.draggableId,stage})};return <><DragDropContext onDragEnd={drop}><div className="dot-grid scrollbar-thin flex min-h-[620px] gap-4 overflow-x-auto rounded-2xl border p-4">{stages.map((stage)=><PipelineColumn key={stage} stage={stage} deals={deals.filter((d)=>d.stage===stage)} onOpen={setSelected}/>)}</div></DragDropContext><DealDetail deal={selected} open={Boolean(selected)} onOpenChange={(v)=>!v&&setSelected(null)}/></>};
