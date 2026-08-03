@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Bot, Cog, Radio, Users } from "lucide-react";
+import { ArrowRight, Bot, Cog, FileText, Radio, Users } from "lucide-react";
 import { usePermission, type Permission } from "@/hooks/usePermission";
 import { PageHeader } from "@/components/shared/PageHeader";
 
@@ -12,6 +12,13 @@ const cards: Array<{
   icon: typeof Bot;
   permission: Permission;
 }> = [
+  {
+    href: "/settings/invoices",
+    title: "Invoices",
+    description: "Generate, preview and track customer invoices.",
+    icon: FileText,
+    permission: "manage:invoices",
+  },
   {
     href: "/settings/automations",
     title: "Automations",

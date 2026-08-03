@@ -10,7 +10,8 @@ export type Permission =
   | "view:settings"
   | "view:all-leads"
   | "manage:broadcasts"
-  | "manage:automations";
+  | "manage:automations"
+  | "manage:invoices";
 const access: Record<Permission, Role[]> = {
   "delete:leads": ["ADMIN"],
   "delete:deals": ["ADMIN"],
@@ -20,6 +21,7 @@ const access: Record<Permission, Role[]> = {
   "view:all-leads": ["ADMIN", "MANAGER"],
   "manage:broadcasts": ["ADMIN", "MANAGER"],
   "manage:automations": ["ADMIN", "MANAGER"],
+  "manage:invoices": ["ADMIN", "MANAGER"],
 };
 export const usePermission = () => {
   const role = useAuthStore((state) => state.user?.role);

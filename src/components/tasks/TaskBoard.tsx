@@ -8,6 +8,7 @@ import type { Priority, TaskStatus } from "@/types/api.types";
 import { tasksService } from "@/services/tasks.service";
 import { useTasks, useTaskStats, useUpdateTaskStatus } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
+import { useCreateActivity } from "@/hooks/useActivities";
 import { TaskColumn } from "./TaskColumn";
 import { TaskDetail } from "./TaskDetail";
 import { CreateTaskModal } from "./CreateTaskModal";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { OverdueResolutionModal } from "./OverdueResolutionModal";
 
 const statuses: TaskStatus[] = ["TODO", "DOING", "DONE", "OVERDUE"];
 export const TaskBoard = () => {
@@ -29,6 +31,7 @@ export const TaskBoard = () => {
     Record<string, TaskStatus>
   >({});
   const [selected, setSelected] = useState<Task | null>(null);
+  const [overdueResolution, setOverdueResolution] = useState<Task | null>(null);
   const [create, setCreate] = useState(false);
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<Priority>();
@@ -43,6 +46,7 @@ export const TaskBoard = () => {
   const stats = useTaskStats();
   const users = useUsers({ page: 0, size: 100 });
   const updateStatus = useUpdateTaskStatus();
+  const createActivity = useCreateActivity();
   const source = useMemo(() => tasks.data?.content ?? [], [tasks.data]);
   const items = useMemo(
     () =>
@@ -88,6 +92,12 @@ export const TaskBoard = () => {
       result.source.index === result.destination.index
     )
       return;
+    if (result.source.droppableId === "OVERDUE" && status === "DONE") {
+      setOverdueResolution(
+        items.find((task) => task.id === result.draggableId) ?? null,
+      );
+      return;
+    }
     const previous = statusOverrides[result.draggableId];
     setStatusOverrides((current) => ({
       ...current,
@@ -221,6 +231,39 @@ export const TaskBoard = () => {
         onOpenChange={(value) => !value && setSelected(null)}
       />
       <CreateTaskModal open={create} onOpenChange={setCreate} />
+      <OverdueResolutionModal
+        task={overdueResolution}
+        open={Boolean(overdueResolution)}
+        pending={updateStatus.isPending || createActivity.isPending}
+        onOpenChange={(open) => !open && setOverdueResolution(null)}
+        onConfirm={async (reason) => {
+          if (!overdueResolution) return;
+          await updateStatus.mutateAsync({
+            id: overdueResolution.id,
+            status: "DONE",
+          });
+          setStatusOverrides((current) => ({
+            ...current,
+            [overdueResolution.id]: "DONE",
+          }));
+          try {
+            await createActivity.mutateAsync({
+              eventType: "TASK_STATUS_CHANGED",
+              entityType: "TASK",
+              entityId: overdueResolution.id,
+              description: reason,
+              metadata: {
+                previousStatus: "OVERDUE",
+                status: "DONE",
+                completionReason: reason,
+              },
+            });
+          } catch {
+            // Status remains updated; the activity hook already explains the note failure.
+          }
+          setOverdueResolution(null);
+        }}
+      />
     </div>
   );
 };

@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { AgentTable } from "@/components/settings/agents/AgentTable";
 import { AddAgentModal } from "@/components/settings/agents/AddAgentModal";
 import { AgentPerformanceTable } from "@/components/settings/agents/AgentPerformanceTable";
+import { ActivityLog } from "@/components/activity/ActivityLog";
 export default function AgentsPage() {
   const [agent, setAgent] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
@@ -123,6 +124,7 @@ export default function AgentsPage() {
           </div>
         </section>
       </div>
+      <ActivityLog />
       <AddAgentModal agent={agent} open={open} onOpenChange={setOpen} />
     </div>
   );

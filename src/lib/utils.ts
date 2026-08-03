@@ -7,13 +7,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-GH", {
-    style: "currency",
-    currency: "GHS",
+  `GH\u00A2 ${new Intl.NumberFormat("en-GH", {
     minimumFractionDigits: 2,
-  })
-    .format(value)
-    .replace("GHS", "GH¢");
+    maximumFractionDigits: 2,
+  }).format(value)}`;
 export const formatDate = (value: string | Date) =>
   format(new Date(value), "do MMMM yyyy");
 export const formatTime = (value: string | Date) =>
