@@ -9,9 +9,22 @@ import { useAuthStore } from "@/store/authStore";
 
 export const useLogin = () => {
   const router = useRouter();
+  const setAuth = useAuthStore((state) => state.setAuth);
   return useMutation({
     mutationFn: authService.login,
     onSuccess: ({ data }) => {
+      if (!data.data.requiresOtp) {
+        setAuth(data.data.user, data.data.accessToken, data.data.refreshToken);
+        sessionStorage.removeItem("skytech_login_attempt");
+        sessionStorage.removeItem("skytech_user_id");
+        toast.success(
+          data.data.user.firstName
+            ? `Welcome, ${data.data.user.firstName}.`
+            : "Welcome to Skytech CRM.",
+        );
+        router.replace("/home");
+        return;
+      }
       sessionStorage.setItem("skytech_user_id", data.data.userId);
       toast.success("Password accepted. Enter the six-digit code we sent you.");
       router.push("/verify-otp");

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useVerifyOtp } from "@/hooks/useAuth";
 import { authService } from "@/services/auth.service";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { useAuthStore } from "@/store/authStore";
 import type { LoginRequest } from "@/types/auth.types";
 
 const schema = z
@@ -16,12 +18,24 @@ const schema = z
   .regex(/^\d{6}$/, "Enter the complete six-digit verification code.");
 
 export const OtpForm = () => {
+  const router = useRouter();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const refs = useRef<Array<HTMLInputElement | null>>([]);
   const verify = useVerifyOtp();
   const resend = useMutation({
     mutationFn: (data: LoginRequest) => authService.login(data),
     onSuccess: ({ data }) => {
+      if (!data.data.requiresOtp) {
+        setAuth(data.data.user, data.data.accessToken, data.data.refreshToken);
+        sessionStorage.removeItem("skytech_login_attempt");
+        sessionStorage.removeItem("skytech_user_id");
+        toast.success(
+          "Signed in successfully. No verification code is needed.",
+        );
+        router.replace("/home");
+        return;
+      }
       sessionStorage.setItem("skytech_user_id", data.data.userId);
       setDigits(["", "", "", "", "", ""]);
       refs.current[0]?.focus();

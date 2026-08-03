@@ -4,10 +4,15 @@ export interface LoginRequest {
   email: string;
   password: string;
 }
-export interface LoginResponse {
-  requiresOtp: boolean;
+interface OtpLoginResponse {
+  requiresOtp: true;
   userId: string;
 }
+interface DirectLoginResponse extends AuthTokens {
+  requiresOtp: false;
+  userId: string;
+}
+export type LoginResponse = OtpLoginResponse | DirectLoginResponse;
 export interface VerifyOtpRequest {
   userId: string;
   otp: string;
