@@ -16,6 +16,22 @@ interface AuthState {
   rehydrate: () => void;
 }
 
+export const demoUser: User = {
+  id: "demo-admin",
+  companyId: "demo-company",
+  firstName: "Jeffrey",
+  lastName: "Henadez",
+  email: "demo@skytech.local",
+  role: "ADMIN",
+  phone: "+233 55 289 2433",
+  username: "demo.admin",
+  planTier: "PRO",
+  profilePhotoUrl: "/assets/profile_Placeholder.png",
+  active: true,
+  lastLogin: new Date(0).toISOString(),
+  createdAt: new Date(0).toISOString(),
+};
+
 const read = (key: string) =>
   typeof window === "undefined" ? null : localStorage.getItem(key);
 const cookieOptions = () =>
@@ -91,6 +107,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       return;
     }
     set({
+      user:
+        accessToken?.startsWith("demo-") &&
+        process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true"
+          ? demoUser
+          : null,
       accessToken,
       refreshToken,
       isAuthenticated: Boolean(accessToken || refreshToken),

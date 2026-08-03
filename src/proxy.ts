@@ -31,6 +31,11 @@ export function proxy(request: NextRequest) {
   const authenticated = hasValidAccessToken(token);
   const { pathname } = request.nextUrl;
   const guarded = protectedRoutes.some((route) => pathname.startsWith(route));
+  const demoEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true";
+
+  // The explicit development flag provides a preview workspace without
+  // weakening production route protection (the documented default is false).
+  if (guarded && demoEnabled) return NextResponse.next();
 
   if (guarded && !authenticated)
     return NextResponse.redirect(new URL("/login", request.url));

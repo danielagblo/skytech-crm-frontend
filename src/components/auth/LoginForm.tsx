@@ -5,12 +5,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLogin } from "@/hooks/useAuth";
-import { useAuthStore } from "@/store/authStore";
+import { demoUser, useAuthStore } from "@/store/authStore";
 
 const schema = z.object({
   email: z.string().email("Enter a valid work email."),
@@ -21,7 +20,6 @@ type Values = z.infer<typeof schema>;
 export const LoginForm = () => {
   const [visible, setVisible] = useState(false);
   const login = useLogin();
-  const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
   const demoEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true";
   const {
@@ -34,31 +32,17 @@ export const LoginForm = () => {
     login.mutate(data);
   };
   const enterDemo = () => {
-    setAuth(
-      {
-        id: "demo-admin",
-        companyId: "demo-company",
-        firstName: "Jeffrey",
-        lastName: "Henadez",
-        email: "demo@skytech.local",
-        role: "ADMIN",
-        phone: "+233 55 289 2433",
-        username: "demo.admin",
-        planTier: "PRO",
-        profilePhotoUrl: "/assets/profile_Placeholder.png",
-        active: true,
-        lastLogin: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-      },
-      "demo-development-access",
-      "demo-development-refresh",
-    );
-    router.push("/home");
+    setAuth(demoUser, "demo-development-access", "demo-development-refresh");
+    // A full navigation guarantees the freshly-written auth cookie reaches the
+    // route proxy on the first protected request.
+    window.location.assign("/home");
   };
   return (
     <form className="space-y-5" onSubmit={handleSubmit(submit)}>
       <div className="space-y-2">
-        <Label htmlFor="email" className="sr-only">Email address</Label>
+        <Label htmlFor="email" className="sr-only">
+          Email address
+        </Label>
         <div className="relative">
           <Mail className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-600" />
           <Input
@@ -75,7 +59,9 @@ export const LoginForm = () => {
         )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password" className="sr-only">Password</Label>
+        <Label htmlFor="password" className="sr-only">
+          Password
+        </Label>
         <div className="relative">
           <LockKeyhole className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-600" />
           <Input
@@ -103,7 +89,11 @@ export const LoginForm = () => {
           <p className="text-xs text-danger">{errors.password.message}</p>
         )}
       </div>
-      <Button className="h-16 w-full rounded-2xl text-lg font-normal" type="submit" disabled={login.isPending}>
+      <Button
+        className="h-16 w-full rounded-2xl text-lg font-normal"
+        type="submit"
+        disabled={login.isPending}
+      >
         {login.isPending ? "Signing in…" : "Login"}
       </Button>
       {demoEnabled && (

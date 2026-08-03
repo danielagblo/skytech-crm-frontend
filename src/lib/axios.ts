@@ -58,8 +58,19 @@ api.interceptors.response.use(
       original?.url?.includes("/auth/login") ||
       original?.url?.includes("/auth/verify-otp") ||
       original?.url?.includes("/auth/refresh");
+    const accessToken =
+      useAuthStore.getState().accessToken ?? stored("skytech_access");
+    const isDemoSession =
+      accessToken?.startsWith("demo-") &&
+      process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true";
 
-    if (status === 401 && original && !original._retry && !isAuthRequest) {
+    if (
+      status === 401 &&
+      original &&
+      !original._retry &&
+      !isAuthRequest &&
+      !isDemoSession
+    ) {
       original._retry = true;
       try {
         const accessToken = await refreshAccessToken();

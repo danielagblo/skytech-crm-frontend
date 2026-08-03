@@ -38,7 +38,7 @@
   @apply border-border;
 }
 body {
-  @apply min-h-screen bg-background text-foreground antialiased;
+  @apply min-h-screen bg-background font-sans text-foreground antialiased;
 }
 button,
 input,
@@ -69,7 +69,7 @@ select {
 }
 
 .nav-asset {
-  opacity: .88;
+  opacity: 0.88;
 }
 .dark .nav-asset {
   filter: invert(1) brightness(1.65);
