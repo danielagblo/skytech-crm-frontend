@@ -1,0 +1,8 @@
+'use client';
+import { useState } from 'react';
+import { Table,TableBody,TableCell,TableHead,TableHeader,TableRow } from '@/components/ui/table';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Pagination } from '@/components/shared/Pagination';
+import { formatDate,formatTime } from '@/lib/utils';
+const rows=[{name:'August payment reminder',status:'SENT',count:128,date:'2026-08-02T10:00:00',message:'A friendly reminder that your Skytech invoice is now due.'},{name:'Product maintenance',status:'WAITING',count:64,date:'2026-08-04T08:30:00',message:'Scheduled maintenance begins this weekend.'},{name:'Independence promotion',status:'FAILED',count:3456,date:'2026-07-28T13:10:00',message:'Celebrate with a complimentary systems review.'}] as const;
+export const BroadcastHistory=()=>{const [page,setPage]=useState(1);return <section className="surface overflow-hidden"><div className="p-5"><h2 className="font-semibold">Recent Broadcast Activity</h2></div><Table><TableHeader><TableRow><TableHead>Broadcast name</TableHead><TableHead>Status</TableHead><TableHead>Recipients</TableHead><TableHead>Created date</TableHead><TableHead>Message preview</TableHead><TableHead>Timestamp</TableHead></TableRow></TableHeader><TableBody>{rows.map((row)=><TableRow key={row.name}><TableCell className="font-semibold">{row.name}</TableCell><TableCell><StatusBadge status={row.status}/></TableCell><TableCell>{row.count.toLocaleString()}</TableCell><TableCell>{formatDate(row.date)}</TableCell><TableCell className="max-w-xs truncate">{row.message}</TableCell><TableCell>{formatTime(row.date)}</TableCell></TableRow>)}</TableBody></Table><Pagination page={page} totalPages={2} onPageChange={setPage}/></section>};
