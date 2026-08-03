@@ -1,394 +1,886 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Download, Eye, Mail, Plus, Search, Trash2 } from "lucide-react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
+import {
+  AlertCircle,
+  Banknote,
+  Download,
+  FilePlus2,
+  LoaderCircle,
+  Mail,
+  Plus,
+  Search,
+  Send,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { Pagination } from "@/components/shared/Pagination";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { useDeals } from "@/hooks/useDeals";
+import {
+  useCreateInvoice,
+  useDeleteInvoice,
+  useInvoice,
+  useInvoices,
+  useIssueInvoice,
+  useRecordInvoicePayment,
+  useSendInvoice,
+  useUpdateInvoice,
+  useVoidInvoice,
+} from "@/hooks/useInvoices";
+import { invoicesService } from "@/services/invoices.service";
+import type { PaymentMode } from "@/types/api.types";
+import type {
+  Invoice,
+  InvoiceDraftRequest,
+  InvoiceStatus,
+} from "@/types/invoice.types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 const itemSchema = z.object({
-  description: z.string().trim().min(2, "Describe this item."),
-  quantity: z.coerce.number().positive("Quantity must be above zero."),
-  rate: z.coerce.number().min(0, "Rate cannot be negative."),
+  description: z.string().trim().min(2, "Describe this line item.").max(500),
+  quantity: z.number().positive("Quantity must be above zero."),
+  unitPrice: z.number().min(0, "Unit price cannot be negative."),
 });
-const schema = z.object({
-  invoiceNumber: z.string().trim().min(2, "Enter an invoice number."),
-  customer: z.string().trim().min(2, "Enter the customer name."),
-  email: z.string().email("Enter a valid customer email."),
-  address: z.string().trim().min(3, "Enter the billing address."),
-  company: z.string().trim().min(2, "Enter the company name."),
-  notes: z.string().max(500).optional(),
-  terms: z.string().max(500).optional(),
-  discount: z.coerce.number().min(0).max(100),
-  tax: z.coerce.number().min(0).max(100),
-  items: z.array(itemSchema).min(1),
+const draftSchema = z.object({
+  dealId: z.string().min(1, "Select the related deal."),
+  recipientName: z.string().max(255),
+  recipientCompany: z.string().max(255),
+  recipientEmail: z.union([
+    z.literal(""),
+    z.string().email("Enter a valid email.").max(255),
+  ]),
+  recipientAddress: z.string(),
+  dueDate: z.union([
+    z.literal(""),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD."),
+  ]),
+  taxRate: z.number().min(0).max(100),
+  discountAmount: z.number().min(0),
+  notes: z.string().max(1000),
+  terms: z.string().max(1000),
+  items: z.array(itemSchema).min(1, "Add at least one line item.").max(100),
 });
-type InvoiceValues = z.infer<typeof schema>;
-type SavedInvoice = InvoiceValues & {
-  id: string;
-  createdAt: string;
-  total: number;
-};
-const storageKey = "skytech_local_invoices";
-const escapeHtml = (value: string) =>
-  value.replace(
-    /[&<>"']/g,
-    (character) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;",
-      })[character] ?? character,
-  );
+type DraftValues = z.infer<typeof draftSchema>;
 
-const invoiceHtml = (values: InvoiceValues, total: number) =>
-  `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(values.invoiceNumber)}</title><style>body{font:14px Arial;padding:48px;color:#111827}h1{font-size:30px}.meta{display:flex;justify-content:space-between;margin:32px 0}table{width:100%;border-collapse:collapse}th,td{padding:12px;border-bottom:1px solid #e5e7eb;text-align:left}th{background:#4ade80}.totals{margin:28px 0 0 auto;width:300px}.totals p{display:flex;justify-content:space-between}.total{font-size:18px;font-weight:700}</style></head><body><h1>Invoice ${escapeHtml(values.invoiceNumber)}</h1><div class="meta"><div><strong>Bill to</strong><p>${escapeHtml(values.customer)}<br>${escapeHtml(values.company)}<br>${escapeHtml(values.address)}<br>${escapeHtml(values.email)}</p></div><div><strong>Skytech CRM</strong><p>Generated ${new Date().toLocaleDateString()}</p></div></div><table><thead><tr><th>Item</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${values.items.map((item) => `<tr><td>${escapeHtml(item.description)}</td><td>${item.quantity}</td><td>${formatCurrency(item.rate)}</td><td>${formatCurrency(item.quantity * item.rate)}</td></tr>`).join("")}</tbody></table><div class="totals"><p class="total"><span>Balance due</span><span>${formatCurrency(total)}</span></p></div><h3>Notes</h3><p>${escapeHtml(values.notes ?? "")}</p><h3>Terms &amp; conditions</h3><p>${escapeHtml(values.terms ?? "")}</p></body></html>`;
+const sendSchema = z.object({
+  email: z.union([
+    z.literal(""),
+    z.string().email("Enter a valid email.").max(255),
+  ]),
+  subject: z.string().max(255),
+  message: z.string().max(5000),
+});
+type SendValues = z.infer<typeof sendSchema>;
+
+const paymentSchema = z.object({
+  amount: z.number().positive("Enter an amount above zero."),
+  paymentMode: z.enum(["MOMO", "BANK_TRANSFER", "CASH", "CHEQUE"]),
+  reference: z.string().max(100),
+  paidAt: z.string().min(1, "Choose the payment date and time."),
+});
+type PaymentValues = z.infer<typeof paymentSchema>;
+
+const defaultDraft = (): DraftValues => ({
+  dealId: "",
+  recipientName: "",
+  recipientCompany: "",
+  recipientEmail: "",
+  recipientAddress: "",
+  dueDate: "",
+  taxRate: 0,
+  discountAmount: 0,
+  notes: "",
+  terms: "Payment is due within 14 days.",
+  items: [{ description: "", quantity: 1, unitPrice: 0 }],
+});
+
+const toDraftValues = (invoice: Invoice): DraftValues => ({
+  dealId: invoice.dealId,
+  recipientName: invoice.recipientName ?? "",
+  recipientCompany: invoice.recipientCompany ?? "",
+  recipientEmail: invoice.recipientEmail ?? "",
+  recipientAddress: invoice.recipientAddress ?? "",
+  dueDate: invoice.dueDate ?? "",
+  taxRate: invoice.taxRate,
+  discountAmount: invoice.discountAmount,
+  notes: invoice.notes ?? "",
+  terms: invoice.terms ?? "",
+  items: invoice.items.map(({ description, quantity, unitPrice }) => ({
+    description,
+    quantity,
+    unitPrice,
+  })),
+});
+
+const requestFrom = (values: DraftValues): InvoiceDraftRequest => ({
+  dealId: values.dealId,
+  recipientName: values.recipientName || undefined,
+  recipientCompany: values.recipientCompany || undefined,
+  recipientEmail: values.recipientEmail || undefined,
+  recipientAddress: values.recipientAddress || undefined,
+  dueDate: values.dueDate || undefined,
+  currency: "GHS",
+  taxRate: values.taxRate,
+  discountAmount: values.discountAmount,
+  notes: values.notes || undefined,
+  terms: values.terms || undefined,
+  items: values.items.map(({ description, quantity, unitPrice }) => ({
+    description,
+    quantity,
+    unitPrice,
+  })),
+});
+
+const displayNumber = (invoice: Invoice) =>
+  invoice.invoiceNumber ?? `Draft ${invoice.id.slice(0, 8)}`;
 
 export const InvoiceWorkspace = () => {
-  const [history, setHistory] = useState<SavedInvoice[]>([]);
   const [search, setSearch] = useState("");
-  const [preview, setPreview] = useState(false);
-  const form = useForm<InvoiceValues>({
-    resolver: zodResolver(schema),
+  const [status, setStatus] = useState<InvoiceStatus>();
+  const [page, setPage] = useState(1);
+  const [selectedId, setSelectedId] = useState("");
+  const [sendOpen, setSendOpen] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [confirm, setConfirm] = useState<"issue" | "delete" | "void" | null>(
+    null,
+  );
+
+  const invoices = useInvoices({
+    search: search || undefined,
+    status,
+    page: page - 1,
+    size: 15,
+  });
+  const selected = useInvoice(selectedId);
+  const deals = useDeals({ page: 0, size: 100 });
+  const createInvoice = useCreateInvoice();
+  const updateInvoice = useUpdateInvoice();
+  const issueInvoice = useIssueInvoice();
+  const deleteInvoice = useDeleteInvoice();
+  const voidInvoice = useVoidInvoice();
+  const sendInvoice = useSendInvoice();
+  const recordPayment = useRecordInvoicePayment();
+
+  const form = useForm<DraftValues>({
+    resolver: zodResolver(draftSchema),
+    mode: "onBlur",
+    defaultValues: defaultDraft(),
+  });
+  const items = useFieldArray({ control: form.control, name: "items" });
+  const sendForm = useForm<SendValues>({
+    resolver: zodResolver(sendSchema),
+    mode: "onBlur",
+    defaultValues: { email: "", subject: "", message: "" },
+  });
+  const paymentForm = useForm<PaymentValues>({
+    resolver: zodResolver(paymentSchema),
     mode: "onBlur",
     defaultValues: {
-      invoiceNumber: `INV-${new Date().getFullYear()}-001`,
-      customer: "",
-      email: "",
-      address: "",
-      company: "",
-      notes: "",
-      terms: "Payment due within 14 days.",
-      discount: 0,
-      tax: 0,
-      items: [{ description: "", quantity: 1, rate: 0 }],
+      amount: 0,
+      paymentMode: "BANK_TRANSFER",
+      reference: "",
+      paidAt: new Date().toISOString().slice(0, 16),
     },
   });
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "items",
+  const dealId = useWatch({ control: form.control, name: "dealId" });
+  const paymentMode = useWatch({
+    control: paymentForm.control,
+    name: "paymentMode",
   });
-  const values = useWatch({ control: form.control });
-  const subtotal = (values.items ?? []).reduce(
-    (sum, item) => sum + Number(item?.quantity ?? 0) * Number(item?.rate ?? 0),
-    0,
-  );
-  const total = Math.max(
-    0,
-    subtotal *
-      (1 - Number(values.discount ?? 0) / 100) *
-      (1 + Number(values.tax ?? 0) / 100),
-  );
+
+  const invoice = selected.data;
+  const editable = !invoice || invoice.status === "DRAFT";
+  const busy = createInvoice.isPending || updateInvoice.isPending;
+
   useEffect(() => {
-    const hydrate = window.setTimeout(() => {
-      try {
-        setHistory(
-          JSON.parse(
-            localStorage.getItem(storageKey) ?? "[]",
-          ) as SavedInvoice[],
-        );
-      } catch {
-        setHistory([]);
-      }
-    }, 0);
-    return () => window.clearTimeout(hydrate);
-  }, []);
-  const filtered = useMemo(
-    () =>
-      history.filter((item) =>
-        `${item.invoiceNumber} ${item.customer} ${item.company}`
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-      ),
-    [history, search],
-  );
-  const persist = (data: InvoiceValues) => {
-    const saved: SavedInvoice = {
-      ...data,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      total,
-    };
-    const next = [
-      saved,
-      ...history.filter((item) => item.invoiceNumber !== data.invoiceNumber),
-    ];
-    localStorage.setItem(storageKey, JSON.stringify(next));
-    setHistory(next);
-    return saved;
+    if (!invoice) return;
+    form.reset(toDraftValues(invoice));
+  }, [form, invoice]);
+
+  const selectInvoice = (item: Invoice) => {
+    setSelectedId(item.id);
+    sendForm.reset({
+      email: item.recipientEmail ?? "",
+      subject: item.invoiceNumber
+        ? `Invoice ${item.invoiceNumber} from Skytech`
+        : "",
+      message: "Please find your invoice attached.",
+    });
   };
-  const download = form.handleSubmit((data) => {
-    persist(data);
-    const url = URL.createObjectURL(
-      new Blob([invoiceHtml(data, total)], { type: "text/html" }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${data.invoiceNumber}.html`;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success("Invoice downloaded and saved to this device.");
+
+  const startNew = () => {
+    setSelectedId("");
+    form.reset(defaultDraft());
+  };
+
+  const save = form.handleSubmit(async (values) => {
+    const request = requestFrom(values);
+    if (invoice) {
+      const response = await updateInvoice.mutateAsync({
+        id: invoice.id,
+        data: { ...request, version: invoice.version },
+      });
+      form.reset(toDraftValues(response.data.data));
+      return;
+    }
+    const response = await createInvoice.mutateAsync(request);
+    setSelectedId(response.data.data.id);
   });
-  const send = form.handleSubmit((data) => {
-    persist(data);
-    window.open(
-      `mailto:${encodeURIComponent(data.email)}?subject=${encodeURIComponent(`Invoice ${data.invoiceNumber}`)}&body=${encodeURIComponent(`Hello ${data.customer},\n\nYour invoice balance is ${formatCurrency(total)}. The invoice has been prepared in Skytech CRM.`)}`,
-      "_self",
-    );
-    toast.success("Invoice saved. Your email app is opening.");
-  });
+
+  const download = async () => {
+    if (!invoice) return;
+    try {
+      const response = await invoicesService.downloadPdf(invoice.id);
+      const url = URL.createObjectURL(response.data);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${invoice.invoiceNumber ?? "invoice"}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      toast.success("Invoice PDF downloaded.");
+    } catch {
+      toast.error("The invoice PDF could not be downloaded.");
+    }
+  };
+
+  const runConfirmedAction = async () => {
+    if (!invoice || !confirm) return;
+    if (confirm === "issue") await issueInvoice.mutateAsync(invoice.id);
+    if (confirm === "delete") {
+      await deleteInvoice.mutateAsync(invoice.id);
+      startNew();
+    }
+    if (confirm === "void") await voidInvoice.mutateAsync(invoice.id);
+    setConfirm(null);
+  };
+
+  const actionPending =
+    issueInvoice.isPending || deleteInvoice.isPending || voidInvoice.isPending;
+  const canSend = Boolean(
+    invoice && ["ISSUED", "SENT", "SEND_FAILED"].includes(invoice.status),
+  );
+  const canPay = Boolean(
+    invoice && !["DRAFT", "SENDING", "PAID", "VOID"].includes(invoice.status),
+  );
+  const canVoid = Boolean(
+    invoice &&
+    invoice.paidAmount === 0 &&
+    ["ISSUED", "SENT", "SEND_FAILED"].includes(invoice.status),
+  );
+
   return (
-    <div className="grid gap-5 2xl:grid-cols-[minmax(560px,.9fr)_1.3fr]">
-      <section className="surface p-4 sm:p-5">
-        <div className="mb-5 flex items-center justify-between">
+    <div className="grid gap-5 2xl:grid-cols-[minmax(600px,.95fr)_1.05fr]">
+      <section className="surface overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4 sm:p-5">
           <div>
-            <h2 className="text-lg font-semibold">Generate invoice</h2>
-            <p className="text-sm text-muted-foreground">
-              Create a printable invoice and keep a local history.
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">
+                {invoice ? displayNumber(invoice) : "New invoice draft"}
+              </h2>
+              {invoice && <StatusBadge status={invoice.status} />}
+              {invoice?.status === "SENDING" && (
+                <LoaderCircle className="h-4 w-4 animate-spin text-info" />
+              )}
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {editable
+                ? "The backend calculates every financial total when you save."
+                : "Issued financial values are frozen and authoritative."}
             </p>
           </div>
-          <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-medium">
-            {values.invoiceNumber}
-          </span>
+          <Button variant="outline" onClick={startNew}>
+            <FilePlus2 className="h-4 w-4" />
+            New draft
+          </Button>
         </div>
-        <form className="space-y-5">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label>Invoice number</Label>
-              <Input {...form.register("invoiceNumber")} />
-              {form.formState.errors.invoiceNumber && (
-                <p className="text-xs text-danger">
-                  {form.formState.errors.invoiceNumber.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <Label>Customer</Label>
-              <Input placeholder="John Alan" {...form.register("customer")} />
-              {form.formState.errors.customer && (
-                <p className="text-xs text-danger">
-                  {form.formState.errors.customer.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <Label>Company</Label>
-              <Input {...form.register("company")} />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input type="email" {...form.register("email")} />
-            </div>
-            <div className="sm:col-span-2">
-              <Label>Billing address</Label>
-              <Input {...form.register("address")} />
-            </div>
+
+        {selected.isLoading ? (
+          <div className="space-y-3 p-5">
+            <Skeleton className="h-12" />
+            <Skeleton className="h-72" />
           </div>
-          <div>
-            <div className="mb-2 grid grid-cols-[1fr_80px_110px_36px] gap-2 text-xs font-medium uppercase text-muted-foreground">
-              <span>Item</span>
-              <span>Qty</span>
-              <span>Rate</span>
-              <span />
-            </div>
-            {fields.map((field, index) => (
-              <div
-                className="mb-2 grid grid-cols-[1fr_80px_110px_36px] gap-2"
-                key={field.id}
-              >
-                <Input
-                  aria-label={`Item ${index + 1}`}
-                  {...form.register(`items.${index}.description`)}
-                />
-                <Input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  {...form.register(`items.${index}.quantity`)}
-                />
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  {...form.register(`items.${index}.rate`)}
-                />
+        ) : (
+          <form className="space-y-5 p-4 sm:p-5" onSubmit={save}>
+            <fieldset
+              disabled={!editable || busy}
+              className="space-y-5 disabled:opacity-70"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <Label>Related deal</Label>
+                  <Select
+                    value={dealId}
+                    onValueChange={(value) =>
+                      form.setValue("dealId", value, { shouldValidate: true })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a deal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(deals.data?.content ?? []).map((deal) => (
+                        <SelectItem key={deal.id} value={deal.id}>
+                          {deal.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.dealId && (
+                    <p className="text-xs text-danger">
+                      {form.formState.errors.dealId.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>Recipient name</Label>
+                  <Input
+                    {...form.register("recipientName")}
+                    placeholder="Use lead details when blank"
+                  />
+                </div>
+                <div>
+                  <Label>Company</Label>
+                  <Input {...form.register("recipientCompany")} />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input type="email" {...form.register("recipientEmail")} />
+                  {form.formState.errors.recipientEmail && (
+                    <p className="text-xs text-danger">
+                      {form.formState.errors.recipientEmail.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>Due date</Label>
+                  <Input type="date" {...form.register("dueDate")} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Billing address</Label>
+                  <Input {...form.register("recipientAddress")} />
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 grid grid-cols-[1fr_86px_130px_38px] gap-2 text-xs font-medium uppercase text-muted-foreground">
+                  <span>Description</span>
+                  <span>Qty</span>
+                  <span>Unit price</span>
+                  <span />
+                </div>
+                {items.fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="mb-2 grid grid-cols-[1fr_86px_130px_38px] gap-2"
+                  >
+                    <Input
+                      aria-label={`Line item ${index + 1}`}
+                      {...form.register(`items.${index}.description`)}
+                    />
+                    <Input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      {...form.register(`items.${index}.quantity`, {
+                        valueAsNumber: true,
+                      })}
+                    />
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      {...form.register(`items.${index}.unitPrice`, {
+                        valueAsNumber: true,
+                      })}
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      disabled={items.fields.length === 1}
+                      onClick={() => items.remove(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
                 <Button
                   type="button"
-                  size="icon"
-                  variant="ghost"
-                  disabled={fields.length === 1}
-                  onClick={() => remove(index)}
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    items.append({ description: "", quantity: 1, unitPrice: 0 })
+                  }
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Plus className="h-4 w-4" />
+                  Add line item
                 </Button>
               </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => append({ description: "", quantity: 1, rate: 0 })}
-            >
-              <Plus className="h-4 w-4" />
-              Add line item
-            </Button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label>Note</Label>
-              <Textarea {...form.register("notes")} />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label>Tax rate (%)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    {...form.register("taxRate", { valueAsNumber: true })}
+                  />
+                </div>
+                <div>
+                  <Label>Discount amount</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...form.register("discountAmount", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>Notes</Label>
+                  <Textarea {...form.register("notes")} />
+                </div>
+                <div>
+                  <Label>Terms</Label>
+                  <Textarea {...form.register("terms")} />
+                </div>
+              </div>
+            </fieldset>
+
+            {invoice && (
+              <div className="rounded-xl border bg-muted/40 p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                  <ShieldCheck className="h-4 w-4 text-success" />
+                  Server-calculated totals
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                  <p>
+                    <span className="block text-xs text-muted-foreground">
+                      Subtotal
+                    </span>
+                    {formatCurrency(invoice.subtotal)}
+                  </p>
+                  <p>
+                    <span className="block text-xs text-muted-foreground">
+                      Tax
+                    </span>
+                    {formatCurrency(invoice.taxAmount)}
+                  </p>
+                  <p>
+                    <span className="block text-xs text-muted-foreground">
+                      Total
+                    </span>
+                    <strong>{formatCurrency(invoice.total)}</strong>
+                  </p>
+                  <p>
+                    <span className="block text-xs text-muted-foreground">
+                      Paid
+                    </span>
+                    {formatCurrency(invoice.paidAmount)}
+                  </p>
+                  <p>
+                    <span className="block text-xs text-muted-foreground">
+                      Balance
+                    </span>
+                    <strong>{formatCurrency(invoice.balanceDue)}</strong>
+                  </p>
+                  <p>
+                    <span className="block text-xs text-muted-foreground">
+                      Version
+                    </span>
+                    {invoice.version}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {invoice?.status === "SEND_FAILED" && (
+              <div className="rounded-xl border border-danger/30 bg-red-50 p-4 text-sm text-red-800 dark:bg-red-950/30 dark:text-red-200">
+                <p className="font-semibold">Delivery failed</p>
+                <p className="mt-1">
+                  {invoice.lastSendError ||
+                    "The mail provider did not return a detailed error."}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap justify-end gap-2">
+              {editable && (
+                <Button type="submit" disabled={busy}>
+                  {busy
+                    ? "Saving…"
+                    : invoice
+                      ? "Save full draft"
+                      : "Create draft"}
+                </Button>
+              )}
+              {invoice?.status === "DRAFT" && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setConfirm("issue")}
+                  >
+                    Issue invoice
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setConfirm("delete")}
+                  >
+                    Delete draft
+                  </Button>
+                </>
+              )}
+              {invoice && invoice.status !== "DRAFT" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void download()}
+                >
+                  <Download className="h-4 w-4" />
+                  PDF
+                </Button>
+              )}
+              {canSend && (
+                <Button type="button" onClick={() => setSendOpen(true)}>
+                  <Send className="h-4 w-4" />
+                  {invoice?.status === "SEND_FAILED" ? "Retry send" : "Send"}
+                </Button>
+              )}
+              {canPay && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    paymentForm.setValue("amount", invoice?.balanceDue ?? 0);
+                    setPaymentOpen(true);
+                  }}
+                >
+                  <Banknote className="h-4 w-4" />
+                  Record payment
+                </Button>
+              )}
+              {canVoid && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setConfirm("void")}
+                >
+                  Void invoice
+                </Button>
+              )}
             </div>
-            <div>
-              <Label>Terms &amp; conditions</Label>
-              <Textarea {...form.register("terms")} />
-            </div>
-          </div>
-          <div className="ml-auto max-w-sm space-y-2 rounded-xl bg-muted/50 p-4">
-            <p className="flex justify-between text-sm">
-              <span>Subtotal</span>
-              <strong>{formatCurrency(subtotal)}</strong>
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Label>
-                Discount %<Input type="number" {...form.register("discount")} />
-              </Label>
-              <Label>
-                Tax %<Input type="number" {...form.register("tax")} />
-              </Label>
-            </div>
-            <p className="flex justify-between border-t pt-3 text-base">
-              <span>Balance due</span>
-              <strong>{formatCurrency(total)}</strong>
-            </p>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-3">
-            <Button type="button" onClick={() => void send()}>
-              <Mail className="h-4 w-4" />
-              Save &amp; send
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void download()}
-            >
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={form.handleSubmit(() => setPreview(true))}
-            >
-              <Eye className="h-4 w-4" />
-              Preview
-            </Button>
-          </div>
-        </form>
+          </form>
+        )}
       </section>
-      <section className="surface min-h-[560px] overflow-hidden">
-        <div className="border-b p-4">
-          <div className="relative max-w-sm">
+
+      <section className="surface h-fit overflow-hidden">
+        <div className="flex flex-wrap gap-2 border-b p-4">
+          <div className="relative min-w-52 flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               className="pl-9"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
               placeholder="Search invoices"
             />
           </div>
+          <Select
+            value={status ?? "ALL"}
+            onValueChange={(value) => {
+              setStatus(value === "ALL" ? undefined : (value as InvoiceStatus));
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All statuses</SelectItem>
+              {[
+                "DRAFT",
+                "ISSUED",
+                "SENDING",
+                "SENT",
+                "SEND_FAILED",
+                "PARTIALLY_PAID",
+                "PAID",
+                "VOID",
+              ].map((value) => (
+                <SelectItem key={value} value={value}>
+                  {value.replaceAll("_", " ")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        {filtered.length === 0 ? (
+        {invoices.isLoading ? (
+          <div className="space-y-2 p-4">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+          </div>
+        ) : invoices.isError ? (
           <EmptyState
-            icon={Search}
-            title="No invoices saved"
-            message="Create and save your first invoice to build a history on this device."
+            icon={AlertCircle}
+            title="Invoices could not be loaded"
+            message="Check your connection and access, then try again."
+          />
+        ) : (invoices.data?.content.length ?? 0) === 0 ? (
+          <EmptyState
+            icon={Mail}
+            title="No invoices found"
+            message="Create a draft or adjust the current filters."
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/60 text-left">
-                <tr>
-                  <th className="p-3">Invoice name</th>
-                  <th className="p-3">Customer</th>
-                  <th className="p-3">Total</th>
-                  <th className="p-3">Created</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filtered.map((item) => (
-                  <tr key={item.id}>
-                    <td className="p-3 font-medium">{item.invoiceNumber}</td>
-                    <td className="p-3">{item.customer}</td>
-                    <td className="p-3">{formatCurrency(item.total)}</td>
-                    <td className="p-3">{formatDate(item.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="divide-y">
+            {invoices.data?.content.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                onClick={() => selectInvoice(item)}
+                className={`flex w-full items-center gap-3 p-4 text-left transition hover:bg-muted/60 ${selectedId === item.id ? "bg-primary/10" : ""}`}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold">
+                    {displayNumber(item)}
+                  </span>
+                  <span className="mt-1 block truncate text-xs text-muted-foreground">
+                    {item.recipientName ||
+                      item.recipientCompany ||
+                      "Recipient from deal"}{" "}
+                    · {formatCurrency(item.total)}
+                  </span>
+                </span>
+                <span className="text-right">
+                  <StatusBadge status={item.status} />
+                  <span className="mt-1 block text-[11px] text-muted-foreground">
+                    {formatDate(item.updatedAt)}
+                  </span>
+                </span>
+              </button>
+            ))}
           </div>
         )}
+        <Pagination
+          page={page}
+          totalPages={Math.max(invoices.data?.totalPages ?? 1, 1)}
+          onPageChange={setPage}
+        />
       </section>
-      <Dialog open={preview} onOpenChange={setPreview}>
-        <DialogContent className="sm:max-w-3xl">
+
+      <Dialog open={sendOpen} onOpenChange={setSendOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Invoice preview</DialogTitle>
+            <DialogTitle>Send invoice</DialogTitle>
             <DialogDescription>
-              Review the invoice before downloading or sending it.
+              The server will attach the generated PDF. Delivery status is
+              checked automatically.
             </DialogDescription>
           </DialogHeader>
-          <div className="rounded-xl border bg-white p-6 text-slate-900">
-            <div className="flex justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold">Invoice</h2>
-                <p>{values.invoiceNumber}</p>
-              </div>
-              <div className="text-right">
-                <strong>Skytech CRM</strong>
-                <p className="text-sm">
-                  {values.customer}
-                  <br />
-                  {values.company}
+          <form
+            className="space-y-4"
+            onSubmit={sendForm.handleSubmit(async (values) => {
+              if (!invoice) return;
+              await sendInvoice.mutateAsync({
+                id: invoice.id,
+                data: {
+                  email: values.email || undefined,
+                  subject: values.subject || undefined,
+                  message: values.message || undefined,
+                },
+              });
+              setSendOpen(false);
+            })}
+          >
+            <div>
+              <Label>Email override</Label>
+              <Input type="email" {...sendForm.register("email")} />
+              {sendForm.formState.errors.email && (
+                <p className="text-xs text-danger">
+                  {sendForm.formState.errors.email.message}
                 </p>
-              </div>
+              )}
             </div>
-            <div className="mt-6 divide-y border-y">
-              {(values.items ?? []).map((item, index) => (
-                <div key={index} className="flex justify-between py-3">
-                  <span>
-                    {item?.description || "Untitled item"} ×{" "}
-                    {item?.quantity ?? 0}
-                  </span>
-                  <strong>
-                    {formatCurrency(
-                      Number(item?.quantity ?? 0) * Number(item?.rate ?? 0),
-                    )}
-                  </strong>
-                </div>
-              ))}
+            <div>
+              <Label>Subject</Label>
+              <Input {...sendForm.register("subject")} />
             </div>
-            <p className="mt-5 flex justify-between text-lg">
-              <span>Balance due</span>
-              <strong>{formatCurrency(total)}</strong>
-            </p>
-          </div>
+            <div>
+              <Label>Message</Label>
+              <Textarea
+                className="min-h-28"
+                {...sendForm.register("message")}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSendOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={sendInvoice.isPending}>
+                {sendInvoice.isPending ? "Queuing…" : "Queue email"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Record invoice payment</DialogTitle>
+            <DialogDescription>
+              This also creates the related PAYMENT deal log. Do not add another
+              payment log.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={paymentForm.handleSubmit(async (values) => {
+              if (!invoice) return;
+              await recordPayment.mutateAsync({
+                id: invoice.id,
+                data: {
+                  amount: values.amount,
+                  paymentMode: values.paymentMode,
+                  reference: values.reference || undefined,
+                  paidAt: new Date(values.paidAt).toISOString(),
+                },
+              });
+              setPaymentOpen(false);
+            })}
+          >
+            <div>
+              <Label>Amount</Label>
+              <Input
+                type="number"
+                min="0.01"
+                max={invoice?.balanceDue}
+                step="0.01"
+                {...paymentForm.register("amount", { valueAsNumber: true })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Current backend balance:{" "}
+                {formatCurrency(invoice?.balanceDue ?? 0)}
+              </p>
+              {paymentForm.formState.errors.amount && (
+                <p className="text-xs text-danger">
+                  {paymentForm.formState.errors.amount.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label>Payment mode</Label>
+              <Select
+                value={paymentMode}
+                onValueChange={(value: PaymentMode) =>
+                  paymentForm.setValue("paymentMode", value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {["MOMO", "BANK_TRANSFER", "CASH", "CHEQUE"].map((mode) => (
+                    <SelectItem key={mode} value={mode}>
+                      {mode.replace("_", " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Reference</Label>
+              <Input {...paymentForm.register("reference")} />
+            </div>
+            <div>
+              <Label>Paid at</Label>
+              <Input
+                type="datetime-local"
+                {...paymentForm.register("paidAt")}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPaymentOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={recordPayment.isPending}>
+                {recordPayment.isPending ? "Recording…" : "Record payment"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmModal
+        open={Boolean(confirm)}
+        onOpenChange={(open) => !open && setConfirm(null)}
+        title={
+          confirm === "issue"
+            ? "Issue this invoice?"
+            : confirm === "delete"
+              ? "Delete this draft?"
+              : "Void this invoice?"
+        }
+        description={
+          confirm === "issue"
+            ? "Issuing freezes the number, line items, issuer details, and financial values."
+            : confirm === "delete"
+              ? "This editable draft will be permanently deleted."
+              : "The invoice will be marked void. Only unpaid issued invoices can be voided."
+        }
+        confirmLabel={
+          confirm === "issue"
+            ? "Issue invoice"
+            : confirm === "delete"
+              ? "Delete draft"
+              : "Void invoice"
+        }
+        pending={actionPending}
+        onConfirm={() => void runConfirmedAction()}
+      />
     </div>
   );
 };

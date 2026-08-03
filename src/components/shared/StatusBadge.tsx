@@ -17,12 +17,20 @@ type Status =
 const style = (status: Status) =>
   status === "DONE" ||
   status === "SENT" ||
+  status === "PAID" ||
   status === "CONVERTED" ||
   status === "QUALIFIED"
     ? "bg-green-50 text-green-700"
-    : status === "OVERDUE" || status === "FAILED" || status === "LOST"
+    : status === "OVERDUE" ||
+        status === "FAILED" ||
+        status === "SEND_FAILED" ||
+        status === "VOID" ||
+        status === "LOST"
       ? "bg-red-50 text-red-700"
-      : status === "DOING" || status === "CONTACTED"
+      : status === "DOING" ||
+          status === "CONTACTED" ||
+          status === "SENDING" ||
+          status === "PARTIALLY_PAID"
         ? "bg-blue-50 text-blue-700"
         : "bg-amber-50 text-amber-700";
 export const StatusBadge = ({
