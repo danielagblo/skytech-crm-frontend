@@ -55,18 +55,19 @@ const schema = z
     ]),
     name: z.string().trim().min(3, "Name this automation.").max(255),
     active: z.boolean(),
-    holidayDate: z.string(),
+    triggerDate: z.string(),
     contactIds: z.array(z.string()),
     steps: z.array(stepSchema).min(1, "Add at least one delivery step."),
   })
   .superRefine((values, context) => {
     if (
-      values.automationType === "PUBLIC_HOLIDAY" &&
-      !/^\d{4}-\d{2}-\d{2}$/.test(values.holidayDate)
+      (values.automationType === "PUBLIC_HOLIDAY" ||
+        values.automationType === "PERSONAL") &&
+      !/^\d{4}-\d{2}-\d{2}$/.test(values.triggerDate)
     )
       context.addIssue({
         code: "custom",
-        path: ["holidayDate"],
+        path: ["triggerDate"],
         message: "Enter the holiday as YYYY-MM-DD.",
       });
   });
@@ -134,7 +135,7 @@ const defaults = (): Values => ({
   automationType: "BIRTHDAY",
   name: "",
   active: true,
-  holidayDate: "",
+  triggerDate: "",
   contactIds: [],
   steps: [{ channel: "BOTH", subject: "", message: "" }],
 });
@@ -193,7 +194,7 @@ export const AutomationBuilderSheet = ({
   const personalExecutable =
     options?.triggerRequirements?.PERSONAL?.executable ??
     typeOptions.find((item) => item.value === "PERSONAL")?.executable ??
-    false;
+    true;
 
   useEffect(() => {
     if (!open) return;
@@ -208,7 +209,7 @@ export const AutomationBuilderSheet = ({
         automation.automationType === "PERSONAL" && !personalExecutable
           ? false
           : automation.active,
-      holidayDate: automation.triggerConfig.date ?? "",
+      triggerDate: automation.triggerConfig.date ?? "",
       contactIds: Array.isArray(automation.triggerConfig.contactIds)
         ? (automation.triggerConfig.contactIds as string[])
         : [],
@@ -231,10 +232,10 @@ export const AutomationBuilderSheet = ({
           : values.active,
       triggerConfig:
         values.automationType === "PUBLIC_HOLIDAY"
-          ? { date: values.holidayDate }
+          ? { date: values.triggerDate }
           : values.automationType === "PERSONAL"
-            ? { contactIds: values.contactIds }
-          : {},
+            ? { date: values.triggerDate, contactIds: values.contactIds }
+            : {},
       steps: values.steps.map(({ channel, subject, message }) => ({
         channel,
         subject: subject || undefined,
@@ -284,9 +285,7 @@ export const AutomationBuilderSheet = ({
                     {typeOptions.map((item) => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label ?? optionLabel(item.value)}
-                        {item.value === "PERSONAL" && !personalExecutable
-                          ? " · no trigger"
-                          : ""}
+                        {item.value === "PERSONAL" ? " · date-based" : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -329,24 +328,26 @@ export const AutomationBuilderSheet = ({
                 </p>
               </div>
             )}
-            {automationType === "PUBLIC_HOLIDAY" && (
+            {(automationType === "PUBLIC_HOLIDAY" || automationType === "PERSONAL") && (
               <div>
-                <Label>Holiday date</Label>
+                <Label>{automationType === "PERSONAL" ? "Trigger date" : "Holiday date"}</Label>
                 <div className="relative">
                   <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="date"
                     className="pl-9"
-                    {...form.register("holidayDate")}
+                    {...form.register("triggerDate")}
                   />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Stored as YYYY-MM-DD. Create next year&apos;s configuration
-                  for annual recurrence.
+                  Stored as YYYY-MM-DD.
+                  {automationType === "PUBLIC_HOLIDAY"
+                    ? " Create next year's configuration for annual recurrence."
+                    : " This date controls when the personal automation starts."}
                 </p>
-                {form.formState.errors.holidayDate && (
+                {form.formState.errors.triggerDate && (
                   <p className="text-xs text-danger">
-                    {form.formState.errors.holidayDate.message}
+                    {form.formState.errors.triggerDate.message}
                   </p>
                 )}
               </div>
@@ -357,15 +358,6 @@ export const AutomationBuilderSheet = ({
                 <p>
                   Runs after a positive deal payment log, including payments
                   recorded through an invoice.
-                </p>
-              </div>
-            )}
-            {automationType === "PERSONAL" && !personalExecutable && (
-              <div className="flex gap-3 rounded-xl border border-warning/30 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
-                <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>
-                  This configuration can be stored, but the backend currently
-                  has no execution trigger. It will be saved inactive.
                 </p>
               </div>
             )}
