@@ -10,7 +10,7 @@ const protectedRoutes = [
   "/settings",
 ];
 
-const hasValidAccessToken = (token?: string) => {
+const hasValidToken = (token?: string) => {
   if (!token) return false;
   if (token.startsWith("demo-"))
     return process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true";
@@ -28,7 +28,8 @@ const hasValidAccessToken = (token?: string) => {
 
 export function proxy(request: NextRequest) {
   const token = request.cookies.get("skytech_access")?.value;
-  const authenticated = hasValidAccessToken(token);
+  const refreshToken = request.cookies.get("skytech_refresh")?.value;
+  const authenticated = hasValidToken(token) || hasValidToken(refreshToken);
   const { pathname } = request.nextUrl;
   const guarded = protectedRoutes.some((route) => pathname.startsWith(route));
   const demoEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_AUTH === "true";

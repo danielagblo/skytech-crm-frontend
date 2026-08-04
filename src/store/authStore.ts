@@ -36,14 +36,22 @@ const read = (key: string) =>
   typeof window === "undefined" ? null : localStorage.getItem(key);
 const cookieOptions = () =>
   `Path=/; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+const persistCookie = (name: string, value: string) => {
+  document.cookie = `${name}=${encodeURIComponent(value)}; ${cookieOptions()}`;
+};
 const persistAccess = (accessToken: string) => {
   localStorage.setItem("skytech_access", accessToken);
-  document.cookie = `skytech_access=${encodeURIComponent(accessToken)}; ${cookieOptions()}`;
+  persistCookie("skytech_access", accessToken);
+};
+const persistRefresh = (refreshToken: string) => {
+  localStorage.setItem("skytech_refresh", refreshToken);
+  persistCookie("skytech_refresh", refreshToken);
 };
 const clearPersisted = () => {
   localStorage.removeItem("skytech_access");
   localStorage.removeItem("skytech_refresh");
   document.cookie = `skytech_access=; ${cookieOptions()}; Max-Age=0`;
+  document.cookie = `skytech_refresh=; ${cookieOptions()}; Max-Age=0`;
 };
 const isTokenValid = (token: string | null) => {
   if (!token) return false;
@@ -69,7 +77,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   hydrated: false,
   setAuth: (user, accessToken, refreshToken) => {
     persistAccess(accessToken);
-    localStorage.setItem("skytech_refresh", refreshToken);
+    persistRefresh(refreshToken);
     set({
       user,
       accessToken,
@@ -96,7 +104,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   rehydrate: () => {
     const accessToken = read("skytech_access");
     const refreshToken = read("skytech_refresh");
-    if (!isTokenValid(accessToken)) {
+    const accessValid = isTokenValid(accessToken);
+    const refreshValid = isTokenValid(refreshToken);
+    if (!accessValid && !refreshValid) {
       clearPersisted();
       set({
         accessToken: null,

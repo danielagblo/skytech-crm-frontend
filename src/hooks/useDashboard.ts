@@ -1,10 +1,12 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "@/services/dashboard.service";
-export const useDashboard = () =>
+import type { DashboardPeriod } from "@/types/dashboard.types";
+
+export const useDashboard = (period: DashboardPeriod = "today") =>
   useQuery({
-    queryKey: ["dashboard", "overview"],
-    queryFn: dashboardService.getOverview,
+    queryKey: ["dashboard", "overview", period],
+    queryFn: () => dashboardService.getOverview(period),
     select: (response) => response.data.data,
   });
 export const useTopDeals = (period: "last_6_months" | "last_year") =>

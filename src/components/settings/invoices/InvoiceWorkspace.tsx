@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -54,6 +54,8 @@ import {
   useUpdateInvoice,
   useVoidInvoice,
 } from "@/hooks/useInvoices";
+import { useDeal } from "@/hooks/useDeals";
+import { useLead } from "@/hooks/useLeads";
 import { invoicesService } from "@/services/invoices.service";
 import type { PaymentMode } from "@/types/api.types";
 import type {
@@ -166,6 +168,7 @@ export const InvoiceWorkspace = () => {
   const [status, setStatus] = useState<InvoiceStatus>();
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [confirm, setConfirm] = useState<"issue" | "delete" | "void" | null>(
@@ -210,19 +213,48 @@ export const InvoiceWorkspace = () => {
     },
   });
   const dealId = useWatch({ control: form.control, name: "dealId" });
+  const draftValues = useWatch({ control: form.control });
   const paymentMode = useWatch({
     control: paymentForm.control,
     name: "paymentMode",
   });
 
   const invoice = selected.data;
+  const selectedDeal = useDeal(dealId);
+  const selectedLead = useLead(selectedDeal.data?.leadId ?? "");
   const editable = !invoice || invoice.status === "DRAFT";
   const busy = createInvoice.isPending || updateInvoice.isPending;
+  const autofillDealRef = useRef("");
 
   useEffect(() => {
     if (!invoice) return;
     form.reset(toDraftValues(invoice));
   }, [form, invoice]);
+
+  useEffect(() => {
+    const relatedLead = selectedLead.data;
+    if (!dealId || !relatedLead || autofillDealRef.current === dealId) return;
+    autofillDealRef.current = dealId;
+    const leadName = [relatedLead.firstName, relatedLead.lastName]
+      .filter(Boolean)
+      .join(" ");
+    form.setValue("recipientName", leadName || relatedLead.companyName || "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    form.setValue("recipientCompany", relatedLead.companyName || "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    form.setValue("recipientEmail", relatedLead.email || "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    form.setValue("recipientAddress", relatedLead.address || "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [dealId, form, selectedLead.data]);
 
   const selectInvoice = (item: Invoice) => {
     setSelectedId(item.id);
@@ -294,6 +326,26 @@ export const InvoiceWorkspace = () => {
     invoice.paidAmount === 0 &&
     ["ISSUED", "SENT", "SEND_FAILED"].includes(invoice.status),
   );
+  const previewLead = selectedLead.data;
+  const previewLeadName = [previewLead?.firstName, previewLead?.lastName]
+    .filter(Boolean)
+    .join(" ");
+  const previewRecipientName =
+    draftValues.recipientName ||
+    previewLeadName ||
+    previewLead?.companyName ||
+    "Recipient";
+  const previewCompany =
+    draftValues.recipientCompany || previewLead?.companyName || "";
+  const previewEmail = draftValues.recipientEmail || previewLead?.email || "";
+  const previewAddress =
+    draftValues.recipientAddress || previewLead?.address || "";
+  const previewSubtotal = (draftValues.items ?? []).reduce((total, item) => {
+    return total + Number(item.quantity || 0) * Number(item.unitPrice || 0);
+  }, 0);
+  const previewTax = previewSubtotal * ((Number(draftValues.taxRate || 0) || 0) / 100);
+  const previewDiscount = Number(draftValues.discountAmount || 0) || 0;
+  const previewTotal = Math.max(previewSubtotal + previewTax - previewDiscount, 0);
 
   return (
     <div className="grid gap-5 2xl:grid-cols-[minmax(600px,.95fr)_1.05fr]">
@@ -572,6 +624,9 @@ export const InvoiceWorkspace = () => {
                   PDF
                 </Button>
               )}
+              <Button type="button" variant="outline" onClick={() => setPreviewOpen(true)}>
+                Preview
+              </Button>
               {canSend && (
                 <Button type="button" onClick={() => setSendOpen(true)}>
                   <Send className="h-4 w-4" />
@@ -604,6 +659,120 @@ export const InvoiceWorkspace = () => {
           </form>
         )}
       </section>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Invoice preview</DialogTitle>
+            <DialogDescription>
+              This previews the current draft, including deal autofill and line
+              item totals.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="space-y-4 rounded-xl border bg-muted/30 p-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Bill to
+                </p>
+                <div className="mt-2 space-y-1 text-sm">
+                  <p className="font-medium">{previewRecipientName}</p>
+                  {previewCompany && <p>{previewCompany}</p>}
+                  {previewEmail && <p>{previewEmail}</p>}
+                  {previewAddress && <p className="whitespace-pre-wrap">{previewAddress}</p>}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Line items
+                </p>
+                <div className="mt-2 space-y-2">
+                  {(draftValues.items ?? []).map((item, index) => {
+                    const quantity = Number(item.quantity || 0);
+                    const unitPrice = Number(item.unitPrice || 0);
+                    const lineTotal = quantity * unitPrice;
+                    return (
+                      <div
+                        key={`${item.description}-${index}`}
+                        className="flex items-start justify-between gap-3 rounded-lg border bg-background p-3 text-sm"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {item.description || `Line item ${index + 1}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {quantity} x {formatCurrency(unitPrice)}
+                          </p>
+                        </div>
+                        <strong>{formatCurrency(lineTotal)}</strong>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4 rounded-xl border bg-background p-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">Due date</p>
+                  <p className="font-medium">{draftValues.dueDate || "Not set"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Tax rate</p>
+                  <p className="font-medium">{draftValues.taxRate ?? 0}%</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Discount</p>
+                  <p className="font-medium">{formatCurrency(draftValues.discountAmount ?? 0)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Deal</p>
+                  <p className="font-medium">{selectedDeal.data?.title || "Not linked"}</p>
+                </div>
+              </div>
+              <div className="rounded-lg bg-muted/40 p-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>Subtotal</span>
+                  <strong>{formatCurrency(previewSubtotal)}</strong>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span>Estimated tax</span>
+                  <strong>{formatCurrency(previewTax)}</strong>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span>Discount</span>
+                  <strong>- {formatCurrency(previewDiscount)}</strong>
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t pt-3 text-base">
+                  <span>Total</span>
+                  <strong>{formatCurrency(previewTotal)}</strong>
+                </div>
+              </div>
+              {draftValues.notes && (
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Notes
+                  </p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{draftValues.notes}</p>
+                </div>
+              )}
+              {draftValues.terms && (
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Terms
+                  </p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{draftValues.terms}</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setPreviewOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <section className="surface h-fit overflow-hidden">
         <div className="flex flex-wrap gap-2 border-b p-4">

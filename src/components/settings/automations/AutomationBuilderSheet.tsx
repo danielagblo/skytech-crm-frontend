@@ -6,6 +6,7 @@ import { CalendarDays, Info, Plus, Trash2, Workflow } from "lucide-react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,6 +26,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
+import { useLeads } from "@/hooks/useLeads";
 import {
   useCreateAutomation,
   useDeleteAutomation,
@@ -54,6 +56,7 @@ const schema = z
     name: z.string().trim().min(3, "Name this automation.").max(255),
     active: z.boolean(),
     holidayDate: z.string(),
+    contactIds: z.array(z.string()),
     steps: z.array(stepSchema).min(1, "Add at least one delivery step."),
   })
   .superRefine((values, context) => {
@@ -132,6 +135,7 @@ const defaults = (): Values => ({
   name: "",
   active: true,
   holidayDate: "",
+  contactIds: [],
   steps: [{ channel: "BOTH", subject: "", message: "" }],
 });
 
@@ -152,6 +156,7 @@ export const AutomationBuilderSheet = ({
   const create = useCreateAutomation();
   const update = useUpdateAutomation();
   const remove = useDeleteAutomation();
+  const leads = useLeads({ page: 0, size: 100 });
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     mode: "onBlur",
@@ -163,6 +168,7 @@ export const AutomationBuilderSheet = ({
     name: "automationType",
   });
   const active = useWatch({ control: form.control, name: "active" });
+  const contactIds = useWatch({ control: form.control, name: "contactIds" });
   const configuredSteps = useWatch({ control: form.control, name: "steps" });
   const rawTypes: unknown[] = Array.isArray(options?.types)
     ? options.types
@@ -203,6 +209,9 @@ export const AutomationBuilderSheet = ({
           ? false
           : automation.active,
       holidayDate: automation.triggerConfig.date ?? "",
+      contactIds: Array.isArray(automation.triggerConfig.contactIds)
+        ? (automation.triggerConfig.contactIds as string[])
+        : [],
       steps: automation.steps.map((step) => ({
         channel: step.channel,
         subject: step.subject ?? "",
@@ -223,6 +232,8 @@ export const AutomationBuilderSheet = ({
       triggerConfig:
         values.automationType === "PUBLIC_HOLIDAY"
           ? { date: values.holidayDate }
+          : values.automationType === "PERSONAL"
+            ? { contactIds: values.contactIds }
           : {},
       steps: values.steps.map(({ channel, subject, message }) => ({
         channel,
@@ -356,6 +367,58 @@ export const AutomationBuilderSheet = ({
                   This configuration can be stored, but the backend currently
                   has no execution trigger. It will be saved inactive.
                 </p>
+              </div>
+            )}
+            {automationType === "PERSONAL" && (
+              <div className="space-y-3 rounded-xl border p-4">
+                <div>
+                  <h3 className="font-semibold">Target contacts</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Select the contacts this personal automation should apply to.
+                  </p>
+                </div>
+                {leads.isLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-10 animate-pulse rounded-lg bg-muted" />
+                    <div className="h-10 animate-pulse rounded-lg bg-muted" />
+                  </div>
+                ) : (
+                  <div className="max-h-72 divide-y overflow-y-auto rounded-lg border">
+                    {(leads.data?.content ?? []).map((lead) => {
+                      const label =
+                        `${lead.firstName ?? ""} ${lead.lastName ?? ""}`.trim() ||
+                        lead.companyName ||
+                        lead.email ||
+                        lead.id;
+                      return (
+                        <label
+                          key={lead.id}
+                          className="flex cursor-pointer items-center gap-3 p-3 hover:bg-muted/50"
+                        >
+                          <Checkbox
+                            checked={contactIds.includes(lead.id)}
+                            onCheckedChange={(checked) => {
+                              const next = checked
+                                ? [...contactIds, lead.id]
+                                : contactIds.filter((id) => id !== lead.id);
+                              form.setValue("contactIds", next, {
+                                shouldValidate: true,
+                              });
+                            }}
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-medium">
+                              {label}
+                            </span>
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {lead.companyName || lead.category || "Contact"}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 

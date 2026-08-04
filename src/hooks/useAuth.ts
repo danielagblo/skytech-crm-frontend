@@ -22,7 +22,7 @@ export const useLogin = () => {
             ? `Welcome, ${data.data.user.firstName}.`
             : "Welcome to Skytech CRM.",
         );
-        router.replace("/home");
+          window.location.assign("/home");
         return;
       }
       sessionStorage.setItem("skytech_user_id", data.data.userId);
@@ -49,7 +49,7 @@ export const useVerifyOtp = () => {
       sessionStorage.removeItem("skytech_login_attempt");
       sessionStorage.removeItem("skytech_user_id");
       toast.success(`Welcome, ${data.data.user.firstName}.`);
-      router.replace("/home");
+      window.location.assign("/home");
     },
     onError: (error) =>
       toast.error(

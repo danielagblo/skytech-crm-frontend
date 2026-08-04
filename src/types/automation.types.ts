@@ -14,7 +14,8 @@ export interface AutomationStep {
 
 export interface AutomationTriggerConfig {
   date?: string;
-  [key: string]: string | number | boolean | undefined;
+  contactIds?: string[];
+  [key: string]: string | number | boolean | string[] | undefined;
 }
 
 export interface Automation {

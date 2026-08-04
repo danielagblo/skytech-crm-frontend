@@ -7,6 +7,12 @@ export interface CallStats {
   successRate: number;
 }
 
+export type DashboardPeriod =
+  | "today"
+  | "this_week"
+  | "this_month"
+  | "three_months";
+
 export interface DashboardOverview {
   outgoingCalls: CallStats;
   incomingCalls: CallStats;

@@ -27,11 +27,12 @@ const schema = z.object({
   name: z.string().min(3, "Name this broadcast."),
   message: z.string().min(1, "Write a message.").max(160),
   channel: z.enum(["SMS", "EMAIL"]),
-  scheduledAt: z.string().optional(),
 });
 type Values = z.infer<typeof schema>;
 export const BroadcastComposer = () => {
-  const [segments, setSegments] = useState<string[]>([]);
+  const [leadIds, setLeadIds] = useState<string[]>([]);
+  const [stages, setStages] = useState<string[]>([]);
+  const [scheduleTimes, setScheduleTimes] = useState([""]);
   const create = useCreateBroadcast();
   const send = useSendBroadcast();
   const schedule = useScheduleBroadcast();
@@ -45,41 +46,59 @@ export const BroadcastComposer = () => {
   } = useForm<Values>({
     resolver: zodResolver(schema),
     mode: "onBlur",
-    defaultValues: { name: "", message: "", channel: "SMS", scheduledAt: "" },
+    defaultValues: { name: "", message: "", channel: "SMS" },
   });
   const values = useWatch({ control });
+  const buildFilter = () => {
+    if (!leadIds.length && !stages.length) return null;
+    return {
+      ...(leadIds.length ? { leadIds } : {}),
+      ...(stages.length ? { stages } : {}),
+    };
+  };
   const process = (scheduled: boolean) =>
     handleSubmit(async (data) => {
-      if (!segments.length) {
-        toast.error("Select a recipient segment before continuing.");
+      const segmentFilter = buildFilter();
+      if (!segmentFilter) {
+        toast.error("Select at least one audience group or contact.");
         return;
       }
-      if (
-        scheduled &&
-        (!data.scheduledAt || new Date(data.scheduledAt) <= new Date())
-      ) {
-        toast.error(
-          "Choose a future date and time for the scheduled broadcast.",
-        );
+      const times = scheduleTimes.map((value) => value.trim()).filter(Boolean);
+      if (scheduled && times.length === 0) {
+        toast.error("Add at least one future schedule time.");
         return;
       }
-      const segmentFilter =
-        segments[0] === "all" ? { all: true } : { stage: segments[0] };
       try {
-        const created = await create.mutateAsync({
-          name: data.name,
-          messageContent: data.message,
-          channel: data.channel as BroadcastChannel,
-          segmentFilter,
-        });
-        if (scheduled && data.scheduledAt)
-          await schedule.mutateAsync({
-            id: created.data.data.id,
-            scheduledAt: new Date(data.scheduledAt).toISOString(),
+        if (scheduled) {
+          for (const time of times) {
+            if (new Date(time) <= new Date()) {
+              toast.error("Choose only future schedule times.");
+              return;
+            }
+            const created = await create.mutateAsync({
+              name: data.name,
+              messageContent: data.message,
+              channel: data.channel as BroadcastChannel,
+              segmentFilter,
+            });
+            await schedule.mutateAsync({
+              id: created.data.data.id,
+              scheduledAt: new Date(time).toISOString(),
+            });
+          }
+        } else {
+          const created = await create.mutateAsync({
+            name: data.name,
+            messageContent: data.message,
+            channel: data.channel as BroadcastChannel,
+            segmentFilter,
           });
-        else await send.mutateAsync(created.data.data.id);
+          await send.mutateAsync(created.data.data.id);
+        }
         reset();
-        setSegments([]);
+        setLeadIds([]);
+        setStages([]);
+        setScheduleTimes([""]);
       } catch {
         /* Mutation hooks present the backend's actionable error. */
       }
@@ -87,7 +106,12 @@ export const BroadcastComposer = () => {
   const pending = create.isPending || send.isPending || schedule.isPending;
   return (
     <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
-      <ContactSegmentSelector selected={segments} onChange={setSegments} />
+      <ContactSegmentSelector
+        selectedLeadIds={leadIds}
+        selectedStages={stages}
+        onLeadIdsChange={setLeadIds}
+        onStagesChange={setStages}
+      />
       <section className="surface p-5">
         <div className="mb-5">
           <h2 className="text-lg font-semibold">Message composer</h2>
@@ -142,9 +166,43 @@ export const BroadcastComposer = () => {
           </div>
           <div>
             <Label>Schedule date and time</Label>
-            <Input type="datetime-local" {...register("scheduledAt")} />
+            <div className="space-y-2">
+              {scheduleTimes.map((value, index) => (
+                <div key={`${index}-${value}`} className="flex gap-2">
+                  <Input
+                    type="datetime-local"
+                    value={value}
+                    onChange={(event) => {
+                      const next = [...scheduleTimes];
+                      next[index] = event.target.value;
+                      setScheduleTimes(next);
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={scheduleTimes.length === 1}
+                    onClick={() =>
+                      setScheduleTimes((current) =>
+                        current.filter((_, itemIndex) => itemIndex !== index),
+                      )
+                    }
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setScheduleTimes((current) => [...current, ""])}
+              >
+                Add another time
+              </Button>
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Required only when you choose Schedule.
+              Schedule multiple sends by adding more times. Each time creates a
+              queued broadcast.
             </p>
           </div>
           <div className="flex justify-end gap-2">

@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,9 +27,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useCreateLead, useUpdateLead } from "@/hooks/useLeads";
+import { LEAD_INDUSTRIES } from "@/lib/crm-options";
 
 const schema = z.object({
-  assigneeId: z.string().optional(),
+  assigneeIds: z.array(z.string()).default([]),
   firstName: z.string().min(2, "Enter a first name."),
   lastName: z.string().min(2, "Enter a last name."),
   birthday: z.string().optional(),
@@ -43,8 +45,7 @@ const schema = z.object({
   ]),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   companyName: z.string().min(2, "Enter a company name."),
-  industry: z.string().min(2, "Enter an industry."),
-  category: z.string().min(2, "Enter a category."),
+  industry: z.string().min(2, "Choose an industry."),
   phone1: z.string().min(8, "Enter a valid phone number."),
   phone2: z.string().optional(),
   whatsapp: z.string().optional(),
@@ -68,7 +69,7 @@ const schema = z.object({
 type Values = z.infer<typeof schema>;
 
 const defaults: Values = {
-  assigneeId: "",
+  assigneeIds: [],
   firstName: "",
   lastName: "",
   birthday: "",
@@ -77,7 +78,6 @@ const defaults: Values = {
   priority: "MEDIUM",
   companyName: "",
   industry: "",
-  category: "",
   phone1: "",
   phone2: "",
   whatsapp: "",
@@ -123,7 +123,7 @@ export const CreateLeadModal = ({
     reset(
       lead
         ? {
-            assigneeId: lead.assignedTo[0] ?? "",
+            assigneeIds: lead.assignedTo ?? [],
             firstName: lead.firstName ?? "",
             lastName: lead.lastName ?? "",
             birthday: lead.birthday ?? "",
@@ -131,8 +131,7 @@ export const CreateLeadModal = ({
             leadSource: lead.leadSource ?? "SMS",
             priority: lead.priority ?? "MEDIUM",
             companyName: lead.companyName ?? "",
-            industry: lead.industry ?? "",
-            category: lead.category ?? "",
+            industry: lead.industry ?? lead.category ?? "",
             phone1: lead.phone1 ?? "",
             phone2: lead.phone2 ?? "",
             whatsapp: lead.whatsapp ?? "",
@@ -152,7 +151,7 @@ export const CreateLeadModal = ({
 
   const submit = handleSubmit((values) => {
     const data = {
-      assignedTo: values.assigneeId ? [values.assigneeId] : [],
+      assignedTo: values.assigneeIds,
       firstName: values.firstName,
       lastName: values.lastName,
       birthday: values.birthday || undefined,
@@ -161,7 +160,7 @@ export const CreateLeadModal = ({
       priority: values.priority as Priority,
       companyName: values.companyName,
       industry: values.industry,
-      category: values.category,
+      category: values.industry,
       phone1: values.phone1,
       phone2: values.phone2 || undefined,
       whatsapp: values.whatsapp || undefined,
@@ -193,6 +192,13 @@ export const CreateLeadModal = ({
     errors[name] && (
       <p className="text-xs text-danger">{errors[name]?.message}</p>
     );
+  const selectedAssignees = new Set(toggles.assigneeIds ?? []);
+  const toggleAssignee = (id: string) => {
+    const next = selectedAssignees.has(id)
+      ? (toggles.assigneeIds ?? []).filter((value) => value !== id)
+      : [...(toggles.assigneeIds ?? []), id];
+    setValue("assigneeIds", next, { shouldValidate: true });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -202,28 +208,26 @@ export const CreateLeadModal = ({
         </DialogHeader>
         <form className="space-y-5" onSubmit={submit}>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
+            <div className="sm:col-span-2 lg:col-span-3">
               <Label>Assign to</Label>
-              <Select
-                value={toggles.assigneeId || "UNASSIGNED"}
-                onValueChange={(value) =>
-                  setValue("assigneeId", value === "UNASSIGNED" ? "" : value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
-                  {users
-                    .filter((user) => user.active)
-                    .map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {users
+                  .filter((user) => user.active)
+                  .map((user) => (
+                    <label
+                      key={user.id}
+                      className="flex items-center gap-3 rounded-xl border px-3 py-2 text-sm"
+                    >
+                      <Checkbox
+                        checked={selectedAssignees.has(user.id)}
+                        onCheckedChange={() => toggleAssignee(user.id)}
+                      />
+                      <span>
                         {user.firstName} {user.lastName}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+                      </span>
+                    </label>
+                  ))}
+              </div>
             </div>
             <div>
               <Label>First name</Label>
@@ -296,13 +300,24 @@ export const CreateLeadModal = ({
             </div>
             <div>
               <Label>Industry</Label>
-              <Input {...register("industry")} />
+              <Select
+                value={toggles.industry}
+                onValueChange={(value) =>
+                  setValue("industry", value, { shouldValidate: true })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LEAD_INDUSTRIES.map((industry) => (
+                    <SelectItem key={industry} value={industry}>
+                      {industry}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {error("industry")}
-            </div>
-            <div>
-              <Label>Category</Label>
-              <Input {...register("category")} />
-              {error("category")}
             </div>
             <div>
               <Label>Phone</Label>
