@@ -50,7 +50,7 @@ export type ResponseType = "POSITIVE" | "NEGATIVE" | "NEUTRAL" | "NO_RESPONSE";
 export type PaymentMode = "MOMO" | "BANK_TRANSFER" | "CASH" | "CHEQUE";
 export type ServiceType = "HOSTING" | "DOMAIN" | "MAINTENANCE";
 export type CalendarEventType =
-  "CALL_LOG_FOLLOWUP" | "PAYMENT_DUE" | "MEETING" | "REMINDER";
+  "CALL_LOG_FOLLOWUP" | "PAYMENT_DUE" | "MEETING" | "REMINDER" | "TASK_DUE";
 export type AutomationType =
   "BIRTHDAY" | "PUBLIC_HOLIDAY" | "PAYMENT" | "PERSONAL";
 export type BroadcastChannel = "SMS" | "EMAIL";

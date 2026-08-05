@@ -8,6 +8,7 @@ const colors: Record<CalendarEventType, string> = {
   MEETING: "border-violet-200 bg-violet-50 text-violet-900",
   PAYMENT_DUE: "border-amber-200 bg-amber-50 text-amber-900",
   REMINDER: "border-green-200 bg-green-50 text-green-900",
+  TASK_DUE: "border-slate-200 bg-slate-50 text-slate-900",
 };
 export const CalendarEventCard = ({
   event,

@@ -66,7 +66,9 @@ export const EventDetailModal = ({
             <div>
               <p className="eyebrow">Description</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {event.description}
+                {event.eventType === "TASK_DUE"
+                  ? event.description.replace(/\n\[TASK_ID=[^\]]+\]$/, "")
+                  : event.description}
               </p>
             </div>
           )}

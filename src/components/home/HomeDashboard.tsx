@@ -13,6 +13,7 @@ import { FollowUpReminders } from "./FollowUpReminders";
 import { ActivityLog } from "@/components/activity/ActivityLog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePermission } from "@/hooks/usePermission";
 import {
   Select,
   SelectContent,
@@ -31,6 +32,7 @@ export const HomeDashboard = () => {
   const sixMonths = useTopDeals("last_6_months");
   const year = useTopDeals("last_year");
   const user = useAuthStore((state) => state.user);
+  const { can } = usePermission();
   if (overview.isLoading)
     return (
       <div className="space-y-4">
@@ -93,7 +95,7 @@ export const HomeDashboard = () => {
         />
       </div>
       <FollowUpReminders rows={data.followUpReminders} />
-      <ActivityLog />
+      {can("view:settings") && <ActivityLog />}
     </div>
   );
 };
