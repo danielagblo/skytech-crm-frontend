@@ -224,7 +224,7 @@ export const TaskDetail = ({
                   >
                     Cancel
                   </Button>
-                  <Button disabled={createSubtask.isPending}>
+                  <Button type="submit" disabled={createSubtask.isPending}>
                     {createSubtask.isPending ? "Adding…" : "Add subtask"}
                   </Button>
                 </div>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { useDashboard, useTopDeals } from "@/hooks/useDashboard";
 import { useAuthStore } from "@/store/authStore";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { CallStatsCard } from "./CallStatsCard";
 import { ExecutivePerformanceTable } from "./ExecutivePerformanceTable";
 import { AgentRankCard } from "./AgentRankCard";
@@ -23,6 +24,9 @@ import type { DashboardPeriod } from "@/types/dashboard.types";
 import { DASHBOARD_PERIODS } from "@/lib/crm-options";
 export const HomeDashboard = () => {
   const [period, setPeriod] = useState<DashboardPeriod>("today");
+  const periodLabel =
+    DASHBOARD_PERIODS.find((option) => option.value === period)?.label ??
+    "Today";
   const overview = useDashboard(period);
   const sixMonths = useTopDeals("last_6_months");
   const year = useTopDeals("last_year");
@@ -48,6 +52,10 @@ export const HomeDashboard = () => {
   const data = overview.data;
   return (
     <div className="space-y-6">
+      <PageHeader
+        title={periodLabel}
+        description="Your sales operation at a glance"
+      />
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-white/70 p-4 shadow-sm backdrop-blur">
         <div>
           <p className="eyebrow">Timeframe</p>

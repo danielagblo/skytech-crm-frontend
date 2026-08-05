@@ -205,7 +205,7 @@ export const CreateDealButton = () => {
               <Label>Notes</Label>
               <Textarea {...register("notes")} />
             </div>
-            <Button className="w-full" disabled={create.isPending}>
+            <Button type="submit" className="w-full" disabled={create.isPending}>
               {create.isPending ? "Creating…" : "Create deal"}
             </Button>
           </form>

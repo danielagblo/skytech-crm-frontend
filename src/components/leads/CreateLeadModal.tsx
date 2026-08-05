@@ -409,7 +409,7 @@ export const CreateLeadModal = ({
             <Textarea {...register("description")} />
             {error("description")}
           </div>
-          <Button className="w-full" disabled={pending}>
+          <Button className="w-full" disabled={pending} type="submit">
             {pending ? "Saving…" : "Save lead"}
           </Button>
         </form>

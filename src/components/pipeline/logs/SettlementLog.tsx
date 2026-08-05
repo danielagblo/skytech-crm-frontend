@@ -78,7 +78,7 @@ export const SettlementLog = ({
             )}
           </div>
         </div>
-        <Button className="w-full" disabled={mutation.isPending}>
+        <Button type="submit" className="w-full" disabled={mutation.isPending}>
           {mutation.isPending ? "Saving…" : "Save log"}
         </Button>
       </form>

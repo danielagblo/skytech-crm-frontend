@@ -221,7 +221,7 @@ export const AddAgentModal = ({
                 </p>
               )}
             </div>
-            <Button className="w-full" disabled={pending}>
+            <Button type="submit" className="w-full" disabled={pending}>
               {pending ? "Saving…" : "Save agent"}
             </Button>
             {agent && can("manage:users") && (

@@ -166,7 +166,7 @@ export const PaymentLog = ({
             </Select>
           </div>
         </div>
-        <Button className="w-full" disabled={mutation.isPending}>
+        <Button type="submit" className="w-full" disabled={mutation.isPending}>
           {mutation.isPending ? "Saving…" : "Save payment"}
         </Button>
       </form>

@@ -7,6 +7,13 @@ import {
 } from "lucide-react";
 import type { Activity, ActivityType } from "@/types/activity.types";
 import { formatRelative } from "@/lib/utils";
+const humanizeActivityType = (type: ActivityType) =>
+  type
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/(^|\s)([a-z])/g, (_, prefix, letter: string) =>
+      `${prefix}${letter.toUpperCase()}`,
+    );
 const ActivityGlyph = ({ type }: { type: ActivityType }) => {
   const className = "h-4 w-4 text-green-700";
   if (type.includes("COMMENT")) return <MessageSquare className={className} />;
@@ -23,10 +30,10 @@ export const ActivityItem = ({ activity }: { activity: Activity }) => (
     </span>
     <div className="min-w-0">
       <p className="truncate text-sm font-medium">
-        {activity.eventType.replaceAll("_", " ")}
+        {activity.description.trim() || humanizeActivityType(activity.eventType)}
       </p>
       <p className="truncate text-xs text-muted-foreground">
-        {activity.description}
+        {humanizeActivityType(activity.eventType)}
       </p>
       <p className="mt-1 text-[10px] text-gray-400">
         {formatRelative(activity.createdAt)}

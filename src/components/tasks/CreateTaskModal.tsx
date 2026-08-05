@@ -278,7 +278,7 @@ export const CreateTaskModal = ({
                   </div>
                 ))}
               </div>
-              <Button className="w-full" disabled={create.isPending}>
+              <Button type="submit" className="w-full" disabled={create.isPending}>
                 {create.isPending ? "Creating…" : "Create task"}
               </Button>
             </form>
