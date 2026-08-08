@@ -97,8 +97,7 @@ export const PaymentLog = ({
           </div>
         ))}
       </div>
-      <LogFeed dealId={deal.id} logs={logs} users={users} />
-      <form onSubmit={submit} className="space-y-3 border-t pt-4">
+      <form onSubmit={submit} className="space-y-3 border-b pb-4">
         <div>
           <Label>Amount</Label>
           <Input type="number" step="0.01" {...register("amount")} />
@@ -170,6 +169,7 @@ export const PaymentLog = ({
           {mutation.isPending ? "Saving…" : "Save payment"}
         </Button>
       </form>
+      <LogFeed dealId={deal.id} logs={logs} users={users} />
     </div>
   );
 };

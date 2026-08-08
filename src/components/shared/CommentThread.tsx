@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MessageCircle, Reply } from "lucide-react";
 import type { Comment } from "@/types/deal.types";
 import { formatRelative } from "@/lib/utils";
@@ -22,7 +22,15 @@ export const CommentThread = ({
   const [body, setBody] = useState("");
   const [replying, setReplying] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
-  const roots = comments.filter((comment) => !comment.parentCommentId);
+  const sorted = useMemo(
+    () =>
+      [...comments].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [comments],
+  );
+  const roots = sorted.filter((comment) => !comment.parentCommentId);
   const submit = () => {
     const value = body.trim();
     if (!value || !onAdd) return;
@@ -31,13 +39,36 @@ export const CommentThread = ({
   };
   return (
     <div className="space-y-4">
+      {onAdd && (
+        <div className="flex gap-2">
+          <Input
+            value={body}
+            onChange={(event) => setBody(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                submit();
+              }
+            }}
+            placeholder="Type a comment…"
+          />
+          <Button
+            size="icon"
+            disabled={pending || !body.trim()}
+            onClick={submit}
+            aria-label="Send comment"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
       {roots.length === 0 ? (
         <p className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
           No comments yet. Start the conversation.
         </p>
       ) : (
         roots.map((comment) => {
-          const replies = comments.filter(
+          const replies = sorted.filter(
             (reply) => reply.parentCommentId === comment.id,
           );
           return (
@@ -125,29 +156,6 @@ export const CommentThread = ({
             </div>
           );
         })
-      )}
-      {onAdd && (
-        <div className="flex gap-2">
-          <Input
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                submit();
-              }
-            }}
-            placeholder="Type a comment…"
-          />
-          <Button
-            size="icon"
-            disabled={pending || !body.trim()}
-            onClick={submit}
-            aria-label="Send comment"
-          >
-            <MessageCircle className="h-4 w-4" />
-          </Button>
-        </div>
       )}
     </div>
   );

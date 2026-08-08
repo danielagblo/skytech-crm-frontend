@@ -61,7 +61,12 @@ export const PipelineColumn = ({
           className={`min-h-[520px] space-y-3 rounded-xl p-2 transition ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-white/45"}`}
         >
           {deals.map((deal, index) => (
-            <Draggable key={deal.id} draggableId={deal.id} index={index}>
+            <Draggable
+              key={deal.id}
+              draggableId={deal.id}
+              index={index}
+              disableInteractiveElementBlocking
+            >
               {(drag) => (
                 <div
                   ref={drag.innerRef}

@@ -46,7 +46,12 @@ export const TaskColumn = ({
           className={`min-h-[500px] space-y-3 rounded-xl p-2 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-white/50"}`}
         >
           {tasks.map((task, index) => (
-            <Draggable key={task.id} draggableId={task.id} index={index}>
+            <Draggable
+              key={task.id}
+              draggableId={task.id}
+              index={index}
+              disableInteractiveElementBlocking
+            >
               {(drag) => (
                 <div
                   ref={drag.innerRef}

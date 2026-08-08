@@ -70,8 +70,7 @@ export const NegotiationLog = ({
   );
   return (
     <div className="space-y-5">
-      <LogFeed dealId={deal.id} logs={logs} users={users} />
-      <form className="space-y-3 border-t pt-4" onSubmit={submit}>
+      <form className="space-y-3 border-b pb-4" onSubmit={submit}>
         <h4 className="font-semibold">Add negotiation log</h4>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
@@ -129,6 +128,7 @@ export const NegotiationLog = ({
           {mutation.isPending ? "Saving…" : "Save log"}
         </Button>
       </form>
+      <LogFeed dealId={deal.id} logs={logs} users={users} />
     </div>
   );
 };

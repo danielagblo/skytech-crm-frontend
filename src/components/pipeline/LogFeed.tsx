@@ -1,4 +1,5 @@
 "use client";
+import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { MoreHorizontal, Star } from "lucide-react";
 import type { DealLog } from "@/types/deal.types";
@@ -30,7 +31,15 @@ export const LogFeed = ({
   });
   const add = useAddDealLogComment();
   const reply = useReplyDealLogComment();
-  if (logs.length === 0)
+  const ordered = useMemo(
+    () =>
+      [...logs].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [logs],
+  );
+  if (ordered.length === 0)
     return (
       <EmptyState
         title="No logs for this stage"
@@ -39,7 +48,7 @@ export const LogFeed = ({
     );
   return (
     <div className="space-y-4">
-      {logs.map((log, index) => {
+      {ordered.map((log, index) => {
         const reviewer = users.find((user) => user.id === log.createdById);
         return (
           <article key={log.id} className="rounded-xl border p-4">

@@ -114,8 +114,7 @@ export const ClientRetentionLog = ({
           );
         })}
       </div>
-      <LogFeed dealId={deal.id} logs={logs} users={users} />
-      <form onSubmit={submit} className="grid gap-3 border-t pt-4">
+      <form onSubmit={submit} className="grid gap-3 border-b pb-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Invoice</Label>
@@ -159,6 +158,7 @@ export const ClientRetentionLog = ({
           {mutation.isPending ? "Saving…" : "Save retention log"}
         </Button>
       </form>
+      <LogFeed dealId={deal.id} logs={logs} users={users} />
     </div>
   );
 };

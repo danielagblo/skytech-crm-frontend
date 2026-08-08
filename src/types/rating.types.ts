@@ -7,6 +7,7 @@ export interface RatingLinkResponse {
   clientEmail: string | null;
   status: RatingLinkStatus;
   message: string | null;
+  link: string;
 }
 
 export interface RatingInfoResponse {

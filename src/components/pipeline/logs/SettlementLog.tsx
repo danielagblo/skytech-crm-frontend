@@ -49,8 +49,7 @@ export const SettlementLog = ({
   );
   return (
     <div className="space-y-5">
-      <LogFeed dealId={deal.id} logs={logs} users={users} />
-      <form onSubmit={submit} className="space-y-3 border-t pt-4">
+      <form onSubmit={submit} className="space-y-3 border-b pb-4">
         <h4 className="font-semibold">Settlement details</h4>
         <div>
           <Label>Special conditions</Label>
@@ -82,6 +81,7 @@ export const SettlementLog = ({
           {mutation.isPending ? "Saving…" : "Save log"}
         </Button>
       </form>
+      <LogFeed dealId={deal.id} logs={logs} users={users} />
     </div>
   );
 };

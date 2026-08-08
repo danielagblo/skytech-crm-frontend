@@ -24,6 +24,8 @@ export interface DashboardOverview {
     revenue: number;
     conversionRate: number;
     rating: number;
+    rank: number;
+    score: number;
   }[];
   followUpReminders: {
     dealId: string;

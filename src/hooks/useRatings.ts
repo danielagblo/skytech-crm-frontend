@@ -10,11 +10,15 @@ export const useRequestRatingLink = () =>
     mutationFn: (dealId: string) => ratingsService.request(dealId),
     onSuccess: (response) => {
       const link = response.data.data;
+      console.log("========== CLIENT RATING LINK ==========");
+      console.log(`Deal status: ${link.status} | Client email: ${link.clientEmail ?? "none"}`);
+      console.log(`Rate here: ${link.link}`);
+      console.log("=========================================");
       if (link.status === "SENT")
         toast.success("A rating link was emailed to the client.");
       else if (link.status === "ALREADY_SENT")
         toast.info("A rating link is already pending for this client.");
-      else toast.info("The client has no email on record, so no rating link was sent.");
+      else toast.info("The client has no email, so the rating link will be sent by SMS if a phone number is on record.");
     },
     onError: (error) =>
       toast.error(getApiErrorMessage(error, "The rating link could not be sent.")),
