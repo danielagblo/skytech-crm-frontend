@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { MoreHorizontal, Star } from "lucide-react";
+import { MoreHorizontal, PhoneCall, Star } from "lucide-react";
 import type { DealLog } from "@/types/deal.types";
 import type { User } from "@/types/user.types";
 import { dealsService } from "@/services/deals.service";
@@ -10,6 +10,16 @@ import { formatDate, formatTime, formatCurrency } from "@/lib/utils";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { CommentThread } from "@/components/shared/CommentThread";
 import { EmptyState } from "@/components/shared/EmptyState";
+
+const humanize = (value: string | null) =>
+  value == null ? null : value.replaceAll("_", " ").toLowerCase();
+
+const formatMinutes = (seconds: number | null) =>
+  seconds == null
+    ? null
+    : `${Math.floor(seconds / 60)}:${Math.round(seconds % 60)
+        .toString()
+        .padStart(2, "0")}`;
 
 export const LogFeed = ({
   dealId,
@@ -78,10 +88,21 @@ export const LogFeed = ({
               {log.contactMode && (
                 <span>{log.contactMode.replace("_", " ")}</span>
               )}
+              {log.callDirection && (
+                <span>• {humanize(log.callDirection)}</span>
+              )}
+              {log.callOutcome && (
+                <span>• {humanize(log.callOutcome)}</span>
+              )}
+              {log.callDurationSeconds != null && (
+                <span className="inline-flex items-center gap-0.5">
+                  <PhoneCall className="h-3 w-3" />• {formatMinutes(log.callDurationSeconds)}
+                </span>
+              )}
               {log.responseType && (
                 <span>• {log.responseType.replace("_", " ")}</span>
               )}
-              {log.amountPaid && (
+              {log.amountPaid != null && (
                 <span>• {formatCurrency(log.amountPaid)}</span>
               )}
               <span className="flex">

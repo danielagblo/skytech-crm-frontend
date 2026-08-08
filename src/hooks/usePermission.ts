@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store/authStore";
 import type { Role } from "@/types/api.types";
 
 export type Permission =
+  | "view:executive-performance"
   | "delete:leads"
   | "delete:deals"
   | "delete:tasks"
@@ -13,6 +14,7 @@ export type Permission =
   | "manage:automations"
   | "manage:invoices";
 const access: Record<Permission, Role[]> = {
+  "view:executive-performance": ["ADMIN", "MANAGER"],
   "delete:leads": ["ADMIN"],
   "delete:deals": ["ADMIN"],
   "delete:tasks": ["ADMIN"],

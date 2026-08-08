@@ -116,8 +116,15 @@ export const useDeleteTask = () => {
 export const useUpdateTaskStatus = () => {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: TaskStatus }) =>
-      tasksService.updateStatus(id, status),
+    mutationFn: ({
+      id,
+      status,
+      reason,
+    }: {
+      id: string;
+      status: TaskStatus;
+      reason?: string;
+    }) => tasksService.updateStatus(id, status, reason),
     onSuccess: () => {
       void invalidate(client);
       toast.success("Task status updated.");

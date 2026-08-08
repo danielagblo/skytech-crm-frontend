@@ -30,8 +30,11 @@ export const tasksService = {
   update: (id: string, data: UpdateTaskRequest) =>
     api.put<ApiResponse<Task>>(`/tasks/${id}`, data),
   delete: (id: string) => api.delete<ApiResponse<void>>(`/tasks/${id}`),
-  updateStatus: (id: string, status: TaskStatus) =>
-    api.put<ApiResponse<Task>>(`/tasks/${id}/status`, { status }),
+  updateStatus: (id: string, status: TaskStatus, reason?: string) =>
+    api.put<ApiResponse<Task>>(`/tasks/${id}/status`, {
+      status,
+      ...(reason ? { reason } : {}),
+    }),
   getSubtasks: (taskId: string, page = 0, size = 100) =>
     api.get<PaginatedResponse<SubTask>>(`/tasks/${taskId}/subtasks`, {
       params: { page, size },

@@ -9,6 +9,7 @@ import { ExecutivePerformanceTable } from "./ExecutivePerformanceTable";
 import { AgentRankCard } from "./AgentRankCard";
 import { RevenueChart } from "./RevenueChart";
 import { TopDealsChart } from "./TopDealsChart";
+import { UpcomingActivity } from "./UpcomingActivity";
 import { FollowUpReminders } from "./FollowUpReminders";
 import { ActivityLog } from "@/components/activity/ActivityLog";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -54,22 +55,18 @@ export const HomeDashboard = () => {
   const data = overview.data;
   return (
     <div className="space-y-6">
-
-
-      <div className="">
-        <div className="flex justify-between">
-          <PageHeader
-            title={periodLabel}
-            description="Your sales operation at a glance"
-          />
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-white/70 p-4 shadow-sm backdrop-blur">
-            <div>
+      <PageHeader
+        title={periodLabel}
+        description="Your sales operation at a glance"
+        actions={
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-white/70 p-3 shadow-sm backdrop-blur">
+            <div className="pr-1">
               <p className="eyebrow">Timeframe</p>
-              <p className="text-sm text-muted-foreground">
-                Filter dashboard metrics by recent activity.
-              </p>
             </div>
-            <Select value={period} onValueChange={(value: DashboardPeriod) => setPeriod(value)}>
+            <Select
+              value={period}
+              onValueChange={(value: DashboardPeriod) => setPeriod(value)}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -82,29 +79,24 @@ export const HomeDashboard = () => {
               </SelectContent>
             </Select>
           </div>
-        </div>
-        <div className="grid gap-4 xl:grid-cols-2">
+        }
+      />
+
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        <div className="space-y-4">
           <CallStatsCard title="Outgoing calls" stats={data.outgoingCalls} />
           <CallStatsCard title="Incoming calls" stats={data.incomingCalls} />
+          <FollowUpReminders rows={data.followUpReminders} />
+        </div>
+        <div className="space-y-4">
+          <UpcomingActivity followUps={data.followUpReminders} />
+          <AgentRankCard user={user} rank={data.agentRank} />
         </div>
       </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-      <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+      {can("view:executive-performance") && (
         <ExecutivePerformanceTable rows={data.executivePerformance} />
-        <AgentRankCard user={user} rank={data.agentRank} />
-      </div>
+      )}
+
       <div className="grid gap-4 xl:grid-cols-2">
         <RevenueChart data={data.topRevenuePerAgent} />
         <TopDealsChart
@@ -113,7 +105,6 @@ export const HomeDashboard = () => {
           gated={sixMonths.isError || year.isError}
         />
       </div>
-      <FollowUpReminders rows={data.followUpReminders} />
       {can("view:settings") && <ActivityLog />}
     </div>
   );

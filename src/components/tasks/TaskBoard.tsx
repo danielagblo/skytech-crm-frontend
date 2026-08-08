@@ -1,6 +1,7 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import { AlertCircle, Plus, Search, TrendingUp } from "lucide-react";
 import type { Task } from "@/types/task.types";
@@ -36,6 +37,8 @@ export const TaskBoard = () => {
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<Priority>();
   const [assignee, setAssignee] = useState<string>();
+  const searchParams = useSearchParams();
+  const openedRef = useRef<string | null>(null);
   const tasks = useTasks({
     search: search || undefined,
     priority,
@@ -57,6 +60,18 @@ export const TaskBoard = () => {
       ),
     [source, statusOverrides],
   );
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openId =
+      searchParams?.get("open") ??
+      new URLSearchParams(window.location.search).get("open");
+    if (!openId || openedRef.current === openId || items.length === 0) return;
+    const target = items.find((task) => task.id === openId);
+    if (!target) return;
+    openedRef.current = openId;
+    const timer = window.setTimeout(() => setSelected(target), 0);
+    return () => window.clearTimeout(timer);
+  }, [searchParams, items]);
   const detailQueries = useQueries({
     queries: items.flatMap((task) => [
       {
@@ -260,6 +275,7 @@ export const TaskBoard = () => {
           await updateStatus.mutateAsync({
             id: overdueResolution.id,
             status: "DONE",
+            reason,
           });
           setStatusOverrides((current) => ({
             ...current,

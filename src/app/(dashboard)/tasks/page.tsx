@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { TaskBoard } from "@/components/tasks/TaskBoard";
 import { PageHeader } from "@/components/shared/PageHeader";
 export const metadata: Metadata = { title: "Task Bar" };
@@ -9,7 +10,9 @@ export default function TasksPage() {
         title="Task Bar"
         description="Plan, assign and finish work across every case"
       />
-      <TaskBoard />
+      <Suspense fallback={null}>
+        <TaskBoard />
+      </Suspense>
     </div>
   );
 }

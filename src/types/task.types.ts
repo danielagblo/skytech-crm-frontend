@@ -13,6 +13,7 @@ export interface Task {
   linkedDealId: string | null;
   dueDate: string | null;
   assigneeIds: string[];
+  completionReason: string | null;
   version: number;
   createdAt: string;
   updatedAt: string;

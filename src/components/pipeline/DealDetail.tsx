@@ -66,7 +66,7 @@ export const DealDetail = ({
   ) => (logs.data ?? []).filter((log) => log.logType === type);
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="max-w-xl p-0">
+      <SheetContent className="max-w-xl p-0 sm:max-w-[min(56rem,50vw)]">
         <div className="p-6">
           <SheetHeader>
             <div className="flex items-center gap-2">
