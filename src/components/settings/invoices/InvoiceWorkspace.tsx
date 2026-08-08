@@ -56,7 +56,6 @@ import {
 } from "@/hooks/useInvoices";
 import { useDeal } from "@/hooks/useDeals";
 import { useLead } from "@/hooks/useLeads";
-import { invoicesService } from "@/services/invoices.service";
 import type { PaymentMode } from "@/types/api.types";
 import type {
   Invoice,
@@ -64,6 +63,12 @@ import type {
   InvoiceStatus,
 } from "@/types/invoice.types";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import InvoicePreview, { type InvoiceData } from "@/components/invoices/InvoicePreview";
+import {
+  downloadInvoicePDF,
+  openInvoicePdf,
+} from "@/components/invoices/InvoicePDF";
+import { useAuthStore } from "@/store/authStore";
 
 const itemSchema = z.object({
   description: z.string().trim().min(2, "Describe this line item.").max(500),
@@ -119,7 +124,7 @@ const defaultDraft = (): DraftValues => ({
   taxRate: 0,
   discountAmount: 0,
   notes: "",
-  terms: "Payment is due within 14 days.",
+  terms: "Payment is due within 14 days. 50% is to be paid upfront.",
   items: [{ description: "", quantity: 1, unitPrice: 0 }],
 });
 
@@ -163,7 +168,20 @@ const requestFrom = (values: DraftValues): InvoiceDraftRequest => ({
 const displayNumber = (invoice: Invoice) =>
   invoice.invoiceNumber ?? `Draft ${invoice.id.slice(0, 8)}`;
 
-export const InvoiceWorkspace = () => {
+export interface InvoiceIssuerSettings {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  taxId?: string;
+  paymentInstructions?: string;
+}
+
+export const InvoiceWorkspace = ({
+  issuerInfo = {},
+}: {
+  issuerInfo?: InvoiceIssuerSettings;
+}) => {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<InvoiceStatus>();
   const [page, setPage] = useState(1);
@@ -220,6 +238,7 @@ export const InvoiceWorkspace = () => {
   });
 
   const invoice = selected.data;
+  const me = useAuthStore((state) => state.user);
   const selectedDeal = useDeal(dealId);
   const selectedLead = useLead(selectedDeal.data?.leadId ?? "");
   const editable = !invoice || invoice.status === "DRAFT";
@@ -289,16 +308,17 @@ export const InvoiceWorkspace = () => {
   const download = async () => {
     if (!invoice) return;
     try {
-      const response = await invoicesService.downloadPdf(invoice.id);
-      const url = URL.createObjectURL(response.data);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${invoice.invoiceNumber ?? "invoice"}.pdf`;
-      anchor.click();
-      URL.revokeObjectURL(url);
+      if (isMobile()) {
+        await openInvoicePdf(previewData);
+      } else {
+        await downloadInvoicePDF(
+          previewData,
+          `${invoice.invoiceNumber ?? "invoice"}.pdf`,
+        );
+      }
       toast.success("Invoice PDF downloaded.");
     } catch {
-      toast.error("The invoice PDF could not be downloaded.");
+      toast.error("The invoice PDF could not be generated.");
     }
   };
 
@@ -340,12 +360,44 @@ export const InvoiceWorkspace = () => {
   const previewEmail = draftValues.recipientEmail || previewLead?.email || "";
   const previewAddress =
     draftValues.recipientAddress || previewLead?.address || "";
-  const previewSubtotal = (draftValues.items ?? []).reduce((total, item) => {
-    return total + Number(item.quantity || 0) * Number(item.unitPrice || 0);
-  }, 0);
-  const previewTax = previewSubtotal * ((Number(draftValues.taxRate || 0) || 0) / 100);
-  const previewDiscount = Number(draftValues.discountAmount || 0) || 0;
-  const previewTotal = Math.max(previewSubtotal + previewTax - previewDiscount, 0);
+  const previewData: InvoiceData = {
+    issuerName: issuerInfo.name || "Skytech",
+    issuerTagline: "Customer Relations",
+    issuerEmail: issuerInfo.email || undefined,
+    issuerPhone: issuerInfo.phone || undefined,
+    issuerAddress: issuerInfo.address || undefined,
+    issuerTaxId: issuerInfo.taxId || undefined,
+    paymentInstructions: issuerInfo.paymentInstructions || undefined,
+    logoUrl: "/assets/skytech_Logo.png",
+    clientName: previewRecipientName,
+    clientCompany: previewCompany,
+    clientAddress: [previewEmail, previewAddress].filter(Boolean).join("\n"),
+    invoiceNo:
+      invoice?.invoiceNumber ??
+      (invoice ? `Draft ${invoice.id.slice(0, 8)}` : "New draft"),
+    date: invoice?.issueDate ?? invoice?.createdAt ?? "—",
+    dueDate: draftValues.dueDate || invoice?.dueDate || "—",
+    items: (draftValues.items ?? []).map((item) => ({
+      description: item.description || "Line item",
+      rate: Number(item.unitPrice || 0),
+      qty: Number(item.quantity || 0),
+    })),
+    taxRatePercent: Number(draftValues.taxRate ?? 0) || 0,
+    discountAmount: Number(draftValues.discountAmount ?? 0) || 0,
+    bankName: "Skybank",
+    accountName: "Skytech Sales",
+    accountNumber: "0000 0000 0000",
+    signatureName: me ? `${me.firstName} ${me.lastName}`.trim() : undefined,
+  };
+
+  const isMobile = () => window.matchMedia("(max-width: 767px)").matches;
+  const openPreview = async () => {
+    try {
+      await openInvoicePdf(previewData);
+    } catch {
+      toast.error("The invoice PDF could not be generated.");
+    }
+  };
 
   return (
     <div className="grid gap-5 2xl:grid-cols-[minmax(600px,.95fr)_1.05fr]">
@@ -558,7 +610,7 @@ export const InvoiceWorkspace = () => {
                     <span className="block text-xs text-muted-foreground">
                       Paid
                     </span>
-                    {formatCurrency(invoice.paidAmount)}
+                    {formatCurrency(invoice.paidAmount || 0)}
                   </p>
                   <p>
                     <span className="block text-xs text-muted-foreground">
@@ -624,7 +676,14 @@ export const InvoiceWorkspace = () => {
                   PDF
                 </Button>
               )}
-              <Button type="button" variant="outline" onClick={() => setPreviewOpen(true)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (isMobile()) void openPreview();
+                  else setPreviewOpen(true);
+                }}
+              >
                 Preview
               </Button>
               {canSend && (
@@ -661,114 +720,26 @@ export const InvoiceWorkspace = () => {
       </section>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="w-full max-w-[95vw] lg:max-w-[70vw]">
           <DialogHeader>
             <DialogTitle>Invoice preview</DialogTitle>
             <DialogDescription>
-              This previews the current draft, including deal autofill and line
-              item totals.
+              Live preview of the current draft following the invoice template.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="space-y-4 rounded-xl border bg-muted/30 p-4">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Bill to
-                </p>
-                <div className="mt-2 space-y-1 text-sm">
-                  <p className="font-medium">{previewRecipientName}</p>
-                  {previewCompany && <p>{previewCompany}</p>}
-                  {previewEmail && <p>{previewEmail}</p>}
-                  {previewAddress && <p className="whitespace-pre-wrap">{previewAddress}</p>}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Line items
-                </p>
-                <div className="mt-2 space-y-2">
-                  {(draftValues.items ?? []).map((item, index) => {
-                    const quantity = Number(item.quantity || 0);
-                    const unitPrice = Number(item.unitPrice || 0);
-                    const lineTotal = quantity * unitPrice;
-                    return (
-                      <div
-                        key={`${item.description}-${index}`}
-                        className="flex items-start justify-between gap-3 rounded-lg border bg-background p-3 text-sm"
-                      >
-                        <div>
-                          <p className="font-medium">
-                            {item.description || `Line item ${index + 1}`}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {quantity} x {formatCurrency(unitPrice)}
-                          </p>
-                        </div>
-                        <strong>{formatCurrency(lineTotal)}</strong>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4 rounded-xl border bg-background p-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Due date</p>
-                  <p className="font-medium">{draftValues.dueDate || "Not set"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Tax rate</p>
-                  <p className="font-medium">{draftValues.taxRate ?? 0}%</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Discount</p>
-                  <p className="font-medium">{formatCurrency(draftValues.discountAmount ?? 0)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Deal</p>
-                  <p className="font-medium">{selectedDeal.data?.title || "Not linked"}</p>
-                </div>
-              </div>
-              <div className="rounded-lg bg-muted/40 p-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span>Subtotal</span>
-                  <strong>{formatCurrency(previewSubtotal)}</strong>
-                </div>
-                <div className="mt-2 flex items-center justify-between">
-                  <span>Estimated tax</span>
-                  <strong>{formatCurrency(previewTax)}</strong>
-                </div>
-                <div className="mt-2 flex items-center justify-between">
-                  <span>Discount</span>
-                  <strong>- {formatCurrency(previewDiscount)}</strong>
-                </div>
-                <div className="mt-3 flex items-center justify-between border-t pt-3 text-base">
-                  <span>Total</span>
-                  <strong>{formatCurrency(previewTotal)}</strong>
-                </div>
-              </div>
-              {draftValues.notes && (
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Notes
-                  </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm">{draftValues.notes}</p>
-                </div>
-              )}
-              {draftValues.terms && (
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Terms
-                  </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm">{draftValues.terms}</p>
-                </div>
-              )}
-            </div>
+          <div className="max-h-[80vh] w-full overflow-y-auto rounded-xl border">
+            <InvoicePreview data={previewData} />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setPreviewOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPreviewOpen(false)}
+            >
               Close
+            </Button>
+            <Button type="button" onClick={() => void openPreview()}>
+              Open as PDF
             </Button>
           </DialogFooter>
         </DialogContent>
