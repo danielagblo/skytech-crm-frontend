@@ -1,12 +1,13 @@
 "use client";
 import { AlertCircle } from "lucide-react";
-import { useDeal, useDealLogs } from "@/hooks/useDeals";
+import { useDeal, useDealLogs, useUpdateDealStage } from "@/hooks/useDeals";
 import { useLead } from "@/hooks/useLeads";
 import { useUsers } from "@/hooks/useUsers";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DealStageStepper } from "./DealStageStepper";
 import { NegotiationLog } from "./logs/NegotiationLog";
 import { SettlementLog } from "./logs/SettlementLog";
 import { PaymentLog } from "./logs/PaymentLog";
@@ -16,6 +17,7 @@ export const DealDetailPage = ({ dealId }: { dealId: string }) => {
   const logs = useDealLogs(dealId);
   const users = useUsers({ page: 0, size: 100 });
   const lead = useLead(deal.data?.leadId ?? "");
+  const updateStage = useUpdateDealStage();
   if (deal.isLoading) return <Skeleton className="h-96 max-w-3xl" />;
   if (deal.isError || !deal.data)
     return (
@@ -33,6 +35,11 @@ export const DealDetailPage = ({ dealId }: { dealId: string }) => {
       <PageHeader
         title={item.title}
         description={`${lead.data?.companyName || "No linked company"} · ${lead.data?.firstName || "No linked contact"}`}
+      />
+      <DealStageStepper
+        stage={item.stage}
+        pending={updateStage.isPending}
+        onChange={(stage) => updateStage.mutate({ id: item.id, stage })}
       />
       <Tabs defaultValue="negotiation">
         <TabsList>

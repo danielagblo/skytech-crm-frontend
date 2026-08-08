@@ -21,15 +21,39 @@ export default function AutomationsPage() {
   const [active, setActive] = useState("birthday");
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editing, setEditing] = useState<Automation | null>(null);
+  const [activeOverrides, setActiveOverrides] = useState<
+    Record<string, boolean>
+  >({});
   const automations = useAutomations({ page: 0, size: 100 });
   const options = useAutomationOptions();
   const toggle = useToggleAutomation();
   const items = automations.data?.content ?? [];
+  const applyOverrides = (list: Automation[]) =>
+    list.map((item) => ({
+      ...item,
+      active: activeOverrides[item.id] ?? item.active,
+    }));
+  const handleToggle = (id: string) => {
+    const current =
+      activeOverrides[id] ?? items.find((item) => item.id === id)?.active;
+    setActiveOverrides((currentMap) => ({
+      ...currentMap,
+      [id]: !current,
+    }));
+    toggle.mutate(id, {
+      onError: () =>
+        setActiveOverrides((currentMap) => {
+          const next = { ...currentMap };
+          delete next[id];
+          return next;
+        }),
+    });
+  };
   const content =
     active === "birthday" ? (
       <BirthdayAutomation
-        items={items.filter((item) => item.automationType === "BIRTHDAY")}
-        onToggle={(id) => toggle.mutate(id)}
+        items={applyOverrides(items.filter((item) => item.automationType === "BIRTHDAY"))}
+        onToggle={handleToggle}
         pending={toggle.isPending}
         onEdit={(item) => {
           setEditing(item);
@@ -38,8 +62,8 @@ export default function AutomationsPage() {
       />
     ) : active === "holidays" ? (
       <HolidayAutomation
-        items={items.filter((item) => item.automationType === "PUBLIC_HOLIDAY")}
-        onToggle={(id) => toggle.mutate(id)}
+        items={applyOverrides(items.filter((item) => item.automationType === "PUBLIC_HOLIDAY"))}
+        onToggle={handleToggle}
         pending={toggle.isPending}
         onEdit={(item) => {
           setEditing(item);
@@ -48,8 +72,8 @@ export default function AutomationsPage() {
       />
     ) : active === "payment" ? (
       <PaymentAutomation
-        items={items.filter((item) => item.automationType === "PAYMENT")}
-        onToggle={(id) => toggle.mutate(id)}
+        items={applyOverrides(items.filter((item) => item.automationType === "PAYMENT"))}
+        onToggle={handleToggle}
         pending={toggle.isPending}
         onEdit={(item) => {
           setEditing(item);
@@ -58,8 +82,8 @@ export default function AutomationsPage() {
       />
     ) : (
       <PersonalAutomation
-        items={items.filter((item) => item.automationType === "PERSONAL")}
-        onToggle={(id) => toggle.mutate(id)}
+        items={applyOverrides(items.filter((item) => item.automationType === "PERSONAL"))}
+        onToggle={handleToggle}
         pending={toggle.isPending}
         onEdit={(item) => {
           setEditing(item);

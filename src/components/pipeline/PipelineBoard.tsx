@@ -56,6 +56,36 @@ export const PipelineBoard = () => {
     items.map((deal, index) => [deal.id, logQueries[index]?.data ?? []]),
   );
 
+  const commitStage = (id: string, stage: DealStage) => {
+    const previous = stageOverrides[id];
+    setStageOverrides((current) => ({
+      ...current,
+      [id]: stage,
+    }));
+    setSelected((current) =>
+      current && current.id === id ? { ...current, stage } : current,
+    );
+    updateStage.mutate(
+      { id, stage },
+      {
+        onError: () => {
+          const original =
+            previous ?? sourceDeals.find((deal) => deal.id === id)?.stage;
+          setStageOverrides((current) => {
+            const next = { ...current };
+            if (previous) next[id] = previous;
+            else delete next[id];
+            return next;
+          });
+          setSelected((current) =>
+            current && current.id === id
+              ? { ...current, stage: original ?? stage }
+              : current,
+          );
+        },
+      },
+    );
+  };
   const drop = (result: DropResult) => {
     if (!result.destination) return;
     const stage = result.destination.droppableId as DealStage;
@@ -64,23 +94,7 @@ export const PipelineBoard = () => {
       result.source.index === result.destination.index
     )
       return;
-    const previous = stageOverrides[result.draggableId];
-    setStageOverrides((current) => ({
-      ...current,
-      [result.draggableId]: stage,
-    }));
-    updateStage.mutate(
-      { id: result.draggableId, stage },
-      {
-        onError: () =>
-          setStageOverrides((current) => {
-            const next = { ...current };
-            if (previous) next[result.draggableId] = previous;
-            else delete next[result.draggableId];
-            return next;
-          }),
-      },
-    );
+    commitStage(result.draggableId, stage);
   };
   if (pipeline.isLoading || leads.isLoading || users.isLoading)
     return (
@@ -122,7 +136,9 @@ export const PipelineBoard = () => {
         )}
         users={users.data?.content ?? []}
         open={Boolean(selected)}
+        pending={updateStage.isPending}
         onOpenChange={(value) => !value && setSelected(null)}
+        onStageChange={(stage) => selected && commitStage(selected.id, stage)}
       />
     </>
   );

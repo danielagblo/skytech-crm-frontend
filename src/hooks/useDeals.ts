@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { dealsService } from "@/services/deals.service";
+import { useRequestRatingLink } from "@/hooks/useRatings";
 import type { DealStage } from "@/types/api.types";
 import type {
   CreateDealLogRequest,
@@ -104,6 +105,7 @@ export const useUpdateDealStage = () => {
 };
 export const useAddDealLog = () => {
   const client = useQueryClient();
+  const requestRating = useRequestRatingLink();
   return useMutation({
     mutationFn: ({
       dealId,
@@ -118,6 +120,7 @@ export const useAddDealLog = () => {
       });
       void invalidate(client);
       toast.success("Interaction log saved.");
+      requestRating.mutate(variables.dealId);
     },
     onError: (error) =>
       toast.error(

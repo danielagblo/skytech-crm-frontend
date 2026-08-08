@@ -84,6 +84,43 @@ export const TaskBoard = () => {
       },
     ]),
   );
+  const commitStatus = (id: string, status: TaskStatus) => {
+    const previous = statusOverrides[id];
+    setStatusOverrides((current) => ({
+      ...current,
+      [id]: status,
+    }));
+    setSelected((current) =>
+      current && current.id === id ? { ...current, status } : current,
+    );
+    updateStatus.mutate(
+      { id, status },
+      {
+        onError: () => {
+          const original =
+            previous ?? source.find((task) => task.id === id)?.status;
+          setStatusOverrides((current) => {
+            const next = { ...current };
+            if (previous) next[id] = previous;
+            else delete next[id];
+            return next;
+          });
+          setSelected((current) =>
+            current && current.id === id
+              ? { ...current, status: original ?? status }
+              : current,
+          );
+        },
+      },
+    );
+  };
+  const moveStatus = (task: Task, status: TaskStatus) => {
+    if (task.status === "OVERDUE" && status === "DONE") {
+      setOverdueResolution(task);
+      return;
+    }
+    commitStatus(task.id, status);
+  };
   const drop = (result: DropResult) => {
     if (!result.destination) return;
     const status = result.destination.droppableId as TaskStatus;
@@ -92,29 +129,9 @@ export const TaskBoard = () => {
       result.source.index === result.destination.index
     )
       return;
-    if (result.source.droppableId === "OVERDUE" && status === "DONE") {
-      setOverdueResolution(
-        items.find((task) => task.id === result.draggableId) ?? null,
-      );
-      return;
-    }
-    const previous = statusOverrides[result.draggableId];
-    setStatusOverrides((current) => ({
-      ...current,
-      [result.draggableId]: status,
-    }));
-    updateStatus.mutate(
-      { id: result.draggableId, status },
-      {
-        onError: () =>
-          setStatusOverrides((current) => {
-            const next = { ...current };
-            if (previous) next[result.draggableId] = previous;
-            else delete next[result.draggableId];
-            return next;
-          }),
-      },
-    );
+    const task = items.find((item) => item.id === result.draggableId);
+    if (!task) return;
+    moveStatus(task, status);
   };
   if (tasks.isLoading || users.isLoading)
     return (
@@ -228,7 +245,9 @@ export const TaskBoard = () => {
         task={selected}
         users={users.data?.content ?? []}
         open={Boolean(selected)}
+        pending={updateStatus.isPending}
         onOpenChange={(value) => !value && setSelected(null)}
+        onStatusChange={(status) => selected && moveStatus(selected, status)}
       />
       <CreateTaskModal open={create} onOpenChange={setCreate} />
       <OverdueResolutionModal
@@ -246,6 +265,11 @@ export const TaskBoard = () => {
             ...current,
             [overdueResolution.id]: "DONE",
           }));
+          setSelected((current) =>
+            current && current.id === overdueResolution.id
+              ? { ...current, status: "DONE" }
+              : current,
+          );
           try {
             await createActivity.mutateAsync({
               eventType: "TASK_STATUS_CHANGED",

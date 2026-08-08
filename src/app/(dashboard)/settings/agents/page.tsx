@@ -24,6 +24,9 @@ export default function AgentsPage() {
   const [agent, setAgent] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [assignmentOverride, setAssignmentOverride] = useState<boolean | null>(
+    null,
+  );
   const users = useUsers({ page: page - 1, size: 20 });
   const leads = useLeads({ page: 0, size: 5 });
   const assignment = useLeadAssignmentSettings();
@@ -94,14 +97,18 @@ export default function AgentsPage() {
               </p>
             </div>
             <Switch
-              checked={Boolean(assignment.data?.enabled)}
+              checked={assignmentOverride ?? Boolean(assignment.data?.enabled)}
               disabled={updateAssignment.isPending}
-              onCheckedChange={(enabled) =>
-                updateAssignment.mutate({
-                  enabled,
-                  config: assignment.data?.config ?? {},
-                })
-              }
+              onCheckedChange={(enabled) => {
+                setAssignmentOverride(enabled);
+                updateAssignment.mutate(
+                  {
+                    enabled,
+                    config: assignment.data?.config ?? {},
+                  },
+                  { onError: () => setAssignmentOverride(null) },
+                );
+              }}
             />
           </div>
           <div className="mt-4 divide-y">

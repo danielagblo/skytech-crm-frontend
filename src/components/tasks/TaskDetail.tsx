@@ -5,7 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Bell, Plus, UserRound } from "lucide-react";
-import type { Priority } from "@/types/api.types";
+import type { Priority, TaskStatus } from "@/types/api.types";
 import type { Task } from "@/types/task.types";
 import type { User } from "@/types/user.types";
 import {
@@ -38,6 +38,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { SubTaskList } from "./SubTaskList";
+import { TaskStatusStepper } from "./TaskStatusStepper";
 import { CommentThread } from "@/components/shared/CommentThread";
 
 const subtaskSchema = z.object({
@@ -51,15 +52,22 @@ export const TaskDetail = ({
   task,
   users,
   open,
+  pending,
   onOpenChange,
+  onStatusChange,
 }: {
   task: Task | null;
   users: User[];
   open: boolean;
+  pending?: boolean;
   onOpenChange: (value: boolean) => void;
+  onStatusChange: (status: TaskStatus) => void;
 }) => {
   const [adding, setAdding] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [reminderOverride, setReminderOverride] = useState<
+    Record<string, boolean>
+  >({});
   const subtasks = useTaskSubtasks(task?.id ?? "");
   const comments = useTaskComments(task?.id ?? "");
   const createSubtask = useCreateSubtask();
@@ -107,6 +115,11 @@ export const TaskDetail = ({
           </div>
         </SheetHeader>
         <div className="space-y-6">
+          <TaskStatusStepper
+            status={task.status}
+            pending={pending}
+            onStatusChange={onStatusChange}
+          />
           <div className="grid gap-3 rounded-xl bg-muted p-4 text-sm">
             <p className="flex items-center gap-2">
               <UserRound className="h-4 w-4" />
@@ -123,18 +136,32 @@ export const TaskDetail = ({
                 Allow reminder
               </span>
               <Switch
-                checked={task.allowReminder}
+                checked={reminderOverride[task.id] ?? task.allowReminder}
                 disabled={update.isPending}
-                onCheckedChange={(allowReminder) =>
-                  update.mutate({
-                    id: task.id,
-                    data: {
-                      title: task.title,
-                      allowReminder,
-                      version: task.version,
+                onCheckedChange={(allowReminder) => {
+                  setReminderOverride((current) => ({
+                    ...current,
+                    [task.id]: allowReminder,
+                  }));
+                  update.mutate(
+                    {
+                      id: task.id,
+                      data: {
+                        title: task.title,
+                        allowReminder,
+                        version: task.version,
+                      },
                     },
-                  })
-                }
+                    {
+                      onError: () =>
+                        setReminderOverride((current) => {
+                          const next = { ...current };
+                          delete next[task.id];
+                          return next;
+                        }),
+                    },
+                  );
+                }}
               />
             </div>
           </div>
