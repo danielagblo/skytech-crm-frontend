@@ -16,6 +16,7 @@ export interface InvoiceLineItem {
   quantity: number;
   unitPrice: number;
   lineTotal?: number;
+  subLines?: string[];
 }
 
 export interface InvoicePayment {
@@ -72,13 +73,17 @@ export interface InvoiceDraftRequest {
   recipientCompany?: string;
   recipientEmail?: string;
   recipientAddress?: string;
-  dueDate?: string;
+  issueDate?: string;
   currency: "GHS";
   taxRate: number;
   discountAmount: number;
   notes?: string;
   terms?: string;
-  items: Array<Pick<InvoiceLineItem, "description" | "quantity" | "unitPrice">>;
+  items: Array<
+    Pick<InvoiceLineItem, "description" | "quantity" | "unitPrice"> & {
+      subLines?: string[];
+    }
+  >;
 }
 
 export interface UpdateInvoiceDraftRequest extends InvoiceDraftRequest {

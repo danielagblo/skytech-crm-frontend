@@ -269,9 +269,22 @@ export function InvoicePDFDocument({
 
           {data.items.map((item, idx) => (
             <View style={styles.tableRow} key={idx}>
-              <Text style={[styles.colDescription, styles.tableCellText]}>
-                {item.description}
-              </Text>
+              <View style={[styles.colDescription, { paddingRight: 6 }]}>
+                <Text style={styles.tableCellText}>{item.description}</Text>
+                {item.subLines?.map((line, subIdx) => (
+                  <Text
+                    key={subIdx}
+                    style={{
+                      color: "#737373",
+                      fontSize: 8,
+                      marginLeft: 4,
+                      marginTop: 1,
+                    }}
+                  >
+                    -- {line}
+                  </Text>
+                ))}
+              </View>
               <Text style={[styles.colRate, styles.tableCellText]}>
                 {item.rate}
               </Text>

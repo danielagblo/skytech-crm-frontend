@@ -15,6 +15,7 @@ export interface InvoiceLineItem {
   description: string;
   rate: number;
   qty: number;
+  subLines?: string[];
 }
 
 export interface InvoiceData {
@@ -183,7 +184,17 @@ export default function InvoicePreview({
                 key={idx}
                 className="grid grid-cols-[1fr_80px_60px_100px] md:grid-cols-[1fr_100px_100px_120px] text-xs md:text-sm text-neutral-700 py-3 border-b border-neutral-100"
               >
-                <span className="pr-2">{item.description}</span>
+                <span className="pr-2">
+                  <span>{item.description}</span>
+                  {item.subLines?.map((line, subIdx) => (
+                    <span
+                      key={`${idx}-${subIdx}`}
+                      className="block ml-3 text-neutral-500"
+                    >
+                      — {line}
+                    </span>
+                  ))}
+                </span>
                 <span>{item.rate}</span>
                 <span>{item.qty}</span>
                 <span className="text-right">

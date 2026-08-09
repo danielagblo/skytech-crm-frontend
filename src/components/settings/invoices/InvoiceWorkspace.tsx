@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
+import { addDays, format } from "date-fns";
 import {
   AlertCircle,
   Banknote,
@@ -68,12 +70,12 @@ import {
   downloadInvoicePDF,
   openInvoicePdf,
 } from "@/components/invoices/InvoicePDF";
-import { useAuthStore } from "@/store/authStore";
 
 const itemSchema = z.object({
   description: z.string().trim().min(2, "Describe this line item.").max(500),
   quantity: z.number().positive("Quantity must be above zero."),
   unitPrice: z.number().min(0, "Unit price cannot be negative."),
+  subLines: z.array(z.string().max(500)).default([]),
 });
 const draftSchema = z.object({
   dealId: z.string().min(1, "Select the related deal."),
@@ -84,7 +86,7 @@ const draftSchema = z.object({
     z.string().email("Enter a valid email.").max(255),
   ]),
   recipientAddress: z.string(),
-  dueDate: z.union([
+  issueDate: z.union([
     z.literal(""),
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD."),
   ]),
@@ -120,12 +122,12 @@ const defaultDraft = (): DraftValues => ({
   recipientCompany: "",
   recipientEmail: "",
   recipientAddress: "",
-  dueDate: "",
+  issueDate: "",
   taxRate: 0,
   discountAmount: 0,
   notes: "",
   terms: "Payment is due within 14 days. 50% is to be paid upfront.",
-  items: [{ description: "", quantity: 1, unitPrice: 0 }],
+  items: [{ description: "Service", quantity: 1, unitPrice: 0, subLines: [] }],
 });
 
 const toDraftValues = (invoice: Invoice): DraftValues => ({
@@ -134,15 +136,16 @@ const toDraftValues = (invoice: Invoice): DraftValues => ({
   recipientCompany: invoice.recipientCompany ?? "",
   recipientEmail: invoice.recipientEmail ?? "",
   recipientAddress: invoice.recipientAddress ?? "",
-  dueDate: invoice.dueDate ?? "",
+  issueDate: invoice.issueDate ?? "",
   taxRate: invoice.taxRate,
   discountAmount: invoice.discountAmount,
   notes: invoice.notes ?? "",
   terms: invoice.terms ?? "",
-  items: invoice.items.map(({ description, quantity, unitPrice }) => ({
+  items: invoice.items.map(({ description, quantity, unitPrice, subLines }) => ({
     description,
     quantity,
     unitPrice,
+    subLines: subLines ?? [],
   })),
 });
 
@@ -152,21 +155,82 @@ const requestFrom = (values: DraftValues): InvoiceDraftRequest => ({
   recipientCompany: values.recipientCompany || undefined,
   recipientEmail: values.recipientEmail || undefined,
   recipientAddress: values.recipientAddress || undefined,
-  dueDate: values.dueDate || undefined,
+  issueDate: values.issueDate || undefined,
   currency: "GHS",
   taxRate: values.taxRate,
   discountAmount: values.discountAmount,
   notes: values.notes || undefined,
   terms: values.terms || undefined,
-  items: values.items.map(({ description, quantity, unitPrice }) => ({
-    description,
-    quantity,
-    unitPrice,
-  })),
+  items: values.items.map(
+    ({ description, quantity, unitPrice, subLines }) => ({
+      description,
+      quantity,
+      unitPrice,
+      subLines: (subLines ?? []).map((line) => line.trim()).filter(Boolean),
+    }),
+  ),
 });
 
 const displayNumber = (invoice: Invoice) =>
   invoice.invoiceNumber ?? `Draft ${invoice.id.slice(0, 8)}`;
+
+const dueDateFromIssue = (issueDate: string) =>
+  issueDate
+    ? format(addDays(new Date(`${issueDate}T00:00:00`), 14), "yyyy-MM-dd")
+    : "";
+
+const ItemSubLineEditor = ({
+  form,
+  index,
+}: {
+  form: UseFormReturn<DraftValues>;
+  index: number;
+}) => {
+  const watched = useWatch({
+    control: form.control,
+    name: `items.${index}.subLines`,
+  });
+  const lines: string[] = Array.isArray(watched) ? watched : [];
+  const append = () => {
+    form.setValue(`items.${index}.subLines`, [...lines, ""], {
+      shouldDirty: true,
+    });
+  };
+  const removeAt = (subIndex: number) => {
+    form.setValue(
+      `items.${index}.subLines`,
+      lines.filter((_, lineIndex) => lineIndex !== subIndex),
+      { shouldDirty: true },
+    );
+  };
+  return (
+    <div className="mt-2 space-y-2 pl-10">
+      {lines.map((_, subIndex) => (
+        <div key={subIndex} className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">-</span>
+          <Input
+            className="h-8 text-sm"
+            placeholder={`Breakdown line ${subIndex + 1}`}
+            aria-label={`Breakdown line ${subIndex + 1} for item ${index + 1}`}
+            {...form.register(`items.${index}.subLines.${subIndex}`)}
+          />
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => removeAt(subIndex)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ))}
+      <Button type="button" size="sm" variant="ghost" onClick={append}>
+        <Plus className="h-3.5 w-3.5" />
+        Add breakdown
+      </Button>
+    </div>
+  );
+};
 
 export interface InvoiceIssuerSettings {
   name?: string;
@@ -238,7 +302,6 @@ export const InvoiceWorkspace = ({
   });
 
   const invoice = selected.data;
-  const me = useAuthStore((state) => state.user);
   const selectedDeal = useDeal(dealId);
   const selectedLead = useLead(selectedDeal.data?.leadId ?? "");
   const editable = !invoice || invoice.status === "DRAFT";
@@ -273,7 +336,25 @@ export const InvoiceWorkspace = ({
       shouldValidate: true,
       shouldDirty: true,
     });
-  }, [dealId, form, selectedLead.data]);
+    const first = form.getValues("items.0");
+    const contractTouched = Number(first?.unitPrice ?? 0) > 0;
+    const descriptionTouched =
+      Boolean(first?.description) && first?.description !== "Service";
+    if (!contractTouched && !descriptionTouched) {
+      form.setValue("items.0.description", "Service", {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      form.setValue("items.0.unitPrice", selectedDeal.data?.contractValue ?? 0, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      form.setValue("items.0.quantity", 1, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [dealId, form, selectedLead.data, selectedDeal.data]);
 
   const selectInvoice = (item: Invoice) => {
     setSelectedId(item.id);
@@ -360,8 +441,19 @@ export const InvoiceWorkspace = ({
   const previewEmail = draftValues.recipientEmail || previewLead?.email || "";
   const previewAddress =
     draftValues.recipientAddress || previewLead?.address || "";
+  const chosenIssueDate =
+    draftValues.issueDate ||
+    (invoice?.issueDate ? String(invoice.issueDate) : "") ||
+    "";
+  const computedDueDate = dueDateFromIssue(chosenIssueDate);
+  const previewDate = chosenIssueDate
+    ? formatDate(chosenIssueDate)
+    : invoice
+      ? formatDate(invoice.createdAt)
+      : "—";
+  const previewDue = computedDueDate || (invoice?.dueDate ? formatDate(invoice.dueDate) : "—");
   const previewData: InvoiceData = {
-    issuerName: issuerInfo.name || "Skytech",
+    issuerName: issuerInfo.name || "Skytech Ghana",
     issuerTagline: "Customer Relations",
     issuerEmail: issuerInfo.email || undefined,
     issuerPhone: issuerInfo.phone || undefined,
@@ -375,19 +467,20 @@ export const InvoiceWorkspace = ({
     invoiceNo:
       invoice?.invoiceNumber ??
       (invoice ? `Draft ${invoice.id.slice(0, 8)}` : "New draft"),
-    date: invoice?.issueDate ?? invoice?.createdAt ?? "—",
-    dueDate: draftValues.dueDate || invoice?.dueDate || "—",
+    date: previewDate,
+    dueDate: previewDue,
     items: (draftValues.items ?? []).map((item) => ({
       description: item.description || "Line item",
       rate: Number(item.unitPrice || 0),
       qty: Number(item.quantity || 0),
+      subLines: (item.subLines ?? []).filter((line) => line.trim()),
     })),
     taxRatePercent: Number(draftValues.taxRate ?? 0) || 0,
     discountAmount: Number(draftValues.discountAmount ?? 0) || 0,
-    bankName: "Skybank",
-    accountName: "Skytech Sales",
-    accountNumber: "0000 0000 0000",
-    signatureName: me ? `${me.firstName} ${me.lastName}`.trim() : undefined,
+    bankName: "-",
+    accountName: "Skytech Ghana",
+    accountNumber: "0-",
+    signatureName: "Daniel Agblo",
   };
 
   const isMobile = () => window.matchMedia("(max-width: 767px)").matches;
@@ -483,8 +576,21 @@ export const InvoiceWorkspace = ({
                   )}
                 </div>
                 <div>
-                  <Label>Due date</Label>
-                  <Input type="date" {...form.register("dueDate")} />
+                  <Label>Issue date</Label>
+                  <Input type="date" {...form.register("issueDate")} />
+                </div>
+                <div>
+                  <Label>Due date (auto)</Label>
+                  <Input
+                    type="date"
+                    readOnly
+                    tabIndex={-1}
+                    value={dueDateFromIssue(draftValues.issueDate ?? "")}
+                    aria-label="Due date, calculated 14 days from the issue date"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    14 days from the issue date.
+                  </p>
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Billing address</Label>
@@ -502,37 +608,40 @@ export const InvoiceWorkspace = ({
                 {items.fields.map((field, index) => (
                   <div
                     key={field.id}
-                    className="mb-2 grid grid-cols-[1fr_86px_130px_38px] gap-2"
+                    className="mb-2 rounded-lg border bg-background p-3"
                   >
-                    <Input
-                      aria-label={`Line item ${index + 1}`}
-                      {...form.register(`items.${index}.description`)}
-                    />
-                    <Input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      {...form.register(`items.${index}.quantity`, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      {...form.register(`items.${index}.unitPrice`, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      disabled={items.fields.length === 1}
-                      onClick={() => items.remove(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="grid grid-cols-[1fr_86px_130px_38px] gap-2">
+                      <Input
+                        aria-label={`Line item ${index + 1}`}
+                        {...form.register(`items.${index}.description`)}
+                      />
+                      <Input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        {...form.register(`items.${index}.quantity`, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        {...form.register(`items.${index}.unitPrice`, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        disabled={items.fields.length === 1}
+                        onClick={() => items.remove(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <ItemSubLineEditor form={form} index={index} />
                   </div>
                 ))}
                 <Button
@@ -540,7 +649,12 @@ export const InvoiceWorkspace = ({
                   size="sm"
                   variant="outline"
                   onClick={() =>
-                    items.append({ description: "", quantity: 1, unitPrice: 0 })
+                    items.append({
+                      description: "",
+                      quantity: 1,
+                      unitPrice: 0,
+                      subLines: [],
+                    })
                   }
                 >
                   <Plus className="h-4 w-4" />
