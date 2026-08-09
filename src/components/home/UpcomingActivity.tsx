@@ -23,6 +23,8 @@ import { useUsers } from "@/hooks/useUsers";
 import { useAuthStore } from "@/store/authStore";
 import { cn } from "@/lib/utils";
 import type { DashboardOverview } from "@/types/dashboard.types";
+import type { Task } from "@/types/task.types";
+import { OverdueResolutionModal } from "@/components/tasks/OverdueResolutionModal";
 import {
   Select,
   SelectContent,
@@ -47,6 +49,7 @@ interface ActivityRow {
   toggleable: boolean;
   onToggle?: () => void;
   reason: string | null;
+  task?: Task;
 }
 
 const RANGES: { value: RangeKey; label: string }[] = [
@@ -89,6 +92,7 @@ export const UpcomingActivity = ({
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [reasonOpen, setReasonOpen] = useState<string | null>(null);
+  const [resolutionTask, setResolutionTask] = useState<Task | null>(null);
   const [now] = useState(() => Date.now());
   const me = useAuthStore((state) => state.user);
   const isStaff = me?.role === "ADMIN" || me?.role === "MANAGER";
@@ -130,6 +134,7 @@ export const UpcomingActivity = ({
         onToggle: () =>
           toggleTask(task.id, task.status === "DONE" ? "TODO" : "DONE"),
         reason: task.completionReason ?? (overdue ? "No reason recorded yet." : null),
+        task,
       };
     }),
     ...(events.data?.content ?? []).map((event): ActivityRow => ({
@@ -263,19 +268,29 @@ export const UpcomingActivity = ({
           pageRows.map((row) => {
             const isNoteOpen = expanded === row.key;
             const isReasonOpen = reasonOpen === row.key;
+            const mine = row.assignees.includes(me?.id ?? "");
             return (
               <ActivityRowView
                 key={row.key}
                 row={row}
                 staff={isStaff}
+                mine={mine}
                 noteOpen={isNoteOpen}
                 reasonOpen={isReasonOpen}
                 onToggleNote={() =>
                   setExpanded(isNoteOpen ? null : row.key)
                 }
-                onToggleReason={() =>
-                  setReasonOpen(isReasonOpen ? null : row.key)
-                }
+                onToggleReason={() => {
+                  if (
+                    row.type === "task" &&
+                    mine &&
+                    row.status === "overdue"
+                  ) {
+                    setResolutionTask(row.task ?? null);
+                  } else {
+                    setReasonOpen(isReasonOpen ? null : row.key);
+                  }
+                }}
                 onOpen={() => row.href && router.push(row.href)}
                 onMarkDone={() => row.onToggle?.()}
               />
@@ -317,6 +332,22 @@ export const UpcomingActivity = ({
           </div>
         </div>
       )}
+
+      <OverdueResolutionModal
+        task={resolutionTask}
+        open={Boolean(resolutionTask)}
+        pending={updateTask.isPending}
+        onOpenChange={(open) => !open && setResolutionTask(null)}
+        onConfirm={async (reason) => {
+          if (!resolutionTask) return;
+          await updateTask.mutateAsync({
+            id: resolutionTask.id,
+            status: "DONE",
+            reason,
+          });
+          setResolutionTask(null);
+        }}
+      />
     </section>
   );
 };
@@ -324,6 +355,7 @@ export const UpcomingActivity = ({
 const ActivityRowView = ({
   row,
   staff,
+  mine,
   noteOpen,
   reasonOpen,
   onToggleNote,
@@ -333,6 +365,7 @@ const ActivityRowView = ({
 }: {
   row: ActivityRow;
   staff: boolean;
+  mine: boolean;
   noteOpen: boolean;
   reasonOpen: boolean;
   onToggleNote: () => void;
@@ -344,7 +377,7 @@ const ActivityRowView = ({
     row.type === "task" ? Target : row.type === "meeting" ? CalendarDays : Clock3;
   const done = row.status === "done";
   const showReason =
-    staff && row.type === "task" && !done;
+    row.type === "task" && !done && (staff || mine);
   const showNote = Boolean(row.note);
   return (
     <div
@@ -397,7 +430,13 @@ const ActivityRowView = ({
         <div className="flex shrink-0 items-center gap-0.5 sm:justify-end">
           {showReason && (
             <RowButton
-              title={reasonOpen ? "Hide reason" : "Why wasn't it completed?"}
+              title={
+                row.status === "overdue" && mine
+                  ? "Explain why it wasn't completed"
+                  : reasonOpen
+                    ? "Hide reason"
+                    : "Why wasn't it completed?"
+              }
               onClick={onToggleReason}
               className="text-red-500 hover:bg-red-50 hover:text-red-600"
             >
