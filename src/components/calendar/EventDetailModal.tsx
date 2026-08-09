@@ -20,7 +20,7 @@ export const EventDetailModal = ({
   onOpenChange: (value: boolean) => void;
 }) => {
   if (!event) return null;
-  const assignees = event.assignees
+  const assignees = (event.assignees ?? [])
     .map((id) => users.find((user) => user.id === id))
     .filter((user): user is User => Boolean(user)) as UserSummary[];
   return (
@@ -31,7 +31,7 @@ export const EventDetailModal = ({
         </DialogHeader>
         <div className="space-y-4">
           <span className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-            {event.eventType.replaceAll("_", " ")}
+            {event.eventType?.replaceAll("_", " ")}
           </span>
           <div>
             <p className="eyebrow">Time</p>

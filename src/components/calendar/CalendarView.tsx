@@ -4,6 +4,7 @@ import {
   addDays,
   addMonths,
   addWeeks,
+  endOfDay,
   endOfWeek,
   format,
   startOfWeek,
@@ -14,6 +15,8 @@ import { AlertCircle, ChevronLeft, ChevronRight, Clock3 } from "lucide-react";
 import type { CalendarEvent } from "@/types/calendar.types";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useUsers } from "@/hooks/useUsers";
+import { useTasks } from "@/hooks/useTasks";
+import { useDashboard } from "@/hooks/useDashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -27,11 +30,13 @@ export const CalendarView = () => {
   const end = endOfWeek(anchor, { weekStartsOn: 1 });
   const calendar = useCalendar({
     from: start.toISOString(),
-    to: end.toISOString(),
+    to: endOfDay(end).toISOString(),
     page: 0,
     size: 100,
   });
   const users = useUsers({ page: 0, size: 100 });
+  const tasks = useTasks({ page: 0, size: 100 });
+  const overview = useDashboard("three_months");
   const days = Array.from({ length: 7 }, (_, index) => addDays(start, index));
   const monthDays = Array.from({ length: 35 }, (_, index) =>
     addDays(
@@ -42,21 +47,70 @@ export const CalendarView = () => {
     ),
   );
   const events = useMemo(() => calendar.data?.content ?? [], [calendar.data]);
+  const taskEvents = useMemo<CalendarEvent[]>(
+    () =>
+      (tasks.data?.content ?? [])
+        .filter((task) => task.dueDate)
+        .map(
+          (task): CalendarEvent => ({
+            id: `task-${task.id}`,
+            title: task.title,
+            description: task.description ?? null,
+            ownerId: task.createdById,
+            linkedLeadId: task.linkedLeadId,
+            linkedDealId: task.linkedDealId,
+            startTime: task.dueDate as string,
+            endTime: task.dueDate as string,
+            eventType: "TASK_DUE",
+            assignees: task.assigneeIds,
+            createdAt: task.createdAt,
+          }),
+        ),
+    [tasks.data],
+  );
+  const followUps = useMemo<CalendarEvent[]>(
+    () =>
+      (overview.data?.followUpReminders ?? []).map(
+        (row): CalendarEvent => ({
+          id: `follow-${row.dealId}-${new Date(row.followUpAt).getTime()}`,
+          title: `${row.type === "SETTLEMENT" ? "Settlement" : "Negotiation"} follow-up · ${row.dealTitle}`,
+          description: null,
+          ownerId: "",
+          linkedLeadId: null,
+          linkedDealId: row.dealId,
+          startTime: row.followUpAt,
+          endTime: row.followUpAt,
+          eventType: "CALL_LOG_FOLLOWUP",
+          assignees: [],
+          createdAt: row.followUpAt,
+        }),
+      ),
+    [overview.data],
+  );
+  const mergedEvents = useMemo<CalendarEvent[]>(() => {
+    const seen = new Set(
+      events.map((item) => `${item.eventType}|${item.startTime}|${item.title}`),
+    );
+    const extra = [...taskEvents, ...followUps].filter(
+      (item) => !seen.has(`${item.eventType}|${item.startTime}|${item.title}`),
+    );
+    return [...events, ...extra];
+  }, [events, taskEvents, followUps]);
   const eventMap = useMemo(
     () =>
       new Map(
         days.map((day) => [
           format(day, "yyyy-MM-dd"),
-          events.filter(
+          mergedEvents.filter(
             (item) =>
               format(new Date(item.startTime), "yyyy-MM-dd") ===
               format(day, "yyyy-MM-dd"),
           ),
         ]),
       ),
-    [days, events],
+    [days, mergedEvents],
   );
-  const next = events
+  const next = mergedEvents
     .filter((item) => new Date(item.startTime) > new Date())
     .sort((a, b) => a.startTime.localeCompare(b.startTime))[0];
   if (calendar.isLoading || users.isLoading)

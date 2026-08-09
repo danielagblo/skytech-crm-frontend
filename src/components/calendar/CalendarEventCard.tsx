@@ -21,12 +21,15 @@ export const CalendarEventCard = ({
 }) => {
   const start = new Date(event.startTime);
   const end = new Date(event.endTime);
-  const top = (start.getHours() + start.getMinutes() / 60 - 8) * 72;
+  const top = Math.max(
+    0,
+    (start.getHours() + start.getMinutes() / 60 - 8) * 72,
+  );
   const height = Math.max(
     ((end.getTime() - start.getTime()) / 3_600_000) * 72,
     42,
   );
-  const assignees = event.assignees
+  const assignees = (event.assignees ?? [])
     .map((id) => users.find((user) => user.id === id))
     .filter((user): user is User => Boolean(user)) as UserSummary[];
   return (
