@@ -3,6 +3,7 @@ import type { CalendarEvent } from "@/types/calendar.types";
 import type { User, UserSummary } from "@/types/user.types";
 import type { CalendarEventType } from "@/types/api.types";
 import { AssigneeStack } from "@/components/shared/AssigneeStack";
+import { START_HOUR, HOUR_HEIGHT } from "./calendar.constants";
 const colors: Record<CalendarEventType, string> = {
   CALL_LOG_FOLLOWUP: "border-blue-200 bg-blue-50 text-blue-900",
   MEETING: "border-violet-200 bg-violet-50 text-violet-900",
@@ -23,10 +24,10 @@ export const CalendarEventCard = ({
   const end = new Date(event.endTime);
   const top = Math.max(
     0,
-    (start.getHours() + start.getMinutes() / 60 - 8) * 72,
+    (start.getHours() + start.getMinutes() / 60 - START_HOUR) * HOUR_HEIGHT,
   );
   const height = Math.max(
-    ((end.getTime() - start.getTime()) / 3_600_000) * 72,
+    ((end.getTime() - start.getTime()) / 3_600_000) * HOUR_HEIGHT,
     42,
   );
   const assignees = (event.assignees ?? [])

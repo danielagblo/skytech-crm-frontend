@@ -22,7 +22,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { CalendarEventCard } from "./CalendarEventCard";
 import { EventDetailModal } from "./EventDetailModal";
-const hours = Array.from({ length: 13 }, (_, index) => index + 8);
+import { START_HOUR, HOUR_HEIGHT, WEEK_HOURS } from "./calendar.constants";
+const hours = Array.from(
+  { length: WEEK_HOURS },
+  (_, index) => index + START_HOUR,
+);
 export const CalendarView = () => {
   const [anchor, setAnchor] = useState(new Date());
   const [event, setEvent] = useState<CalendarEvent | null>(null);
@@ -117,7 +121,7 @@ export const CalendarView = () => {
     return (
       <div className="grid gap-4 xl:grid-cols-[230px_1fr]">
         <Skeleton className="h-96" />
-        <Skeleton className="h-[800px]" />
+        <Skeleton className="h-[640px]" />
       </div>
     );
   if (calendar.isError)
@@ -229,7 +233,8 @@ export const CalendarView = () => {
                   {hours.map((hour) => (
                     <div
                       key={hour}
-                      className="h-[72px] border-b pr-2 pt-1 text-right text-[10px] text-muted-foreground"
+                      className="border-b pr-2 pt-1 text-right text-[10px] text-muted-foreground"
+                      style={{ height: HOUR_HEIGHT }}
                     >
                       {format(new Date(2026, 0, 1, hour), "ha")}
                     </div>
@@ -239,10 +244,14 @@ export const CalendarView = () => {
                   <div
                     key={day.toISOString()}
                     className="relative border-l"
-                    style={{ height: hours.length * 72 }}
+                    style={{ height: hours.length * HOUR_HEIGHT }}
                   >
                     {hours.map((hour) => (
-                      <div key={hour} className="h-[72px] border-b" />
+                      <div
+                        key={hour}
+                        className="border-b"
+                        style={{ height: HOUR_HEIGHT }}
+                      />
                     ))}
                     {eventMap.get(format(day, "yyyy-MM-dd"))?.map((item) => (
                       <CalendarEventCard
