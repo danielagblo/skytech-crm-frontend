@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Bot, Cog, FileText, Radio, Users } from "lucide-react";
+import { ArrowRight, Bot, Cog, FileText, Radio, Target, Users } from "lucide-react";
 import { usePermission, type Permission } from "@/hooks/usePermission";
 import { PageHeader } from "@/components/shared/PageHeader";
 
@@ -39,6 +39,13 @@ const cards: Array<{
     description: "Recipient segments, SMS composer and history.",
     icon: Radio,
     permission: "manage:broadcasts",
+  },
+  {
+    href: "/settings/department-targets",
+    title: "Department Targets",
+    description: "Calls, deals and revenue goals with achievement.",
+    icon: Target,
+    permission: "manage:department-targets",
   },
 ];
 

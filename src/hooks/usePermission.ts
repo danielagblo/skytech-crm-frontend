@@ -12,7 +12,8 @@ export type Permission =
   | "view:all-leads"
   | "manage:broadcasts"
   | "manage:automations"
-  | "manage:invoices";
+  | "manage:invoices"
+  | "manage:department-targets";
 const access: Record<Permission, Role[]> = {
   "view:executive-performance": ["ADMIN", "MANAGER"],
   "delete:leads": ["ADMIN"],
@@ -24,6 +25,7 @@ const access: Record<Permission, Role[]> = {
   "manage:broadcasts": ["ADMIN", "MANAGER"],
   "manage:automations": ["ADMIN", "MANAGER"],
   "manage:invoices": ["ADMIN", "MANAGER"],
+  "manage:department-targets": ["ADMIN", "MANAGER"],
 };
 export const usePermission = () => {
   const role = useAuthStore((state) => state.user?.role);
