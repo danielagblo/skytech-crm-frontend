@@ -7,8 +7,8 @@ export const TARGET_METRIC_LABELS: Record<TargetMetric, string> = {
 };
 
 export const TARGET_METRIC_DESCRIPTIONS: Record<TargetMetric, string> = {
-  CALLS: "Phone calls logged on deals during the month",
-  DEALS_CLOSED: "Deals moved to Client Retention during the month",
+  CALLS: "Phone calls logged on deals during the selected period",
+  DEALS_CLOSED: "Deals moved to Client Retention during the selected period",
   REVENUE: "Amount collected from those deals",
 };
 

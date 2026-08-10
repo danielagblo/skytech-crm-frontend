@@ -17,7 +17,7 @@ export default function DepartmentTargetsPage() {
         actions={
           <div className="flex items-center gap-3">
             <Label htmlFor="period" className="text-sm text-muted-foreground">
-              Month
+              Period
             </Label>
             <Input
               id="period"

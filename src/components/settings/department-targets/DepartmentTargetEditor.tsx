@@ -47,7 +47,7 @@ export const DepartmentTargetEditor = ({ period }: { period: string }) => {
     <section className="surface overflow-hidden">
       <div className="flex items-center justify-between gap-4 border-b p-5">
         <div>
-          <h2 className="font-semibold">Monthly targets</h2>
+          <h2 className="font-semibold">Department targets</h2>
           <p className="text-sm text-muted-foreground">
             Achievements are calculated against enabled targets for {period}.
           </p>
