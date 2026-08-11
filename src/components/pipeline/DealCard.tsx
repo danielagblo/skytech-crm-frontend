@@ -31,7 +31,7 @@ export const DealCard = ({
   return (
     <button
       onClick={onClick}
-      className="w-full rounded-xl border bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="w-full rounded-md border bg-card p-3 text-left shadow-[0_1px_2px_rgba(15,23,42,.04)] transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-2">
         <h4 className="line-clamp-2 text-sm font-semibold">{deal.title}</h4>

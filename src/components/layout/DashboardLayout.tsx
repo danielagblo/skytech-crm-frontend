@@ -12,7 +12,7 @@ export const DashboardLayout = ({
     <Sidebar />
     <div className="min-h-screen pb-[76px] lg:pl-28 lg:pb-0">
       <TopBar />
-      <main className="min-h-[calc(100vh-5.5rem)] bg-[hsl(var(--workspace))] p-3 sm:p-4 lg:p-5">
+      <main className="min-h-[calc(100vh-5.5rem)] bg-[hsl(var(--workspace))] p-3 sm:p-4 lg:p-4 2xl:p-5">
         {children}
       </main>
     </div>

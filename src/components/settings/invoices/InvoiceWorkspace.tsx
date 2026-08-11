@@ -67,7 +67,9 @@ import type {
   InvoiceStatus,
 } from "@/types/invoice.types";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import InvoicePreview, { type InvoiceData } from "@/components/invoices/InvoicePreview";
+import InvoicePreview, {
+  type InvoiceData,
+} from "@/components/invoices/InvoicePreview";
 import {
   downloadInvoicePDF,
   openInvoicePdf,
@@ -143,12 +145,14 @@ const toDraftValues = (invoice: Invoice): DraftValues => ({
   discountAmount: invoice.discountAmount,
   notes: invoice.notes ?? "",
   terms: invoice.terms ?? "",
-  items: invoice.items.map(({ description, quantity, unitPrice, subLines }) => ({
-    description,
-    quantity,
-    unitPrice,
-    subLines: subLines ?? [],
-  })),
+  items: invoice.items.map(
+    ({ description, quantity, unitPrice, subLines }) => ({
+      description,
+      quantity,
+      unitPrice,
+      subLines: subLines ?? [],
+    }),
+  ),
 });
 
 const requestFrom = (values: DraftValues): InvoiceDraftRequest => ({
@@ -163,14 +167,12 @@ const requestFrom = (values: DraftValues): InvoiceDraftRequest => ({
   discountAmount: values.discountAmount,
   notes: values.notes || undefined,
   terms: values.terms || undefined,
-  items: values.items.map(
-    ({ description, quantity, unitPrice, subLines }) => ({
-      description,
-      quantity,
-      unitPrice,
-      subLines: (subLines ?? []).map((line) => line.trim()).filter(Boolean),
-    }),
-  ),
+  items: values.items.map(({ description, quantity, unitPrice, subLines }) => ({
+    description,
+    quantity,
+    unitPrice,
+    subLines: (subLines ?? []).map((line) => line.trim()).filter(Boolean),
+  })),
 });
 
 const displayNumber = (invoice: Invoice) =>
@@ -254,7 +256,9 @@ export const InvoiceWorkspace = ({
   const [selectedId, setSelectedId] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
-  const [receptionOverride, setReceptionOverride] = useState<Record<string, boolean>>({});
+  const [receptionOverride, setReceptionOverride] = useState<
+    Record<string, boolean>
+  >({});
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [confirm, setConfirm] = useState<"issue" | "delete" | "void" | null>(
     null,
@@ -349,10 +353,14 @@ export const InvoiceWorkspace = ({
         shouldValidate: true,
         shouldDirty: true,
       });
-      form.setValue("items.0.unitPrice", selectedDeal.data?.contractValue ?? 0, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
+      form.setValue(
+        "items.0.unitPrice",
+        selectedDeal.data?.contractValue ?? 0,
+        {
+          shouldValidate: true,
+          shouldDirty: true,
+        },
+      );
       form.setValue("items.0.quantity", 1, {
         shouldValidate: true,
         shouldDirty: true,
@@ -422,8 +430,8 @@ export const InvoiceWorkspace = ({
     issueInvoice.isPending || deleteInvoice.isPending || voidInvoice.isPending;
   const canSend = Boolean(
     invoice &&
-      selectedLead.data?.emailOptIn &&
-      ["ISSUED", "SENT", "SEND_FAILED"].includes(invoice.status),
+    selectedLead.data?.emailOptIn &&
+    ["ISSUED", "SENT", "SEND_FAILED"].includes(invoice.status),
   );
   const canPay = Boolean(
     invoice && !["DRAFT", "SENDING", "PAID", "VOID"].includes(invoice.status),
@@ -457,7 +465,8 @@ export const InvoiceWorkspace = ({
     : invoice
       ? formatDate(invoice.createdAt)
       : "—";
-  const previewDue = computedDueDate || (invoice?.dueDate ? formatDate(invoice.dueDate) : "—");
+  const previewDue =
+    computedDueDate || (invoice?.dueDate ? formatDate(invoice.dueDate) : "—");
   const previewData: InvoiceData = {
     issuerName: issuerInfo.name || "Skytech Ghana",
     issuerTagline: "Customer Relations",
@@ -499,8 +508,8 @@ export const InvoiceWorkspace = ({
   };
 
   return (
-    <div className="grid gap-5 2xl:grid-cols-[minmax(600px,.95fr)_1.05fr]">
-      <section className="surface overflow-hidden">
+    <div className="grid gap-4 xl:grid-cols-[minmax(560px,.95fr)_minmax(0,1.05fr)] min-[2200px]:grid-cols-[minmax(760px,.85fr)_1.15fr]">
+      <section className="surface overflow-hidden xl:min-h-[calc(100vh-130px)]">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4 sm:p-5">
           <div>
             <div className="flex items-center gap-2">
@@ -762,11 +771,18 @@ export const InvoiceWorkspace = ({
               <label className="flex items-start gap-3 rounded-xl border p-4">
                 <Checkbox
                   className="mt-0.5"
-                  checked={receptionOverride[invoice.id] ?? invoice.receptionConfirmed}
-                  disabled={invoice.receptionConfirmed || confirmReception.isPending}
+                  checked={
+                    receptionOverride[invoice.id] ?? invoice.receptionConfirmed
+                  }
+                  disabled={
+                    invoice.receptionConfirmed || confirmReception.isPending
+                  }
                   onCheckedChange={(checked) => {
                     if (!checked || invoice.receptionConfirmed) return;
-                    setReceptionOverride((current) => ({ ...current, [invoice.id]: true }));
+                    setReceptionOverride((current) => ({
+                      ...current,
+                      [invoice.id]: true,
+                    }));
                     confirmReception.mutate(invoice.id, {
                       onError: () =>
                         setReceptionOverride((current) => {
@@ -782,19 +798,21 @@ export const InvoiceWorkspace = ({
                     Invoice reception confirmed
                   </span>
                   <span className="mt-1 block text-xs text-muted-foreground">
-                    Check only after the client has definitely received the invoice by email,
-                    print, or in person.
+                    Check only after the client has definitely received the
+                    invoice by email, print, or in person.
                   </span>
                 </span>
               </label>
             )}
 
-            {invoice && !selectedLead.data?.emailOptIn && !["DRAFT", "VOID"].includes(invoice.status) && (
-              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
-                This client has not consented to email communication. Provide a printed copy,
-                then confirm reception above.
-              </div>
-            )}
+            {invoice &&
+              !selectedLead.data?.emailOptIn &&
+              !["DRAFT", "VOID"].includes(invoice.status) && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                  This client has not consented to email communication. Provide
+                  a printed copy, then confirm reception above.
+                </div>
+              )}
 
             <div className="flex flex-wrap justify-end gap-2">
               {editable && (
@@ -903,7 +921,7 @@ export const InvoiceWorkspace = ({
         </DialogContent>
       </Dialog>
 
-      <section className="surface h-fit overflow-hidden">
+      <section className="surface h-fit min-h-[520px] overflow-hidden xl:min-h-[calc(100vh-130px)]">
         <div className="flex flex-wrap gap-2 border-b p-4">
           <div className="relative min-w-52 flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -965,13 +983,17 @@ export const InvoiceWorkspace = ({
             message="Create a draft or adjust the current filters."
           />
         ) : (
-          <div className="divide-y">
+          <div className="divide-y overflow-x-auto">
+            <div className="grid min-w-[520px] grid-cols-[1fr_auto] gap-3 bg-muted/70 px-4 py-3 text-xs font-medium text-muted-foreground">
+              <span>Invoice and customer</span>
+              <span className="text-right">Updated</span>
+            </div>
             {invoices.data?.content.map((item) => (
               <button
                 type="button"
                 key={item.id}
                 onClick={() => selectInvoice(item)}
-                className={`flex w-full items-center gap-3 p-4 text-left transition hover:bg-muted/60 ${selectedId === item.id ? "bg-primary/10" : ""}`}
+                className={`grid min-w-[520px] w-full grid-cols-[1fr_auto] items-center gap-3 p-4 text-left transition hover:bg-muted/60 ${selectedId === item.id ? "bg-primary/10" : ""}`}
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">

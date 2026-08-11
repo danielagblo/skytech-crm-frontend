@@ -36,8 +36,8 @@ export const PipelineColumn = ({
   logs: Record<string, DealLog[]>;
   onOpen: (deal: Deal) => void;
 }) => (
-  <section className="min-w-[285px] flex-1">
-    <div className="mb-3 rounded-xl border bg-white p-3">
+  <section className="min-w-[250px] flex-1 2xl:min-w-[265px] min-[2200px]:min-w-0">
+    <div className="mb-2 border-b bg-card px-2 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className={`h-2.5 w-2.5 rounded-full ${bars[stage]}`} />
@@ -58,7 +58,7 @@ export const PipelineColumn = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`min-h-[520px] space-y-3 rounded-xl p-2 transition ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-white/45"}`}
+          className={`min-h-[520px] space-y-2 p-1.5 transition ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-card/35"}`}
         >
           {deals.map((deal, index) => (
             <Draggable

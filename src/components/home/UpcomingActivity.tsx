@@ -133,7 +133,8 @@ export const UpcomingActivity = ({
         toggleable: true,
         onToggle: () =>
           toggleTask(task.id, task.status === "DONE" ? "TODO" : "DONE"),
-        reason: task.completionReason ?? (overdue ? "No reason recorded yet." : null),
+        reason:
+          task.completionReason ?? (overdue ? "No reason recorded yet." : null),
         task,
       };
     }),
@@ -164,7 +165,7 @@ export const UpcomingActivity = ({
     })),
   ];
 
-  const effectiveFilter = isStaff ? userFilter : me?.id ?? "all";
+  const effectiveFilter = isStaff ? userFilter : (me?.id ?? "all");
   const visible = rows
     .filter((row) => {
       if (
@@ -175,10 +176,8 @@ export const UpcomingActivity = ({
         return false;
       if (row.dueAt) {
         const due = new Date(row.dueAt).getTime();
-        if (range === "next_7_days" && due > now + 7 * DAY_MS)
-          return false;
-        if (range === "next_30_days" && due > now + 30 * DAY_MS)
-          return false;
+        if (range === "next_7_days" && due > now + 7 * DAY_MS) return false;
+        if (range === "next_30_days" && due > now + 30 * DAY_MS) return false;
       }
       return true;
     })
@@ -233,7 +232,7 @@ export const UpcomingActivity = ({
         </Select>
         {isStaff && (
           <Select
-            value={displayName(userFilter) || userFilter}
+            value={userFilter}
             onValueChange={(value) => {
               setUserFilter(value);
               setPage(1);
@@ -277,15 +276,9 @@ export const UpcomingActivity = ({
                 mine={mine}
                 noteOpen={isNoteOpen}
                 reasonOpen={isReasonOpen}
-                onToggleNote={() =>
-                  setExpanded(isNoteOpen ? null : row.key)
-                }
+                onToggleNote={() => setExpanded(isNoteOpen ? null : row.key)}
                 onToggleReason={() => {
-                  if (
-                    row.type === "task" &&
-                    mine &&
-                    row.status === "overdue"
-                  ) {
+                  if (row.type === "task" && mine && row.status === "overdue") {
                     setResolutionTask(row.task ?? null);
                   } else {
                     setReasonOpen(isReasonOpen ? null : row.key);
@@ -303,10 +296,8 @@ export const UpcomingActivity = ({
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-5 py-3">
           <p className="text-xs text-muted-foreground">
             Showing{" "}
-            {visible.length === 0
-              ? 0
-              : (currentPage - 1) * PAGE_SIZE + 1}
-            –{Math.min(currentPage * PAGE_SIZE, visible.length)} of{" "}
+            {visible.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, visible.length)} of{" "}
             {visible.length}
           </p>
           <div className="flex items-center gap-1">
@@ -322,9 +313,7 @@ export const UpcomingActivity = ({
             </span>
             <RowButton
               title="Next page"
-              onClick={() =>
-                setPage((p) => Math.min(totalPages, p + 1))
-              }
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className={currentPage === totalPages ? "opacity-40" : ""}
             >
               <ChevronRight className="h-4 w-4" />
@@ -342,7 +331,7 @@ export const UpcomingActivity = ({
           if (!resolutionTask) return;
           await updateTask.mutateAsync({
             id: resolutionTask.id,
-            status: "DONE",
+            status: resolutionTask.status,
             reason,
           });
           setResolutionTask(null);
@@ -374,16 +363,21 @@ const ActivityRowView = ({
   onMarkDone: () => void;
 }) => {
   const Icon =
-    row.type === "task" ? Target : row.type === "meeting" ? CalendarDays : Clock3;
+    row.type === "task"
+      ? Target
+      : row.type === "meeting"
+        ? CalendarDays
+        : Clock3;
   const done = row.status === "done";
-  const showReason =
-    row.type === "task" && !done && (staff || mine);
+  const showReason = row.type === "task" && !done && (staff || mine);
   const showNote = Boolean(row.note);
   return (
     <div
       className={cn(
         "rounded-lg border p-2.5 transition hover:shadow-sm sm:p-3",
-        row.status === "overdue" ? "border border-red-500" : "hover:border-gray-300",
+        row.status === "overdue"
+          ? "border border-red-500"
+          : "hover:border-gray-300",
       )}
     >
       <div className="grid items-center gap-x-1 gap-y-2 sm:grid-cols-[3fr_2fr_0.5fr]">
@@ -401,7 +395,13 @@ const ActivityRowView = ({
               done ? "text-green-600" : "text-gray-300 hover:text-green-500",
             )}
             aria-label={done ? "Mark not done" : "Mark done"}
-            title={row.toggleable ? (done ? "Mark not done" : "Mark done") : undefined}
+            title={
+              row.toggleable
+                ? done
+                  ? "Mark not done"
+                  : "Mark done"
+                : undefined
+            }
           >
             {done ? (
               <CheckCircle2 className="h-5 w-5" />
@@ -441,7 +441,10 @@ const ActivityRowView = ({
               className="text-red-500 hover:bg-red-50 hover:text-red-600"
             >
               <MessageSquare
-                className={cn("h-5 w-5", reasonOpen && "fill-red-500 text-white")}
+                className={cn(
+                  "h-5 w-5",
+                  reasonOpen && "fill-red-500 text-white",
+                )}
               />
             </RowButton>
           )}

@@ -105,14 +105,14 @@ export const BroadcastComposer = () => {
     })();
   const pending = create.isPending || send.isPending || schedule.isPending;
   return (
-    <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
+    <div className="grid gap-4 xl:grid-cols-[minmax(440px,1fr)_minmax(440px,1fr)] min-[2200px]:grid-cols-[1.1fr_.9fr]">
       <ContactSegmentSelector
         selectedLeadIds={leadIds}
         selectedStages={stages}
         onLeadIdsChange={setLeadIds}
         onStagesChange={setStages}
       />
-      <section className="surface p-5">
+      <section className="surface p-4 sm:p-5">
         <div className="mb-5">
           <h2 className="text-lg font-semibold">Message composer</h2>
           <p className="text-sm text-muted-foreground">

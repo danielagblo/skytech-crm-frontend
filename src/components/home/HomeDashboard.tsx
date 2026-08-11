@@ -82,20 +82,20 @@ export const HomeDashboard = () => {
         }
       />
 
-      <div className="grid items-start gap-4 xl:grid-cols-2">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(440px,.95fr)] min-[2200px]:grid-cols-[minmax(0,1.15fr)_minmax(560px,.85fr)]">
         <div className="space-y-4">
           <CallStatsCard title="Outgoing calls" stats={data.outgoingCalls} />
           <CallStatsCard title="Incoming calls" stats={data.incomingCalls} />
-          <FollowUpReminders rows={data.followUpReminders} />
+          {can("view:executive-performance") && (
+            <ExecutivePerformanceTable rows={data.executivePerformance} />
+          )}
         </div>
         <div className="space-y-4">
           <UpcomingActivity followUps={data.followUpReminders} />
+          <FollowUpReminders rows={data.followUpReminders} />
           <AgentRankCard user={user} rank={data.agentRank} />
         </div>
       </div>
-      {can("view:executive-performance") && (
-        <ExecutivePerformanceTable rows={data.executivePerformance} />
-      )}
 
       <div className="grid gap-4 xl:grid-cols-2">
         <RevenueChart data={data.topRevenuePerAgent} />

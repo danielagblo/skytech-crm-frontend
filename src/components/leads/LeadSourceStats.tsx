@@ -14,15 +14,15 @@ export const LeadSourceStats = ({
   breakdown: Partial<Record<LeadSource, number>>;
   total: number;
 }) => (
-  <div className="surface flex flex-wrap items-center gap-2 rounded-xl p-3">
-    <p className="eyebrow mr-2">Lead source</p>
+  <div className="surface grid grid-cols-3 content-center gap-2 p-3 sm:grid-cols-6 xl:grid-cols-3 min-[2200px]:grid-cols-6">
+    <p className="eyebrow col-span-full">Lead source</p>
     {Object.entries(labels).map(([source, label]) => {
       const count = breakdown[source as LeadSource] ?? 0;
       const percentage = total > 0 ? Math.round((count * 100) / total) : 0;
       return (
         <span
           key={source}
-          className="rounded-full border bg-white px-3 py-1.5 text-xs"
+          className="rounded-md border bg-card px-2.5 py-2 text-xs"
         >
           <strong>{label}</strong>{" "}
           <span className="text-green-700">{percentage}%</span>

@@ -17,7 +17,6 @@
   --accent-foreground: 142 72% 29%;
   --workspace: 120 8% 98%;
   color-scheme: light;
-
 }
 .dark {
   --background: 222 42% 7%;
@@ -53,7 +52,7 @@ select {
 }
 @layer components {
   .surface {
-    @apply rounded-xl border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,23,42,.035)];
+    @apply rounded-lg border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,23,42,.03)];
   }
   .eyebrow {
     @apply text-xs font-medium uppercase tracking-wide text-gray-400;
@@ -122,5 +121,11 @@ select {
 @media (min-width: 3200px) {
   :root {
     font-size: 22px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .surface {
+    @apply border-gray-200;
   }
 }

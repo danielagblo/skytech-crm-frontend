@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { OverdueResolutionModal } from "./OverdueResolutionModal";
 
-const statuses: TaskStatus[] = ["TODO", "DOING", "DONE", "OVERDUE"];
+const statuses: TaskStatus[] = ["TODO", "OVERDUE", "DOING", "DONE"];
 export const TaskBoard = () => {
   const [statusOverrides, setStatusOverrides] = useState<
     Record<string, TaskStatus>
@@ -172,17 +172,25 @@ export const TaskBoard = () => {
     done: items.filter((task) => task.status === "DONE").length,
     overdue: items.filter((task) => task.status === "OVERDUE").length,
   };
+  const priorityCounts = {
+    LOW: items.filter((task) => task.priority === "LOW").length,
+    MEDIUM: items.filter((task) => task.priority === "MEDIUM").length,
+    HIGH: items.filter((task) => task.priority === "HIGH").length,
+  };
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="scrollbar-thin grid auto-cols-[minmax(170px,1fr)] grid-flow-col overflow-x-auto rounded-lg border bg-card">
         {[
+          ["Low Priority", priorityCounts.LOW],
+          ["Medium Priority", priorityCounts.MEDIUM],
+          ["High Priority", priorityCounts.HIGH],
           ["Total Tasks", statsData.total],
           ["Total Task Done", statsData.done],
           ["Overdue", statsData.overdue],
         ].map(([label, value]) => (
           <div
             key={String(label)}
-            className="surface flex items-center justify-between p-4"
+            className="flex items-center justify-between border-r p-4 last:border-r-0"
           >
             <div>
               <p className="eyebrow">{label}</p>
@@ -195,7 +203,7 @@ export const TaskBoard = () => {
           </div>
         ))}
       </div>
-      <div className="surface flex flex-wrap items-center gap-2 rounded-xl p-3">
+      <div className="surface flex flex-wrap items-center gap-2 p-3">
         <div className="relative min-w-56 flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
@@ -243,7 +251,7 @@ export const TaskBoard = () => {
         </Button>
       </div>
       <DragDropContext onDragEnd={drop}>
-        <div className="dot-grid flex min-h-[600px] gap-4 overflow-x-auto rounded-2xl border p-4">
+        <div className="dot-grid flex min-h-[600px] gap-3 overflow-x-auto rounded-lg border p-2 sm:p-3 2xl:gap-4">
           {statuses.map((status) => (
             <TaskColumn
               key={status}
@@ -269,6 +277,7 @@ export const TaskBoard = () => {
         task={overdueResolution}
         open={Boolean(overdueResolution)}
         pending={updateStatus.isPending || createActivity.isPending}
+        mode="complete"
         onOpenChange={(open) => !open && setOverdueResolution(null)}
         onConfirm={async (reason) => {
           if (!overdueResolution) return;

@@ -23,7 +23,7 @@ export const TaskCard = ({
   return (
     <button
       onClick={onClick}
-      className="w-full rounded-xl border bg-white p-3 text-left shadow-sm transition hover:shadow-md"
+      className="w-full rounded-md border bg-card p-3 text-left shadow-[0_1px_2px_rgba(15,23,42,.04)] transition hover:border-primary/60 hover:shadow-md"
     >
       <h4 className="line-clamp-2 text-sm font-semibold">{task.title}</h4>
       <div className="mt-3 flex items-center justify-between">

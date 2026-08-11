@@ -60,7 +60,9 @@ export const PipelineBoard = () => {
   const commitStage = (id: string, stage: DealStage) => {
     const source = sourceDeals.find((deal) => deal.id === id);
     if (stage === "CLIENT_RETENTION" && !source?.paidInFull) {
-      toast.error("Settle the agreed contract amount in full before moving this deal to retention.");
+      toast.error(
+        "Settle the agreed contract amount in full before moving this deal to retention.",
+      );
       return;
     }
     const previous = stageOverrides[id];
@@ -121,7 +123,7 @@ export const PipelineBoard = () => {
   return (
     <>
       <DragDropContext onDragEnd={drop}>
-        <div className="dot-grid scrollbar-thin flex min-h-[620px] gap-4 overflow-x-auto rounded-2xl border p-4">
+        <div className="dot-grid scrollbar-thin flex min-h-[620px] gap-3 overflow-x-auto rounded-lg border p-2 sm:p-3 2xl:gap-4 2xl:p-4">
           {stages.map((stage) => (
             <PipelineColumn
               key={stage}

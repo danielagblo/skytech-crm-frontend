@@ -6,7 +6,6 @@ import { useLeads } from "@/hooks/useLeads";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DEAL_STAGE_LABELS } from "@/lib/crm-options";
 const options = [
   ["all", "All leads"],
   ["NEGOTIATION", "Negotiations"],
@@ -30,7 +29,8 @@ export const ContactSegmentSelector = ({
   const leadItems = useMemo(
     () =>
       (leads.data?.content ?? []).filter((lead) => {
-        const haystack = `${lead.firstName ?? ""} ${lead.lastName ?? ""} ${lead.companyName ?? ""}`.toLowerCase();
+        const haystack =
+          `${lead.firstName ?? ""} ${lead.lastName ?? ""} ${lead.companyName ?? ""}`.toLowerCase();
         return haystack.includes(search.toLowerCase());
       }),
     [leads.data?.content, search],
@@ -57,7 +57,8 @@ export const ContactSegmentSelector = ({
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               {options.slice(1).map(([id, name]) => {
-                const count = id === "all" ? 0 : segments.data?.byStage[id] ?? 0;
+                const count =
+                  id === "all" ? 0 : (segments.data?.byStage[id] ?? 0);
                 return (
                   <label
                     key={id}
@@ -72,9 +73,7 @@ export const ContactSegmentSelector = ({
                         onStagesChange(next);
                       }}
                     />
-                    <span className="flex-1 text-sm font-medium">
-                      {name}
-                    </span>
+                    <span className="flex-1 text-sm font-medium">{name}</span>
                     <span className="rounded-full bg-muted px-2 py-1 text-xs">
                       {count.toLocaleString()}
                     </span>
@@ -98,7 +97,11 @@ export const ContactSegmentSelector = ({
             </div>
             <div className="max-h-72 divide-y overflow-y-auto rounded-lg border">
               {leadItems.map((lead) => {
-                const label = `${lead.firstName ?? ""} ${lead.lastName ?? ""}`.trim() || lead.companyName || lead.email || lead.id;
+                const label =
+                  `${lead.firstName ?? ""} ${lead.lastName ?? ""}`.trim() ||
+                  lead.companyName ||
+                  lead.email ||
+                  lead.id;
                 return (
                   <label
                     key={lead.id}

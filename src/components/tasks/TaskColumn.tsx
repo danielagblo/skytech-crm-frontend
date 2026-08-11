@@ -29,9 +29,9 @@ export const TaskColumn = ({
   counts: Record<string, { subtasks: number; comments: number }>;
   onOpen: (task: Task) => void;
 }) => (
-  <section className="min-w-[280px] flex-1">
+  <section className="min-w-[250px] flex-1 2xl:min-w-[270px] min-[2200px]:min-w-0">
     <div
-      className={`mb-3 flex items-center justify-between rounded-xl px-3 py-2 ${style[status]}`}
+      className={`mb-2 flex items-center justify-between rounded-sm border-l-2 px-3 py-2 ${style[status]}`}
     >
       <h3 className="text-sm font-semibold">{labels[status]}</h3>
       <span className="rounded-full bg-white/70 px-2 text-xs">
@@ -43,7 +43,7 @@ export const TaskColumn = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`min-h-[500px] space-y-3 rounded-xl p-2 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-white/50"}`}
+          className={`min-h-[500px] space-y-2 p-1.5 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-card/35"}`}
         >
           {tasks.map((task, index) => (
             <Draggable
