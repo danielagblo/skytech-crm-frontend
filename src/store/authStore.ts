@@ -36,8 +36,8 @@ const read = (key: string) =>
   typeof window === "undefined" ? null : localStorage.getItem(key);
 const cookieOptions = () =>
   `Path=/; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
-const persistCookie = (name: string, value: string) => {
-  document.cookie = `${name}=${encodeURIComponent(value)}; ${cookieOptions()}`;
+const persistCookie = (name: string, value: string, maxAge?: number) => {
+  document.cookie = `${name}=${encodeURIComponent(value)}; ${cookieOptions()}${maxAge ? `; Max-Age=${maxAge}` : ""}`;
 };
 const persistAccess = (accessToken: string) => {
   localStorage.setItem("skytech_access", accessToken);
@@ -45,7 +45,7 @@ const persistAccess = (accessToken: string) => {
 };
 const persistRefresh = (refreshToken: string) => {
   localStorage.setItem("skytech_refresh", refreshToken);
-  persistCookie("skytech_refresh", refreshToken);
+  persistCookie("skytech_refresh", refreshToken, 60 * 60 * 24 * 7);
 };
 const clearPersisted = () => {
   localStorage.removeItem("skytech_access");
