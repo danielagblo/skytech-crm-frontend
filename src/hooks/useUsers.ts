@@ -9,16 +9,29 @@ import type {
   UpdateUserRequest,
   UserFilters,
 } from "@/types/user.types";
+import {
+  demoPage,
+  demoResponse,
+  demoUsers,
+  demoUserPerformance,
+  isDemoSession,
+} from "@/lib/demo-data";
 export const useUsers = (filters: UserFilters = {}) =>
   useQuery({
     queryKey: ["users", filters],
-    queryFn: () => usersService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoUsers))
+        : usersService.getAll(filters),
     select: (response) => response.data.data,
   });
 export const useUserPerformance = (id: string) =>
   useQuery({
     queryKey: ["user-performance", id],
-    queryFn: () => usersService.getPerformance(id),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoUserPerformance)
+        : usersService.getPerformance(id),
     select: (response) => response.data.data,
     enabled: Boolean(id),
   });

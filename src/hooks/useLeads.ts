@@ -10,6 +10,13 @@ import type {
   LeadFilters,
   UpdateLeadRequest,
 } from "@/types/lead.types";
+import {
+  demoLeadStats,
+  demoLeads,
+  demoPage,
+  demoResponse,
+  isDemoSession,
+} from "@/lib/demo-data";
 
 const refresh = (client: ReturnType<typeof useQueryClient>) =>
   Promise.all([
@@ -20,20 +27,27 @@ const refresh = (client: ReturnType<typeof useQueryClient>) =>
 export const useLeads = (filters: LeadFilters = {}) =>
   useQuery({
     queryKey: ["leads", filters],
-    queryFn: () => leadsService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoLeads))
+        : leadsService.getAll(filters),
     select: (response) => response.data.data,
   });
 export const useLead = (id: string) =>
   useQuery({
     queryKey: ["leads", id],
-    queryFn: () => leadsService.getById(id),
+    queryFn: () => {
+      const demoLead = demoLeads.find((lead) => lead.id === id);
+      return isDemoSession() && demoLead ? demoResponse(demoLead) : leadsService.getById(id);
+    },
     select: (response) => response.data.data,
     enabled: Boolean(id),
   });
 export const useLeadStats = () =>
   useQuery({
     queryKey: ["lead-stats"],
-    queryFn: leadsService.getStats,
+    queryFn: () =>
+      isDemoSession() ? demoResponse(demoLeadStats) : leadsService.getStats(),
     select: (response) => response.data.data,
   });
 export const useLeadAutoAssign = () =>

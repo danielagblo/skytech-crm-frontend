@@ -11,6 +11,12 @@ import type {
   SendInvoiceRequest,
   UpdateInvoiceDraftRequest,
 } from "@/types/invoice.types";
+import {
+  demoInvoices,
+  demoPage,
+  demoResponse,
+  isDemoSession,
+} from "@/lib/demo-data";
 
 const invalidate = (client: ReturnType<typeof useQueryClient>) =>
   Promise.all([
@@ -22,7 +28,10 @@ const invalidate = (client: ReturnType<typeof useQueryClient>) =>
 export const useInvoices = (filters: InvoiceFilters = {}) =>
   useQuery({
     queryKey: ["invoices", filters],
-    queryFn: () => invoicesService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoInvoices))
+        : invoicesService.getAll(filters),
     select: (response) => response.data.data,
   });
 
@@ -31,7 +40,10 @@ export const useInvoice = (id: string) => {
   return useQuery({
     queryKey: ["invoices", id],
     queryFn: async () => {
-      const invoice = (await invoicesService.getById(id)).data.data;
+      const demoInvoice = demoInvoices.find((item) => item.id === id);
+      const invoice = isDemoSession() && demoInvoice
+        ? demoInvoice
+        : (await invoicesService.getById(id)).data.data;
       if (invoice.status !== "SENDING")
         void client.invalidateQueries({
           predicate: (query) =>
@@ -154,7 +166,9 @@ export const useConfirmInvoiceReception = () => {
       toast.success("Invoice reception confirmed.");
     },
     onError: (error) =>
-      toast.error(getApiErrorMessage(error, "Invoice reception could not be confirmed.")),
+      toast.error(
+        getApiErrorMessage(error, "Invoice reception could not be confirmed."),
+      ),
   });
 };
 

@@ -7,24 +7,40 @@ import type {
   BroadcastFilters,
   CreateBroadcastRequest,
 } from "@/types/broadcast.types";
+import {
+  demoBroadcasts,
+  demoPage,
+  demoResponse,
+  demoSegments,
+  isDemoSession,
+} from "@/lib/demo-data";
 const invalidate = (client: ReturnType<typeof useQueryClient>) =>
   client.invalidateQueries({ queryKey: ["broadcasts"] });
 export const useBroadcasts = (filters: BroadcastFilters = {}) =>
   useQuery({
     queryKey: ["broadcasts", filters],
-    queryFn: () => broadcastService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoBroadcasts))
+        : broadcastService.getAll(filters),
     select: (response) => response.data.data,
   });
 export const useRecentBroadcasts = (filters: BroadcastFilters = {}) =>
   useQuery({
     queryKey: ["broadcasts", "recent", filters],
-    queryFn: () => broadcastService.getRecent(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoBroadcasts))
+        : broadcastService.getRecent(filters),
     select: (response) => response.data.data,
   });
 export const useContactSegments = () =>
   useQuery({
     queryKey: ["broadcast-segments"],
-    queryFn: broadcastService.getSegments,
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoSegments)
+        : broadcastService.getSegments(),
     select: (response) => response.data.data,
   });
 export const useCreateBroadcast = () => {

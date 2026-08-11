@@ -7,10 +7,19 @@ import type {
   CalendarFilters,
   CreateCalendarEventRequest,
 } from "@/types/calendar.types";
+import {
+  demoCalendar,
+  demoPage,
+  demoResponse,
+  isDemoSession,
+} from "@/lib/demo-data";
 export const useCalendar = (filters: CalendarFilters = {}) =>
   useQuery({
     queryKey: ["calendar", filters],
-    queryFn: () => calendarService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoCalendar))
+        : calendarService.getAll(filters),
     select: (response) => response.data.data,
   });
 export const useCreateCalendarEvent = () => {

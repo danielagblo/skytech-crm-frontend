@@ -8,18 +8,31 @@ import type {
   CreateAutomationRequest,
   UpdateAutomationRequest,
 } from "@/types/automation.types";
+import {
+  demoAutomationOptions,
+  demoAutomations,
+  demoPage,
+  demoResponse,
+  isDemoSession,
+} from "@/lib/demo-data";
 const invalidate = (client: ReturnType<typeof useQueryClient>) =>
   client.invalidateQueries({ queryKey: ["automations"] });
 export const useAutomations = (filters: AutomationFilters = {}) =>
   useQuery({
     queryKey: ["automations", filters],
-    queryFn: () => automationsService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoAutomations))
+        : automationsService.getAll(filters),
     select: (response) => response.data.data,
   });
 export const useAutomationOptions = () =>
   useQuery({
     queryKey: ["automations", "options"],
-    queryFn: automationsService.getOptions,
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoAutomationOptions)
+        : automationsService.getOptions(),
     select: (response) => response.data.data,
     staleTime: 5 * 60_000,
   });
