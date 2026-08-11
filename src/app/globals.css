@@ -106,3 +106,21 @@ select {
 .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
   border-color: hsl(var(--border)) !important;
 }
+
+/* Ultra-large displays (TVs / 4K+) — scale the rem-based UI so text and
+   layout stay proportionate without touching any component styles. */
+@media (min-width: 2000px) {
+  :root {
+    font-size: 18px;
+  }
+}
+@media (min-width: 2560px) {
+  :root {
+    font-size: 20px;
+  }
+}
+@media (min-width: 3200px) {
+  :root {
+    font-size: 22px;
+  }
+}
