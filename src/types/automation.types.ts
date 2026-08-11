@@ -24,7 +24,13 @@ export interface Automation {
   name: string;
   active: boolean;
   triggerConfig: AutomationTriggerConfig;
+  contactIds?: string[];
   steps: AutomationStep[];
+  executionState?: "WAITING" | "COMPLETED" | "FAILED";
+  nextRunAt?: string | null;
+  lastExecutedAt?: string | null;
+  failureReason?: string | null;
+  recipientCount?: number;
   createdById: string;
   createdAt: string;
 }
@@ -38,6 +44,7 @@ export interface CreateAutomationRequest {
   name: string;
   active?: boolean;
   triggerConfig: AutomationTriggerConfig;
+  contactIds?: string[];
   steps: AutomationStep[];
 }
 

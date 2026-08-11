@@ -430,21 +430,20 @@ export const demoAutomations: Automation[] = [
   {
     id: "automation-3",
     automationType: "PAYMENT",
-    name: "Waiting for payment",
+    name: "Payment acknowledgement",
     active: true,
-    triggerConfig: { event: "WAITING_FOR_PAYMENT" },
+    triggerConfig: {},
     steps: [
       {
         channel: "EMAIL",
-        message: "Your payment is due soon.",
-        label: "Hold until due",
-        waitDays: 3,
+        subject: "Payment received",
+        message: "Thank you. Your payment has been recorded.",
+        label: "Email acknowledgement",
       },
       {
         channel: "SMS",
-        message: "A friendly payment reminder.",
-        label: "Reminder",
-        waitDays: 2,
+        message: "Thank you. We have recorded your payment.",
+        label: "SMS confirmation",
       },
     ],
     createdById: "demo-admin",
@@ -455,7 +454,13 @@ export const demoAutomations: Automation[] = [
     automationType: "PERSONAL",
     name: "John's client follow-up",
     active: true,
-    triggerConfig: { date: "2026-08-15", contactIds: ["lead-3", "lead-4"] },
+    triggerConfig: { date: "2026-08-15" },
+    contactIds: ["lead-3", "lead-4"],
+    executionState: "WAITING",
+    nextRunAt: "2026-08-15T07:00:00Z",
+    lastExecutedAt: null,
+    failureReason: null,
+    recipientCount: 2,
     steps: [
       {
         channel: "SMS",

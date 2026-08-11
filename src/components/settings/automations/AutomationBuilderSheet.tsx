@@ -210,9 +210,11 @@ export const AutomationBuilderSheet = ({
           ? false
           : automation.active,
       triggerDate: automation.triggerConfig.date ?? "",
-      contactIds: Array.isArray(automation.triggerConfig.contactIds)
-        ? (automation.triggerConfig.contactIds as string[])
-        : [],
+      contactIds: Array.isArray(automation.contactIds)
+        ? automation.contactIds
+        : Array.isArray(automation.triggerConfig.contactIds)
+          ? (automation.triggerConfig.contactIds as string[])
+          : [],
       steps: automation.steps.map((step) => ({
         channel: step.channel,
         subject: step.subject ?? "",
@@ -230,11 +232,13 @@ export const AutomationBuilderSheet = ({
         values.automationType === "PERSONAL" && !personalExecutable
           ? false
           : values.active,
+      contactIds:
+        values.automationType === "PERSONAL" ? values.contactIds : undefined,
       triggerConfig:
         values.automationType === "PUBLIC_HOLIDAY"
           ? { date: values.triggerDate }
           : values.automationType === "PERSONAL"
-            ? { date: values.triggerDate, contactIds: values.contactIds }
+            ? { date: values.triggerDate }
             : {},
       steps: values.steps.map(({ channel, subject, message }) => ({
         channel,
@@ -328,9 +332,14 @@ export const AutomationBuilderSheet = ({
                 </p>
               </div>
             )}
-            {(automationType === "PUBLIC_HOLIDAY" || automationType === "PERSONAL") && (
+            {(automationType === "PUBLIC_HOLIDAY" ||
+              automationType === "PERSONAL") && (
               <div>
-                <Label>{automationType === "PERSONAL" ? "Trigger date" : "Holiday date"}</Label>
+                <Label>
+                  {automationType === "PERSONAL"
+                    ? "Trigger date"
+                    : "Holiday date"}
+                </Label>
                 <div className="relative">
                   <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -366,7 +375,8 @@ export const AutomationBuilderSheet = ({
                 <div>
                   <h3 className="font-semibold">Target contacts</h3>
                   <p className="text-xs text-muted-foreground">
-                    Select the contacts this personal automation should apply to.
+                    Select the contacts this personal automation should apply
+                    to.
                   </p>
                 </div>
                 {leads.isLoading ? (
