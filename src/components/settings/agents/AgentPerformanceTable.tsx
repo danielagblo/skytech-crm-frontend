@@ -35,7 +35,7 @@ export const AgentPerformanceTable = ({ userId }: { userId?: string }) => {
               <TableHead>Rank</TableHead>
               <TableHead>Deals Closed</TableHead>
               <TableHead>Revenue</TableHead>
-              <TableHead>Hours Spent</TableHead>
+              <TableHead>Logged Call Time</TableHead>
               <TableHead>Month</TableHead>
             </TableRow>
           </TableHeader>

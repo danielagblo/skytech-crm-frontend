@@ -36,8 +36,8 @@ export const PipelineColumn = ({
   logs: Record<string, DealLog[]>;
   onOpen: (deal: Deal) => void;
 }) => (
-  <section className="min-w-[245px] flex-1 xl:max-w-[260px] xl:flex-none min-[2200px]:max-w-none min-[2200px]:flex-1">
-    <div className="mb-1 bg-card px-3 py-3">
+  <section className="flex h-full min-w-[245px] flex-1 flex-col xl:max-w-[260px] xl:flex-none min-[2200px]:max-w-none min-[2200px]:flex-1">
+    <div className="mb-1 shrink-0 bg-card px-3 py-3">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-medium text-slate-500">{labels[stage]}</h3>
         <span className="text-[10px] text-muted-foreground">
@@ -56,7 +56,7 @@ export const PipelineColumn = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`min-h-[650px] space-y-2 p-1 transition ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
+          className={`scrollbar-none min-h-[580px] flex-1 space-y-2 overflow-y-auto overscroll-contain p-1 transition lg:min-h-0 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
         >
           {deals.map((deal, index) => (
             <Draggable
@@ -86,7 +86,7 @@ export const PipelineColumn = ({
           ))}
           {provided.placeholder}
           {deals.length === 0 && (
-            <p className="rounded-xl border border-dashed bg-white/70 p-6 text-center text-xs text-muted-foreground">
+            <p className="rounded-xl border border-dashed bg-card/70 p-6 text-center text-xs text-muted-foreground">
               Drop a deal here
             </p>
           )}

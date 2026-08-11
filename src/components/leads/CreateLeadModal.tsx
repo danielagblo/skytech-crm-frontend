@@ -10,6 +10,7 @@ import type { User } from "@/types/user.types";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -29,56 +30,61 @@ import { Switch } from "@/components/ui/switch";
 import { useCreateLead, useUpdateLead } from "@/hooks/useLeads";
 import { LEAD_INDUSTRIES } from "@/lib/crm-options";
 
-const schema = z.object({
-  assigneeIds: z.array(z.string()).default([]),
-  firstName: z.string().min(2, "Enter a first name."),
-  lastName: z.string().min(2, "Enter a last name."),
-  birthday: z.string().optional(),
-  role: z.string().min(2, "Enter the contact role."),
-  leadSource: z.enum([
-    "SMS",
-    "EMAIL",
-    "FACEBOOK",
-    "GOOGLE",
-    "BANNER",
-    "META_ADS",
-  ]),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
-  companyName: z.string().min(2, "Enter a company name."),
-  industry: z.string().min(2, "Choose an industry."),
-  phone1: z.string(),
-  phone2: z.string().optional(),
-  whatsapp: z.string().optional(),
-  emailAddress: z.union([
-    z.literal(""),
-    z.string().email("Enter a valid email."),
-  ]),
-  address: z.string().min(4, "Enter an address."),
-  launchTimeline: z.enum([
-    "IN_1_WEEK",
-    "ONE_TO_TWO_MONTHS",
-    "THREE_PLUS_MONTHS",
-  ]),
-  meetingArranged: z.boolean(),
-  hasPublicOffice: z.boolean(),
-  smsOptIn: z.boolean(),
-  emailOptIn: z.boolean(),
-  newsletterOptIn: z.boolean(),
-  description: z.string().min(10, "Add at least 10 characters."),
-}).superRefine((values, context) => {
-  if (values.smsOptIn && values.phone1.trim().length < 8)
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["phone1"],
-      message: "Enter a valid phone number for SMS communication.",
-    });
-  if ((values.emailOptIn || values.newsletterOptIn) && !values.emailAddress.trim())
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["emailAddress"],
-      message: "Email is required for email communication or the newsletter.",
-    });
-});
+const schema = z
+  .object({
+    assigneeIds: z.array(z.string()).default([]),
+    firstName: z.string().min(2, "Enter a first name."),
+    lastName: z.string().min(2, "Enter a last name."),
+    birthday: z.string().optional(),
+    role: z.string().min(2, "Enter the contact role."),
+    leadSource: z.enum([
+      "SMS",
+      "EMAIL",
+      "FACEBOOK",
+      "GOOGLE",
+      "BANNER",
+      "META_ADS",
+    ]),
+    priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+    companyName: z.string().min(2, "Enter a company name."),
+    industry: z.string().min(2, "Choose an industry."),
+    phone1: z.string(),
+    phone2: z.string().optional(),
+    whatsapp: z.string().optional(),
+    emailAddress: z.union([
+      z.literal(""),
+      z.string().email("Enter a valid email."),
+    ]),
+    address: z.string().min(4, "Enter an address."),
+    launchTimeline: z.enum([
+      "IN_1_WEEK",
+      "ONE_TO_TWO_MONTHS",
+      "THREE_PLUS_MONTHS",
+    ]),
+    meetingArranged: z.boolean(),
+    hasPublicOffice: z.boolean(),
+    smsOptIn: z.boolean(),
+    emailOptIn: z.boolean(),
+    newsletterOptIn: z.boolean(),
+    description: z.string().min(10, "Add at least 10 characters."),
+  })
+  .superRefine((values, context) => {
+    if (values.smsOptIn && values.phone1.trim().length < 8)
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phone1"],
+        message: "Enter a valid phone number for SMS communication.",
+      });
+    if (
+      (values.emailOptIn || values.newsletterOptIn) &&
+      !values.emailAddress.trim()
+    )
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["emailAddress"],
+        message: "Email is required for email communication or the newsletter.",
+      });
+  });
 type Values = z.infer<typeof schema>;
 
 const defaults: Values = {
@@ -215,21 +221,41 @@ export const CreateLeadModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{lead ? "Edit lead" : "Create lead"}</DialogTitle>
+      <DialogContent className="max-h-[92vh] max-w-5xl overflow-hidden p-0">
+        <DialogHeader className="border-b bg-gradient-to-r from-primary/15 via-primary/5 to-transparent px-6 py-5 text-left">
+          <DialogTitle className="text-xl">
+            {lead ? "Edit lead profile" : "Create a new lead"}
+          </DialogTitle>
+          <DialogDescription>
+            Capture contact, company, assignment, consent, and qualification
+            details in one place.
+          </DialogDescription>
         </DialogHeader>
-        <form className="space-y-5" onSubmit={submit}>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <form
+          className="max-h-[calc(92vh-105px)] space-y-5 overflow-y-auto px-6 pb-6"
+          onSubmit={submit}
+        >
+          <div className="surface grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
-              <Label>Assign to</Label>
+              <h3 className="font-semibold">Assignment and contact profile</h3>
+              <p className="text-xs text-muted-foreground">
+                Multiple active agents can share responsibility for this lead.
+              </p>
+            </div>
+            <div className="sm:col-span-2 lg:col-span-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label>Assign to</Label>
+                <span className="rounded-full bg-primary/15 px-2 py-1 text-xs font-medium">
+                  {selectedAssignees.size} selected
+                </span>
+              </div>
               <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {users
                   .filter((user) => user.active)
                   .map((user) => (
                     <label
                       key={user.id}
-                      className="flex items-center gap-3 rounded-xl border px-3 py-2 text-sm"
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition hover:border-primary/60 hover:bg-primary/5 ${selectedAssignees.has(user.id) ? "border-primary bg-primary/10" : "bg-background"}`}
                     >
                       <Checkbox
                         checked={selectedAssignees.has(user.id)}
@@ -356,9 +382,9 @@ export const CreateLeadModal = ({
               {error("address")}
             </div>
           </div>
-          <div>
+          <div className="surface p-4">
             <Label>How soon to launch?</Label>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
               {(
                 [
                   ["IN_1_WEEK", "In 1 week"],
@@ -366,17 +392,16 @@ export const CreateLeadModal = ({
                   ["THREE_PLUS_MONTHS", "3+ months"],
                 ] as const
               ).map(([value, label]) => (
-                <label
-                  key={value}
-                  className="rounded-lg border px-3 py-2 text-sm"
-                >
+                <label key={value} className="cursor-pointer">
                   <input
                     type="radio"
                     value={value}
-                    className="mr-2"
+                    className="peer sr-only"
                     {...register("launchTimeline")}
                   />
-                  {label}
+                  <span className="block rounded-lg border bg-background px-3 py-3 text-center text-sm transition peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:font-medium">
+                    {label}
+                  </span>
                 </label>
               ))}
             </div>
@@ -390,7 +415,7 @@ export const CreateLeadModal = ({
             ).map(([label, key]) => (
               <div
                 key={key}
-                className="flex items-center justify-between rounded-lg border p-3"
+                className="surface flex items-center justify-between p-4"
               >
                 <Label>{label}</Label>
                 <Switch
@@ -400,35 +425,59 @@ export const CreateLeadModal = ({
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap gap-5 rounded-xl bg-muted p-4">
-            {(
-              [
-                ["Communications by SMS", "smsOptIn"],
-                ["Communications by email", "emailOptIn"],
-                ["Subscribe to newsletter", "newsletterOptIn"],
-              ] as const
-            ).map(([label, key]) => (
-              <label key={key} className="flex items-center gap-2 text-sm">
-                <Switch
-                  checked={Boolean(toggles[key])}
-                  onCheckedChange={(value) => setValue(key, value)}
-                />
-                {label}
-              </label>
-            ))}
+          <div className="surface p-4">
+            <h3 className="font-semibold">Communication consent</h3>
+            <p className="mb-4 text-xs text-muted-foreground">
+              These controls determine which channels automations and broadcasts
+              may use.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {(
+                [
+                  ["Communications by SMS", "smsOptIn"],
+                  ["Communications by email", "emailOptIn"],
+                  ["Subscribe to newsletter", "newsletterOptIn"],
+                ] as const
+              ).map(([label, key]) => (
+                <label
+                  key={key}
+                  className="flex items-center justify-between gap-2 rounded-lg border bg-background p-3 text-sm"
+                >
+                  <Switch
+                    checked={Boolean(toggles[key])}
+                    onCheckedChange={(value) => setValue(key, value)}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            These choices only save the lead&apos;s communication consent. Creating
-            the lead will not send an SMS or email.
+            These choices only save the lead&apos;s communication consent.
+            Creating the lead will not send an SMS or email.
           </p>
-          <div>
+          <div className="surface p-4">
             <Label>Description</Label>
-            <Textarea {...register("description")} />
+            <Textarea
+              className="mt-2 min-h-28"
+              placeholder="Add context, customer needs, and next-step notes…"
+              {...register("description")}
+            />
             {error("description")}
           </div>
-          <Button className="w-full" disabled={pending} type="submit">
-            {pending ? "Saving…" : "Save lead"}
-          </Button>
+          <div className="sticky bottom-0 -mx-6 flex justify-end gap-2 border-t bg-card/95 px-6 py-4 backdrop-blur">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+            >
+              Cancel
+            </Button>
+            <Button className="min-w-36" disabled={pending} type="submit">
+              {pending ? "Saving…" : lead ? "Save changes" : "Create lead"}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

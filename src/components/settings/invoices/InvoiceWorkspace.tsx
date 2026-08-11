@@ -228,7 +228,13 @@ const ItemSubLineEditor = ({
           </Button>
         </div>
       ))}
-      <Button type="button" size="sm" variant="ghost" onClick={append}>
+      <Button
+        type="button"
+        size="sm"
+        variant="secondary"
+        className="bg-amber-300/70 hover:bg-amber-300"
+        onClick={append}
+      >
         <Plus className="h-3.5 w-3.5" />
         Add breakdown
       </Button>
@@ -508,7 +514,7 @@ export const InvoiceWorkspace = ({
   };
 
   return (
-    <div className="grid gap-2 xl:grid-cols-[minmax(560px,.95fr)_minmax(0,1.05fr)] min-[2200px]:grid-cols-[minmax(760px,.85fr)_1.15fr]">
+    <div className="grid gap-2 xl:grid-cols-[minmax(680px,.98fr)_minmax(0,1.02fr)] min-[2200px]:grid-cols-[minmax(820px,.9fr)_1.1fr]">
       <section className="overflow-hidden border bg-card xl:min-h-[calc(100vh-125px)]">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
           <div>
@@ -544,8 +550,8 @@ export const InvoiceWorkspace = ({
               disabled={!editable || busy}
               className="space-y-5 disabled:opacity-70"
             >
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="sm:col-span-2">
+              <div>
+                <div>
                   <Label>Related deal</Label>
                   <Select
                     value={dealId}
@@ -570,192 +576,234 @@ export const InvoiceWorkspace = ({
                     </p>
                   )}
                 </div>
-                <div>
-                  <Label>Recipient name</Label>
-                  <Input
-                    {...form.register("recipientName")}
-                    placeholder="Use lead details when blank"
-                  />
-                </div>
-                <div>
-                  <Label>Company</Label>
-                  <Input {...form.register("recipientCompany")} />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input type="email" {...form.register("recipientEmail")} />
-                  {form.formState.errors.recipientEmail && (
-                    <p className="text-xs text-danger">
-                      {form.formState.errors.recipientEmail.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label>Issue date</Label>
-                  <Input type="date" {...form.register("issueDate")} />
-                </div>
-                <div>
-                  <Label>Due date (auto)</Label>
-                  <Input
-                    type="date"
-                    readOnly
-                    tabIndex={-1}
-                    value={dueDateFromIssue(draftValues.issueDate ?? "")}
-                    aria-label="Due date, calculated 14 days from the issue date"
-                  />
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    14 days from the issue date.
-                  </p>
-                </div>
-                <div className="sm:col-span-2">
-                  <Label>Billing address</Label>
-                  <Input {...form.register("recipientAddress")} />
-                </div>
-              </div>
-
-              <div>
-                <div className="mb-2 grid grid-cols-[1fr_86px_130px_38px] gap-2 text-xs font-medium uppercase text-muted-foreground">
-                  <span>Description</span>
-                  <span>Qty</span>
-                  <span>Unit price</span>
-                  <span />
-                </div>
-                {items.fields.map((field, index) => (
-                  <div
-                    key={field.id}
-                    className="mb-2 rounded-lg border bg-background p-3"
-                  >
-                    <div className="grid grid-cols-[1fr_86px_130px_38px] gap-2">
-                      <Input
-                        aria-label={`Line item ${index + 1}`}
-                        {...form.register(`items.${index}.description`)}
-                      />
-                      <Input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        {...form.register(`items.${index}.quantity`, {
-                          valueAsNumber: true,
-                        })}
-                      />
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        {...form.register(`items.${index}.unitPrice`, {
-                          valueAsNumber: true,
-                        })}
-                      />
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        disabled={items.fields.length === 1}
-                        onClick={() => items.remove(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  <section className="rounded-xl border bg-background p-4">
+                    <h3 className="mb-3 text-sm font-semibold">Bill to</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Recipient name</Label>
+                        <Input
+                          {...form.register("recipientName")}
+                          placeholder="Use lead details when blank"
+                        />
+                      </div>
+                      <div>
+                        <Label>Company</Label>
+                        <Input {...form.register("recipientCompany")} />
+                      </div>
+                      <div>
+                        <Label>Email</Label>
+                        <Input
+                          type="email"
+                          {...form.register("recipientEmail")}
+                        />
+                        {form.formState.errors.recipientEmail && (
+                          <p className="text-xs text-danger">
+                            {form.formState.errors.recipientEmail.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Billing address</Label>
+                        <Input {...form.register("recipientAddress")} />
+                      </div>
                     </div>
-                    <ItemSubLineEditor form={form} index={index} />
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    items.append({
-                      description: "",
-                      quantity: 1,
-                      unitPrice: 0,
-                      subLines: [],
-                    })
-                  }
-                >
-                  <Plus className="h-4 w-4" />
-                  Add line item
-                </Button>
+                  </section>
+                  <section className="rounded-xl border bg-background p-4">
+                    <h3 className="mb-3 text-sm font-semibold">From</h3>
+                    <dl className="mb-4 space-y-2 rounded-lg bg-primary/10 p-3 text-xs">
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">Company</dt>
+                        <dd className="font-medium">
+                          {issuerInfo.name || "Skytech Ghana"}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">Email</dt>
+                        <dd className="truncate font-medium">
+                          {issuerInfo.email || "Not configured"}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">Address</dt>
+                        <dd className="truncate font-medium">
+                          {issuerInfo.address || "Not configured"}
+                        </dd>
+                      </div>
+                    </dl>
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Issue date</Label>
+                        <Input type="date" {...form.register("issueDate")} />
+                      </div>
+                      <div>
+                        <Label>Due date (auto)</Label>
+                        <Input
+                          type="date"
+                          readOnly
+                          tabIndex={-1}
+                          value={dueDateFromIssue(draftValues.issueDate ?? "")}
+                          aria-label="Due date, calculated 14 days from the issue date"
+                        />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          14 days from the issue date.
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+                </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <Label>Tax rate (%)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    {...form.register("taxRate", { valueAsNumber: true })}
-                  />
+              <div className="overflow-x-auto">
+                <div className="min-w-[620px]">
+                  <div className="mb-2 grid grid-cols-[1fr_86px_130px_38px] gap-2 bg-primary/70 px-3 py-2 text-sm font-medium text-black">
+                    <span>Item</span>
+                    <span>Quantity</span>
+                    <span>Rate</span>
+                    <span />
+                  </div>
+                  {items.fields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="mb-2 border-b bg-background px-3 py-2"
+                    >
+                      <div className="grid grid-cols-[1fr_86px_130px_38px] gap-2">
+                        <Input
+                          aria-label={`Line item ${index + 1}`}
+                          {...form.register(`items.${index}.description`)}
+                        />
+                        <Input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          {...form.register(`items.${index}.quantity`, {
+                            valueAsNumber: true,
+                          })}
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          {...form.register(`items.${index}.unitPrice`, {
+                            valueAsNumber: true,
+                          })}
+                        />
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          disabled={items.fields.length === 1}
+                          onClick={() => items.remove(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <ItemSubLineEditor form={form} index={index} />
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="w-full rounded-none bg-amber-300/70 text-foreground hover:bg-amber-300"
+                    onClick={() =>
+                      items.append({
+                        description: "",
+                        quantity: 1,
+                        unitPrice: 0,
+                        subLines: [],
+                      })
+                    }
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add line item
+                  </Button>
                 </div>
-                <div>
-                  <Label>Discount amount</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    {...form.register("discountAmount", {
-                      valueAsNumber: true,
-                    })}
-                  />
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,.9fr)]">
+                <div className="space-y-3">
+                  <div>
+                    <Label>Notes</Label>
+                    <Textarea
+                      className="min-h-20"
+                      {...form.register("notes")}
+                    />
+                  </div>
+                  <div>
+                    <Label>Terms & conditions</Label>
+                    <Textarea
+                      className="min-h-28"
+                      {...form.register("terms")}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Notes</Label>
-                  <Textarea {...form.register("notes")} />
-                </div>
-                <div>
-                  <Label>Terms</Label>
-                  <Textarea {...form.register("terms")} />
+                <div className="space-y-3 rounded-xl border bg-muted/25 p-4">
+                  <div className="grid grid-cols-[1fr_120px] items-center gap-3">
+                    <Label>Tax rate (%)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      {...form.register("taxRate", { valueAsNumber: true })}
+                    />
+                    <Label>Discount amount</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      {...form.register("discountAmount", {
+                        valueAsNumber: true,
+                      })}
+                    />
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                      <ShieldCheck className="h-4 w-4 text-success" />
+                      Server-calculated totals
+                    </div>
+                    {invoice ? (
+                      <dl className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <dt className="text-muted-foreground">Subtotal</dt>
+                          <dd>{formatCurrency(invoice.subtotal)}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-muted-foreground">Tax</dt>
+                          <dd>{formatCurrency(invoice.taxAmount)}</dd>
+                        </div>
+                        <div className="flex justify-between border-t pt-2 text-base">
+                          <dt>Total</dt>
+                          <dd className="font-semibold">
+                            {formatCurrency(invoice.total)}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-muted-foreground">Paid</dt>
+                          <dd>{formatCurrency(invoice.amountPaid || 0)}</dd>
+                        </div>
+                        <div className="flex justify-between text-base">
+                          <dt>Balance due</dt>
+                          <dd className="font-semibold">
+                            {formatCurrency(invoice.balanceDue)}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <dt>Draft version</dt>
+                          <dd>{invoice.version}</dd>
+                        </div>
+                      </dl>
+                    ) : (
+                      <p className="text-xs leading-5 text-muted-foreground">
+                        Save the draft to receive authoritative subtotal, tax,
+                        total, and balance values from the backend.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </fieldset>
-
-            {invoice && (
-              <div className="rounded-xl border bg-muted/40 p-4">
-                <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                  <ShieldCheck className="h-4 w-4 text-success" />
-                  Server-calculated totals
-                </div>
-                <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                  <p>
-                    <span className="block text-xs text-muted-foreground">
-                      Subtotal
-                    </span>
-                    {formatCurrency(invoice.subtotal)}
-                  </p>
-                  <p>
-                    <span className="block text-xs text-muted-foreground">
-                      Tax
-                    </span>
-                    {formatCurrency(invoice.taxAmount)}
-                  </p>
-                  <p>
-                    <span className="block text-xs text-muted-foreground">
-                      Total
-                    </span>
-                    <strong>{formatCurrency(invoice.total)}</strong>
-                  </p>
-                  <p>
-                    <span className="block text-xs text-muted-foreground">
-                      Paid
-                    </span>
-                    {formatCurrency(invoice.amountPaid || 0)}
-                  </p>
-                  <p>
-                    <span className="block text-xs text-muted-foreground">
-                      Balance
-                    </span>
-                    <strong>{formatCurrency(invoice.balanceDue)}</strong>
-                  </p>
-                  <p>
-                    <span className="block text-xs text-muted-foreground">
-                      Version
-                    </span>
-                    {invoice.version}
-                  </p>
-                </div>
-              </div>
-            )}
 
             {invoice?.status === "SEND_FAILED" && (
               <div className="rounded-xl border border-danger/30 bg-red-50 p-4 text-sm text-red-800 dark:bg-red-950/30 dark:text-red-200">
@@ -814,7 +862,7 @@ export const InvoiceWorkspace = ({
                 </div>
               )}
 
-            <div className="flex flex-wrap justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-2 border-t pt-5 sm:[&_button]:min-w-36">
               {editable && (
                 <Button type="submit" disabled={busy}>
                   {busy

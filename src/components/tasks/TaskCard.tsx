@@ -31,7 +31,7 @@ export const TaskCard = ({
       onClick={onClick}
       className="w-full border bg-card text-left shadow-[0_1px_2px_rgba(15,23,42,.04)] transition hover:border-primary hover:shadow-md"
     >
-      <h4 className="line-clamp-1 border-b px-2 py-2 text-sm font-medium">
+      <h4 className="line-clamp-2 min-h-12 border-b px-2 py-2 text-sm font-medium leading-5">
         {task.title}
       </h4>
       <div className="space-y-2 px-2 py-2 text-xs">

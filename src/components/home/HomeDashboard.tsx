@@ -92,12 +92,12 @@ export const HomeDashboard = () => {
         </div>
         <div className="min-w-0 space-y-4">
           <UpcomingActivity followUps={data.followUpReminders} />
+          <FollowUpReminders rows={data.followUpReminders} />
         </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <AgentRankCard user={user} rank={data.agentRank} />
-        <FollowUpReminders rows={data.followUpReminders} />
         <RevenueChart data={data.topRevenuePerAgent} />
         <TopDealsChart
           sixMonths={sixMonths.data?.content ?? []}

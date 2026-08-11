@@ -123,7 +123,7 @@ export const PipelineBoard = () => {
   return (
     <>
       <DragDropContext onDragEnd={drop}>
-        <div className="dot-grid scrollbar-thin flex min-h-[760px] gap-2 overflow-x-auto border px-2 py-1">
+        <div className="dot-grid scrollbar-thin flex min-h-[680px] gap-2 overflow-x-auto overflow-y-hidden border px-2 py-1 lg:h-[calc(100dvh-7.75rem)] lg:min-h-0">
           {stages.map((stage) => (
             <PipelineColumn
               key={stage}

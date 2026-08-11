@@ -18,8 +18,8 @@ export const ExecutivePerformanceTable = ({
 }) => (
   <section className="overflow-hidden border bg-card">
     <div className="px-5 py-4">
-      <h3 className="text-base font-medium text-slate-600">
-        Executive performance overview
+      <h3 className="text-base font-medium text-muted-foreground">
+        Agent performance overview
       </h3>
     </div>
     {rows.length === 0 ? (
@@ -32,16 +32,29 @@ export const ExecutivePerformanceTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Executive</TableHead>
+              <TableHead>Rank</TableHead>
+              <TableHead>Agent</TableHead>
               <TableHead>Deal closed</TableHead>
               <TableHead>Revenue</TableHead>
               <TableHead>Conversion rate</TableHead>
               <TableHead>Ratings</TableHead>
+              <TableHead>Score</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((row) => (
+            {rows.map((row, index) => (
               <TableRow key={row.userId}>
+                <TableCell>
+                  <span
+                    className={
+                      row.rank <= 3
+                        ? "font-semibold text-primary"
+                        : "font-medium text-muted-foreground"
+                    }
+                  >
+                    #{row.rank || index + 1}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <UserAvatar name={row.name} className="h-7 w-7" />
@@ -59,6 +72,24 @@ export const ExecutivePerformanceTable = ({
                         className={`h-3.5 w-3.5 ${star < Math.round(row.rating) ? "fill-primary text-primary" : "text-gray-200"}`}
                       />
                     ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div
+                    className="flex min-w-24 items-center gap-2"
+                    title="Backend score: Bayesian-adjusted customer rating, revenue, auto-review quality, deals closed, and conversion rate."
+                  >
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                      <span
+                        className="block h-full rounded-full bg-primary"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, row.score))}%`,
+                        }}
+                      />
+                    </div>
+                    <strong className="tabular-nums">
+                      {row.score.toFixed(1)}
+                    </strong>
                   </div>
                 </TableCell>
               </TableRow>

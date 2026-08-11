@@ -73,11 +73,8 @@ export const TopBar = () => {
             }
             aria-label="Toggle theme"
           >
-            {resolvedTheme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
+            <Sun className="hidden h-5 w-5 dark:block" />
+            <Moon className="h-5 w-5 dark:hidden" />
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

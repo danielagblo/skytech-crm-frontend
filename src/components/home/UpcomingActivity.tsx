@@ -199,7 +199,7 @@ export const UpcomingActivity = ({
   );
 
   return (
-    <section className="min-h-[560px] overflow-hidden border bg-card">
+    <section className="overflow-hidden border bg-card">
       <div className="flex items-center justify-between gap-2 px-5 pb-3 pt-5">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-normal text-slate-500">
@@ -255,7 +255,7 @@ export const UpcomingActivity = ({
         )}
       </div>
 
-      <div className="relative space-y-1 px-5 pb-5 before:absolute before:bottom-5 before:left-[29px] before:top-0 before:w-px before:bg-slate-200">
+      <div className="space-y-2 px-5 pb-5">
         {loading ? (
           Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="h-14" />
@@ -375,12 +375,12 @@ const ActivityRowView = ({
   return (
     <div
       className={cn(
-        "relative ml-6 border bg-slate-50 p-2.5 transition hover:bg-slate-100 sm:p-3 before:absolute before:-left-[27px] before:top-5 before:h-2 before:w-2 before:rounded-full before:bg-slate-800",
+        "border bg-muted/45 p-3 transition hover:bg-muted sm:p-3.5",
         row.status === "overdue" ? "border-red-300" : "border-slate-200",
       )}
     >
-      <div className="grid items-center gap-x-2 gap-y-2 sm:grid-cols-[minmax(0,1.5fr)_minmax(170px,.9fr)_auto]">
-        <div className="flex min-w-0 items-center gap-2.5">
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex min-w-0 items-start gap-2.5">
           <button
             type="button"
             onClick={(e) => {
@@ -408,67 +408,61 @@ const ActivityRowView = ({
               <Circle className="h-5 w-5" />
             )}
           </button>
-          <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-gray-800">
+          <p className="flex min-w-0 items-start gap-1.5 text-sm font-medium text-foreground">
             <Icon className="h-5 w-5 shrink-0 text-green-600" />
-            <span className="truncate text-sm">{row.title}</span>
+            <span className="break-words text-sm leading-5">{row.title}</span>
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 pl-7 text-xs text-muted-foreground sm:pl-0">
-          <CalendarDays className="h-5 w-5 shrink-0 text-green-600" />
-          <span className="whitespace-nowrap">
-            Due date: {dueLabel(row.dueAt)}
-          </span>
-          {row.status === "overdue" && (
-            <span className="rounded-full bg-red-500 px-2 py-1 text-xs font-medium text-white">
-              Overdue
-            </span>
-          )}
-        </div>
-
-        <div className="flex shrink-0 items-center gap-0.5 sm:justify-end">
-          {showReason && (
-            <RowButton
-              title={
-                row.status === "overdue" && mine
-                  ? "Explain why it wasn't completed"
-                  : reasonOpen
-                    ? "Hide reason"
-                    : "Why wasn't it completed?"
-              }
-              onClick={onToggleReason}
-              className="text-red-500 hover:bg-red-50 hover:text-red-600"
-            >
-              <MessageSquare
-                className={cn(
-                  "h-5 w-5",
-                  reasonOpen && "fill-red-500 text-white",
+        <div className="flex flex-wrap items-center justify-between gap-2 pl-7">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+            <CalendarDays className="h-4 w-4 shrink-0 text-green-600" />
+            <span>Due date: {dueLabel(row.dueAt)}</span>
+          </div>
+          <div className="flex shrink-0 items-center gap-0.5">
+            {showReason && (
+              <RowButton
+                title={
+                  row.status === "overdue" && mine
+                    ? "Explain why it wasn't completed"
+                    : reasonOpen
+                      ? "Hide reason"
+                      : "Why wasn't it completed?"
+                }
+                onClick={onToggleReason}
+                className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+              >
+                <MessageSquare
+                  className={cn(
+                    "h-5 w-5",
+                    reasonOpen && "fill-red-500 text-white",
+                  )}
+                />
+              </RowButton>
+            )}
+            {showNote && (
+              <RowButton
+                title={noteOpen ? "Close details" : "Open details"}
+                onClick={onToggleNote}
+              >
+                {noteOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
                 )}
-              />
-            </RowButton>
-          )}
-          {showNote && (
-            <RowButton
-              title={noteOpen ? "Close details" : "Open details"}
-              onClick={onToggleNote}
-            >
-              {noteOpen ? (
-                <ChevronUp className="h-5 w-5" />
-              ) : (
-                <ChevronDown className="h-5 w-5" />
-              )}
-            </RowButton>
-          )}
-          {row.href && (
-            <RowButton title="Open task" onClick={onOpen}>
-              <ArrowRight className="h-5 w-5" />
-            </RowButton>
-          )}
+              </RowButton>
+            )}
+            {row.href && (
+              <RowButton title="Open task" onClick={onOpen}>
+                <ArrowRight className="h-5 w-5" />
+              </RowButton>
+            )}
+          </div>
         </div>
       </div>
 
       {reasonOpen && (
-        <div className="mt-2 ml-8 rounded-lg border border-red-200 bg-red-50/60 p-3">
+        <div className="ml-7 mt-2 rounded-lg border border-red-300/60 bg-red-500/10 p-3">
           <p className="text-sm font-semibold uppercase tracking-wide text-red-500">
             Completion note
           </p>
@@ -478,7 +472,7 @@ const ActivityRowView = ({
         </div>
       )}
       {noteOpen && row.note && (
-        <div className="mt-2 ml-8 rounded-lg border border-green-300 bg-gray-50 p-3">
+        <div className="ml-7 mt-2 rounded-lg border border-green-300/60 bg-background/70 p-3">
           <p className="leading-relaxed text-gray-600">{row.note}</p>
         </div>
       )}
@@ -506,7 +500,7 @@ const RowButton = ({
       onClick();
     }}
     className={cn(
-      "grid h-7 w-7 place-items-center rounded-full bg-slate-200 text-muted-foreground transition hover:bg-slate-300 hover:text-gray-900",
+      "grid h-7 w-7 place-items-center rounded-full bg-background text-muted-foreground transition hover:bg-accent hover:text-foreground",
       className,
     )}
   >

@@ -32,9 +32,9 @@ export const AgentTable = ({
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Account / last login</TableHead>
               <TableHead>Revenue</TableHead>
-              <TableHead>Hours spent</TableHead>
+              <TableHead>Logged call time</TableHead>
               <TableHead>Date added</TableHead>
             </TableRow>
           </TableHeader>
@@ -65,15 +65,17 @@ export const AgentTable = ({
                     />
                     {agent.active
                       ? agent.lastLogin
-                        ? formatRelative(agent.lastLogin)
-                        : "Active"
-                      : "Inactive"}
+                        ? `Enabled · logged in ${formatRelative(agent.lastLogin)}`
+                        : "Enabled · never logged in"
+                      : "Disabled"}
                   </span>
                 </TableCell>
                 <TableCell>
                   {formatCurrency(performance[agent.id]?.revenue ?? 0)}
                 </TableCell>
-                <TableCell>{performance[agent.id]?.hours ?? 0} hrs</TableCell>
+                <TableCell title="Sum of recorded deal-call durations, not browser session time.">
+                  {performance[agent.id]?.hours ?? 0} hrs
+                </TableCell>
                 <TableCell>{formatDate(agent.createdAt)}</TableCell>
               </TableRow>
             ))}

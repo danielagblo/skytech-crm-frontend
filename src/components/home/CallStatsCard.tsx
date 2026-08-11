@@ -21,7 +21,7 @@ const Gauge = ({ pct }: { pct: number }) => {
       <path
         d={arc}
         fill="none"
-        stroke="#E0E0E0"
+        stroke="hsl(var(--muted))"
         strokeWidth="5"
         strokeLinecap="round"
       />
@@ -39,11 +39,17 @@ const Gauge = ({ pct }: { pct: number }) => {
         textAnchor="middle"
         fontSize="16"
         fontWeight="700"
-        fill="#212121"
+        className="fill-foreground"
       >
         {Math.round(clamped)}%
       </text>
-      <text x="60" y="62" textAnchor="middle" fontSize="8" fill="#475569">
+      <text
+        x="60"
+        y="62"
+        textAnchor="middle"
+        fontSize="8"
+        className="fill-muted-foreground"
+      >
         Successful call
       </text>
     </svg>
@@ -70,7 +76,7 @@ export const CallStatsCard = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 ${directionClass}`} />
-          <h3 className="text-base font-medium text-slate-700">{title}</h3>
+          <h3 className="text-base font-medium text-foreground">{title}</h3>
         </div>
         <span className="text-2xl font-light tabular-nums text-gray-900 sm:text-3xl">
           {stats.total}
@@ -89,7 +95,7 @@ export const CallStatsCard = ({
               key={label}
               className="flex items-center gap-3 text-muted-foreground"
             >
-              <span className="text-sm text-slate-500">{label}</span>
+              <span className="text-sm text-muted-foreground">{label}</span>
               <span className="h-px flex-1 bg-border" />
               <span className="shrink-0 font-semibold tabular-nums text-foreground">
                 {value}

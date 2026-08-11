@@ -39,7 +39,7 @@ export const AgentRankCard = ({
           </p>
         </div>
       </div>
-      <div className="my-5 rounded-xl bg-green-50 p-4">
+      <div className="my-5 rounded-xl border border-primary/20 bg-primary/10 p-4 text-foreground">
         <p className="text-2xl font-semibold">
           {rank.rank}
           {rank.rank === 1
