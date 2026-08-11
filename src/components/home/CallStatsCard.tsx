@@ -15,7 +15,7 @@ const Gauge = ({ pct }: { pct: number }) => {
   return (
     <svg
       viewBox="0 0 120 64"
-      className="h-32 w-full sm:h-36"
+      className="h-28 w-full sm:h-32"
       aria-hidden="true"
     >
       <path
@@ -43,8 +43,8 @@ const Gauge = ({ pct }: { pct: number }) => {
       >
         {Math.round(clamped)}%
       </text>
-      <text x="60" y="62" textAnchor="middle" fontSize="8" fill="#9E9E9E">
-        Successful Calls
+      <text x="60" y="62" textAnchor="middle" fontSize="8" fill="#475569">
+        Successful call
       </text>
     </svg>
   );
@@ -66,30 +66,30 @@ export const CallStatsCard = ({
   ];
   const Icon = title === "Incoming calls" ? ArrowDownLeft : ArrowUpRight;
   return (
-    <section className="surface overflow-hidden rounded-lg p-4 sm:p-5">
+    <section className="py-3 sm:py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 ${directionClass}`} />
-          <h3 className="font-medium text-gray-800">{title}</h3>
+          <h3 className="text-base font-medium text-slate-700">{title}</h3>
         </div>
         <span className="text-2xl font-light tabular-nums text-gray-900 sm:text-3xl">
           {stats.total}
         </span>
       </div>
-      <div className="mt-2 grid items-center gap-3 sm:grid-cols-[minmax(180px,.8fr)_minmax(260px,1.2fr)]">
+      <div className="grid items-center gap-2 sm:grid-cols-[minmax(190px,.85fr)_minmax(270px,1.15fr)]">
         {/* Gauge */}
         <div className="flex w-full items-center justify-center">
           <Gauge pct={stats.successRate} />
         </div>
 
         {/* Stats */}
-        <div className="w-full space-y-2">
+        <div className="w-full space-y-1.5">
           {rows.map(([label, value]) => (
             <div
               key={label}
               className="flex items-center gap-3 text-muted-foreground"
             >
-              <span className="text-sm">{label}</span>
+              <span className="text-sm text-slate-500">{label}</span>
               <span className="h-px flex-1 bg-border" />
               <span className="shrink-0 font-semibold tabular-nums text-foreground">
                 {value}

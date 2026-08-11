@@ -3,7 +3,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { AlertCircle, Plus, Search, TrendingUp } from "lucide-react";
+import {
+  AlertCircle,
+  CheckSquare2,
+  Flag,
+  ListChecks,
+  Plus,
+  Search,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Task } from "@/types/task.types";
 import type { Priority, TaskStatus } from "@/types/api.types";
 import { tasksService } from "@/services/tasks.service";
@@ -177,81 +185,116 @@ export const TaskBoard = () => {
     MEDIUM: items.filter((task) => task.priority === "MEDIUM").length,
     HIGH: items.filter((task) => task.priority === "HIGH").length,
   };
+  const statCards: Array<{
+    label: string;
+    value: number;
+    icon: LucideIcon;
+    color: string;
+  }> = [
+    {
+      label: "Low Priority",
+      value: priorityCounts.LOW,
+      icon: Flag,
+      color: "text-green-500",
+    },
+    {
+      label: "Medium Priority",
+      value: priorityCounts.MEDIUM,
+      icon: Flag,
+      color: "text-amber-400",
+    },
+    {
+      label: "High Priority",
+      value: priorityCounts.HIGH,
+      icon: Flag,
+      color: "text-red-500",
+    },
+    {
+      label: "Total Task",
+      value: statsData.total,
+      icon: ListChecks,
+      color: "text-slate-700",
+    },
+    {
+      label: "Total Task Done",
+      value: statsData.done,
+      icon: CheckSquare2,
+      color: "text-slate-700",
+    },
+    {
+      label: "Overdue",
+      value: statsData.overdue,
+      icon: AlertCircle,
+      color: "text-red-500",
+    },
+  ];
   return (
-    <div className="space-y-4">
-      <div className="scrollbar-thin grid auto-cols-[minmax(170px,1fr)] grid-flow-col overflow-x-auto rounded-lg border bg-card">
-        {[
-          ["Low Priority", priorityCounts.LOW],
-          ["Medium Priority", priorityCounts.MEDIUM],
-          ["High Priority", priorityCounts.HIGH],
-          ["Total Tasks", statsData.total],
-          ["Total Task Done", statsData.done],
-          ["Overdue", statsData.overdue],
-        ].map(([label, value]) => (
-          <div
-            key={String(label)}
-            className="flex items-center justify-between border-r p-4 last:border-r-0"
-          >
-            <div>
-              <p className="eyebrow">{label}</p>
-              <p className="mt-1 text-2xl font-semibold">{value}</p>
-            </div>
-            <span className="flex items-center gap-1 text-xs text-green-700">
-              <TrendingUp className="h-4 w-4" />
-              Live
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="surface flex flex-wrap items-center gap-2 p-3">
-        <div className="relative min-w-56 flex-1">
+    <div className="space-y-0">
+      <div className="flex flex-wrap items-center gap-2 border-b bg-card px-2 py-3 sm:px-3">
+        <div className="relative min-w-56 flex-1 sm:max-w-64">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search tasks"
+            placeholder="Search"
             className="pl-9"
           />
         </div>
-        <Select
-          onValueChange={(value) =>
-            setAssignee(value === "ALL" ? undefined : value)
-          }
-        >
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="Assignee" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All assignees</SelectItem>
-            {(users.data?.content ?? []).map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {user.firstName} {user.lastName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          onValueChange={(value) =>
-            setPriority(value === "ALL" ? undefined : (value as Priority))
-          }
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All priorities</SelectItem>
-            <SelectItem value="LOW">Low</SelectItem>
-            <SelectItem value="MEDIUM">Medium</SelectItem>
-            <SelectItem value="HIGH">High</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button onClick={() => setCreate(true)}>
-          <Plus className="h-4 w-4" />
-          Create task
-        </Button>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Select
+            onValueChange={(value) =>
+              setAssignee(value === "ALL" ? undefined : value)
+            }
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Assignee" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All assignees</SelectItem>
+              {(users.data?.content ?? []).map((user) => (
+                <SelectItem key={user.id} value={user.id}>
+                  {user.firstName} {user.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            onValueChange={(value) =>
+              setPriority(value === "ALL" ? undefined : (value as Priority))
+            }
+          >
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All priorities</SelectItem>
+              <SelectItem value="LOW">Low</SelectItem>
+              <SelectItem value="MEDIUM">Medium</SelectItem>
+              <SelectItem value="HIGH">High</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={() => setCreate(true)}>
+            <Plus className="h-4 w-4" />
+            Create task
+          </Button>
+        </div>
+      </div>
+      <div className="scrollbar-thin grid auto-cols-[minmax(170px,1fr)] grid-flow-col overflow-x-auto border-b bg-card">
+        {statCards.map(({ label, value, icon: Icon, color }) => (
+          <div
+            key={String(label)}
+            className="border-r px-4 py-2.5 last:border-r-0"
+          >
+            <p className="flex items-center gap-2 text-sm text-slate-600">
+              <Icon className={`h-4 w-4 ${color}`} />
+              {label}
+            </p>
+            <p className="mt-1 text-xl font-semibold text-slate-700">{value}</p>
+          </div>
+        ))}
       </div>
       <DragDropContext onDragEnd={drop}>
-        <div className="dot-grid flex min-h-[600px] gap-3 overflow-x-auto rounded-lg border p-2 sm:p-3 2xl:gap-4">
+        <div className="dot-grid flex min-h-[650px] gap-8 overflow-x-auto border-x border-b px-10 py-2 max-xl:gap-3 max-xl:px-3 2xl:gap-10">
           {statuses.map((status) => (
             <TaskColumn
               key={status}

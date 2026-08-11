@@ -16,12 +16,11 @@ export const ExecutivePerformanceTable = ({
 }: {
   rows: DashboardOverview["executivePerformance"];
 }) => (
-  <section className="surface overflow-hidden">
-    <div className="p-5">
-      <h3 className="font-semibold">Executive performance overview</h3>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Live sales performance across the team
-      </p>
+  <section className="overflow-hidden border bg-card">
+    <div className="px-5 py-4">
+      <h3 className="text-base font-medium text-slate-600">
+        Executive performance overview
+      </h3>
     </div>
     {rows.length === 0 ? (
       <EmptyState
@@ -33,29 +32,16 @@ export const ExecutivePerformanceTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Rank</TableHead>
               <TableHead>Executive</TableHead>
               <TableHead>Deal closed</TableHead>
               <TableHead>Revenue</TableHead>
               <TableHead>Conversion rate</TableHead>
               <TableHead>Ratings</TableHead>
-              <TableHead>Score</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((row, index) => (
+            {rows.map((row) => (
               <TableRow key={row.userId}>
-                <TableCell>
-                  <span
-                    className={`font-semibold ${
-                      (row.rank ?? index + 1) <= 3
-                        ? "text-primary"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    #{row.rank ?? index + 1}
-                  </span>
-                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <UserAvatar name={row.name} className="h-7 w-7" />
@@ -74,9 +60,6 @@ export const ExecutivePerformanceTable = ({
                       />
                     ))}
                   </div>
-                </TableCell>
-                <TableCell>
-                  <span className="font-semibold">{row.score?.toFixed(1)}</span>
                 </TableCell>
               </TableRow>
             ))}

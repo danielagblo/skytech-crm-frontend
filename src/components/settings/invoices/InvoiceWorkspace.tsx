@@ -508,12 +508,12 @@ export const InvoiceWorkspace = ({
   };
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(560px,.95fr)_minmax(0,1.05fr)] min-[2200px]:grid-cols-[minmax(760px,.85fr)_1.15fr]">
-      <section className="surface overflow-hidden xl:min-h-[calc(100vh-130px)]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4 sm:p-5">
+    <div className="grid gap-2 xl:grid-cols-[minmax(560px,.95fr)_minmax(0,1.05fr)] min-[2200px]:grid-cols-[minmax(760px,.85fr)_1.15fr]">
+      <section className="overflow-hidden border bg-card xl:min-h-[calc(100vh-125px)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-base font-medium">
                 {invoice ? displayNumber(invoice) : "New invoice draft"}
               </h2>
               {invoice && <StatusBadge status={invoice.status} />}
@@ -521,7 +521,7 @@ export const InvoiceWorkspace = ({
                 <LoaderCircle className="h-4 w-4 animate-spin text-info" />
               )}
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {editable
                 ? "The backend calculates every financial total when you save."
                 : "Issued financial values are frozen and authoritative."}
@@ -921,7 +921,7 @@ export const InvoiceWorkspace = ({
         </DialogContent>
       </Dialog>
 
-      <section className="surface h-fit min-h-[520px] overflow-hidden xl:min-h-[calc(100vh-130px)]">
+      <section className="h-fit min-h-[520px] overflow-hidden border bg-card xl:min-h-[calc(100vh-125px)]">
         <div className="flex flex-wrap gap-2 border-b p-4">
           <div className="relative min-w-52 flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />

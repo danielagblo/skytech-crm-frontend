@@ -11,10 +11,10 @@ const labels: Record<TaskStatus, string> = {
   OVERDUE: "Overdue",
 };
 const style: Record<TaskStatus, string> = {
-  TODO: "bg-green-50 text-green-700",
-  DOING: "bg-blue-50 text-blue-700",
-  DONE: "bg-emerald-50 text-emerald-700",
-  OVERDUE: "bg-red-50 text-red-700",
+  TODO: "bg-emerald-50 text-slate-700 border-emerald-400",
+  DOING: "bg-orange-50 text-slate-700 border-orange-300",
+  DONE: "bg-green-100 text-slate-700 border-green-500",
+  OVERDUE: "bg-red-50 text-slate-700 border-red-400",
 };
 export const TaskColumn = ({
   status,
@@ -29,21 +29,19 @@ export const TaskColumn = ({
   counts: Record<string, { subtasks: number; comments: number }>;
   onOpen: (task: Task) => void;
 }) => (
-  <section className="min-w-[250px] flex-1 2xl:min-w-[270px] min-[2200px]:min-w-0">
+  <section className="min-w-[250px] flex-1 xl:max-w-[270px] xl:flex-none min-[2200px]:max-w-none min-[2200px]:flex-1">
     <div
-      className={`mb-2 flex items-center justify-between rounded-sm border-l-2 px-3 py-2 ${style[status]}`}
+      className={`mb-2 flex items-center justify-between border-l-2 px-3 py-2 ${style[status]}`}
     >
       <h3 className="text-sm font-semibold">{labels[status]}</h3>
-      <span className="rounded-full bg-white/70 px-2 text-xs">
-        {tasks.length}
-      </span>
+      <span className="text-base font-medium">{tasks.length}</span>
     </div>
     <Droppable droppableId={status}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`min-h-[500px] space-y-2 p-1.5 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-card/35"}`}
+          className={`min-h-[540px] space-y-2 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
         >
           {tasks.map((task, index) => (
             <Draggable

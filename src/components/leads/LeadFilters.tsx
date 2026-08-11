@@ -32,12 +32,8 @@ export const LeadFilters = ({
   users,
   onCreate,
 }: LeadFiltersProps) => (
-  <div className="surface flex flex-wrap gap-2 rounded-xl p-3">
-    <SearchInput
-      value={search}
-      onChange={onSearch}
-      placeholder="Search leads"
-    />
+  <div className="flex flex-wrap gap-2 bg-card py-4">
+    <SearchInput value={search} onChange={onSearch} placeholder="Search" />
     <Select
       onValueChange={(value) => onAssignee(value === "ALL" ? undefined : value)}
       value={assignee || "ALL"}

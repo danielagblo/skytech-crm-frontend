@@ -190,7 +190,7 @@ export const UpcomingActivity = ({
     });
 
   const loading = tasks.isLoading || events.isLoading;
-  const PAGE_SIZE = 8;
+  const PAGE_SIZE = 5;
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageRows = visible.slice(
@@ -199,18 +199,19 @@ export const UpcomingActivity = ({
   );
 
   return (
-    <section className="surface overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-gray-100 p-5 pb-4">
+    <section className="min-h-[560px] overflow-hidden border bg-card">
+      <div className="flex items-center justify-between gap-2 px-5 pb-3 pt-5">
         <div className="flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-green-600" />
-          <h3 className="font-semibold">Upcoming activity</h3>
+          <h3 className="text-lg font-normal text-slate-500">
+            Upcoming activity
+          </h3>
         </div>
         <span className="text-sm text-muted-foreground">
           {visible.length} item{visible.length === 1 ? "" : "s"}
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-100 px-5 py-3">
+      <div className="flex flex-wrap items-center gap-2 px-5 pb-5">
         <Select
           value={range}
           onValueChange={(value) => {
@@ -254,7 +255,7 @@ export const UpcomingActivity = ({
         )}
       </div>
 
-      <div className="space-y-1 p-3">
+      <div className="relative space-y-1 px-5 pb-5 before:absolute before:bottom-5 before:left-[29px] before:top-0 before:w-px before:bg-slate-200">
         {loading ? (
           Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="h-14" />
@@ -374,13 +375,11 @@ const ActivityRowView = ({
   return (
     <div
       className={cn(
-        "rounded-lg border p-2.5 transition hover:shadow-sm sm:p-3",
-        row.status === "overdue"
-          ? "border border-red-500"
-          : "hover:border-gray-300",
+        "relative ml-6 border bg-slate-50 p-2.5 transition hover:bg-slate-100 sm:p-3 before:absolute before:-left-[27px] before:top-5 before:h-2 before:w-2 before:rounded-full before:bg-slate-800",
+        row.status === "overdue" ? "border-red-300" : "border-slate-200",
       )}
     >
-      <div className="grid items-center gap-x-1 gap-y-2 sm:grid-cols-[3fr_2fr_0.5fr]">
+      <div className="grid items-center gap-x-2 gap-y-2 sm:grid-cols-[minmax(0,1.5fr)_minmax(170px,.9fr)_auto]">
         <div className="flex min-w-0 items-center gap-2.5">
           <button
             type="button"
@@ -411,11 +410,11 @@ const ActivityRowView = ({
           </button>
           <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-gray-800">
             <Icon className="h-5 w-5 shrink-0 text-green-600" />
-            <span className="truncate text-base">{row.title}</span>
+            <span className="truncate text-sm">{row.title}</span>
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 pl-7 text-sm text-muted-foreground sm:pl-0">
+        <div className="flex items-center gap-1.5 pl-7 text-xs text-muted-foreground sm:pl-0">
           <CalendarDays className="h-5 w-5 shrink-0 text-green-600" />
           <span className="whitespace-nowrap">
             Due date: {dueLabel(row.dueAt)}
@@ -507,7 +506,7 @@ const RowButton = ({
       onClick();
     }}
     className={cn(
-      "grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition hover:text-gray-900",
+      "grid h-7 w-7 place-items-center rounded-full bg-slate-200 text-muted-foreground transition hover:bg-slate-300 hover:text-gray-900",
       className,
     )}
   >

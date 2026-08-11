@@ -36,9 +36,9 @@ export const ContactSegmentSelector = ({
     [leads.data?.content, search],
   );
   return (
-    <aside className="surface h-fit overflow-hidden">
+    <aside className="h-fit overflow-hidden border bg-card">
       <div className="border-b p-4">
-        <h3 className="font-semibold">Broadcast audience</h3>
+        <h3 className="font-medium text-slate-600">Contact segment</h3>
         <p className="text-xs text-muted-foreground">
           Pick one or more contact groups and specific leads.
         </p>

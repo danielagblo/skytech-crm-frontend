@@ -59,7 +59,7 @@ export const LeadsTable = () => {
         users={users}
         onCreate={() => setCreate(true)}
       />
-      <section className="surface overflow-hidden">
+      <section className="overflow-hidden border bg-card">
         {leadsQuery.isLoading ? (
           <div className="space-y-3 p-5">
             {Array.from({ length: 6 }, (_, index) => (
