@@ -46,7 +46,7 @@ const schema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   companyName: z.string().min(2, "Enter a company name."),
   industry: z.string().min(2, "Choose an industry."),
-  phone1: z.string().min(8, "Enter a valid phone number."),
+  phone1: z.string(),
   phone2: z.string().optional(),
   whatsapp: z.string().optional(),
   emailAddress: z.union([
@@ -65,6 +65,19 @@ const schema = z.object({
   emailOptIn: z.boolean(),
   newsletterOptIn: z.boolean(),
   description: z.string().min(10, "Add at least 10 characters."),
+}).superRefine((values, context) => {
+  if (values.smsOptIn && values.phone1.trim().length < 8)
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["phone1"],
+      message: "Enter a valid phone number for SMS communication.",
+    });
+  if ((values.emailOptIn || values.newsletterOptIn) && !values.emailAddress.trim())
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["emailAddress"],
+      message: "Email is required for email communication or the newsletter.",
+    });
 });
 type Values = z.infer<typeof schema>;
 
@@ -86,8 +99,8 @@ const defaults: Values = {
   launchTimeline: "ONE_TO_TWO_MONTHS",
   meetingArranged: true,
   hasPublicOffice: true,
-  smsOptIn: true,
-  emailOptIn: true,
+  smsOptIn: false,
+  emailOptIn: false,
   newsletterOptIn: false,
   description: "",
 };
@@ -390,9 +403,9 @@ export const CreateLeadModal = ({
           <div className="flex flex-wrap gap-5 rounded-xl bg-muted p-4">
             {(
               [
-                ["SMS reminder", "smsOptIn"],
-                ["Email reminder", "emailOptIn"],
-                ["Newsletter", "newsletterOptIn"],
+                ["Communications by SMS", "smsOptIn"],
+                ["Communications by email", "emailOptIn"],
+                ["Subscribe to newsletter", "newsletterOptIn"],
               ] as const
             ).map(([label, key]) => (
               <label key={key} className="flex items-center gap-2 text-sm">
@@ -404,6 +417,10 @@ export const CreateLeadModal = ({
               </label>
             ))}
           </div>
+          <p className="text-xs text-muted-foreground">
+            These choices only save the lead&apos;s communication consent. Creating
+            the lead will not send an SMS or email.
+          </p>
           <div>
             <Label>Description</Label>
             <Textarea {...register("description")} />

@@ -144,6 +144,20 @@ export const useSendInvoice = () => {
   });
 };
 
+export const useConfirmInvoiceReception = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: invoicesService.confirmReception,
+    onSuccess: (_, id) => {
+      void client.invalidateQueries({ queryKey: ["invoices", id] });
+      void client.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success("Invoice reception confirmed.");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Invoice reception could not be confirmed.")),
+  });
+};
+
 export const useRecordInvoicePayment = () => {
   const client = useQueryClient();
   return useMutation({

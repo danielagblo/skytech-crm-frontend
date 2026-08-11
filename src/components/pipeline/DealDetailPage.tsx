@@ -39,6 +39,7 @@ export const DealDetailPage = ({ dealId }: { dealId: string }) => {
       <DealStageStepper
         stage={item.stage}
         pending={updateStage.isPending}
+        paidInFull={item.paidInFull}
         onChange={(stage) => updateStage.mutate({ id: item.id, stage })}
       />
       <Tabs defaultValue="negotiation">

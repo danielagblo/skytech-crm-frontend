@@ -11,7 +11,12 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useNotificationStore } from "@/store/notificationStore";
+import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+  useNotifications,
+  useUnreadNotificationCount,
+} from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/authStore";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import {
@@ -26,7 +31,12 @@ export const TopBar = () => {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [profileOpen, setProfileOpen] = useState(false);
-  const { list, unreadCount, markAllRead } = useNotificationStore();
+  const notifications = useNotifications();
+  const unread = useUnreadNotificationCount();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
+  const list = notifications.data ?? [];
+  const unreadCount = unread.data ?? 0;
   const user = useAuthStore((state) => state.user);
   const name = user ? `${user.firstName} ${user.lastName}` : "Loading profile";
   return (
@@ -86,7 +96,7 @@ export const TopBar = () => {
                 <strong>Notifications</strong>
                 <button
                   className="flex items-center gap-1 text-xs text-green-700"
-                  onClick={markAllRead}
+                  onClick={() => markAllRead.mutate()}
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
                   Mark read
@@ -98,7 +108,14 @@ export const TopBar = () => {
                 </p>
               ) : (
                 list.slice(0, 6).map((item) => (
-                  <DropdownMenuItem key={item.id} className="block">
+                  <DropdownMenuItem
+                    key={item.id}
+                    className="block cursor-pointer"
+                    onSelect={() => {
+                      if (!item.read) markRead.mutate(item.id);
+                      if (item.href) router.push(item.href);
+                    }}
+                  >
                     <p className="font-medium">{item.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {item.body}

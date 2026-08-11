@@ -78,6 +78,7 @@ export const DealDetail = ({
           <DealStageStepper
             stage={deal.stage}
             pending={pending}
+            paidInFull={deal.paidInFull}
             onChange={onStageChange}
           />
           <div className="rounded-2xl bg-muted/60 p-4">

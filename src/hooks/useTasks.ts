@@ -169,6 +169,7 @@ export const useToggleSubtask = () => {
       void client.invalidateQueries({
         queryKey: ["task-subtasks", variables.taskId],
       });
+      toast.success("Subtask updated.");
     },
     onError: (error) =>
       toast.error(

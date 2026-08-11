@@ -30,6 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -47,6 +48,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useDeals } from "@/hooks/useDeals";
 import {
   useCreateInvoice,
+  useConfirmInvoiceReception,
   useDeleteInvoice,
   useInvoice,
   useInvoices,
@@ -252,6 +254,7 @@ export const InvoiceWorkspace = ({
   const [selectedId, setSelectedId] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
+  const [receptionOverride, setReceptionOverride] = useState<Record<string, boolean>>({});
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [confirm, setConfirm] = useState<"issue" | "delete" | "void" | null>(
     null,
@@ -271,6 +274,7 @@ export const InvoiceWorkspace = ({
   const deleteInvoice = useDeleteInvoice();
   const voidInvoice = useVoidInvoice();
   const sendInvoice = useSendInvoice();
+  const confirmReception = useConfirmInvoiceReception();
   const recordPayment = useRecordInvoicePayment();
 
   const form = useForm<DraftValues>({
@@ -417,14 +421,16 @@ export const InvoiceWorkspace = ({
   const actionPending =
     issueInvoice.isPending || deleteInvoice.isPending || voidInvoice.isPending;
   const canSend = Boolean(
-    invoice && ["ISSUED", "SENT", "SEND_FAILED"].includes(invoice.status),
+    invoice &&
+      selectedLead.data?.emailOptIn &&
+      ["ISSUED", "SENT", "SEND_FAILED"].includes(invoice.status),
   );
   const canPay = Boolean(
     invoice && !["DRAFT", "SENDING", "PAID", "VOID"].includes(invoice.status),
   );
   const canVoid = Boolean(
     invoice &&
-    invoice.paidAmount === 0 &&
+    invoice.amountPaid === 0 &&
     ["ISSUED", "SENT", "SEND_FAILED"].includes(invoice.status),
   );
   const previewLead = selectedLead.data;
@@ -724,7 +730,7 @@ export const InvoiceWorkspace = ({
                     <span className="block text-xs text-muted-foreground">
                       Paid
                     </span>
-                    {formatCurrency(invoice.paidAmount || 0)}
+                    {formatCurrency(invoice.amountPaid || 0)}
                   </p>
                   <p>
                     <span className="block text-xs text-muted-foreground">
@@ -749,6 +755,44 @@ export const InvoiceWorkspace = ({
                   {invoice.lastSendError ||
                     "The mail provider did not return a detailed error."}
                 </p>
+              </div>
+            )}
+
+            {invoice && !["DRAFT", "VOID"].includes(invoice.status) && (
+              <label className="flex items-start gap-3 rounded-xl border p-4">
+                <Checkbox
+                  className="mt-0.5"
+                  checked={receptionOverride[invoice.id] ?? invoice.receptionConfirmed}
+                  disabled={invoice.receptionConfirmed || confirmReception.isPending}
+                  onCheckedChange={(checked) => {
+                    if (!checked || invoice.receptionConfirmed) return;
+                    setReceptionOverride((current) => ({ ...current, [invoice.id]: true }));
+                    confirmReception.mutate(invoice.id, {
+                      onError: () =>
+                        setReceptionOverride((current) => {
+                          const next = { ...current };
+                          delete next[invoice.id];
+                          return next;
+                        }),
+                    });
+                  }}
+                />
+                <span>
+                  <span className="block text-sm font-semibold">
+                    Invoice reception confirmed
+                  </span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    Check only after the client has definitely received the invoice by email,
+                    print, or in person.
+                  </span>
+                </span>
+              </label>
+            )}
+
+            {invoice && !selectedLead.data?.emailOptIn && !["DRAFT", "VOID"].includes(invoice.status) && (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                This client has not consented to email communication. Provide a printed copy,
+                then confirm reception above.
               </div>
             )}
 

@@ -31,7 +31,11 @@ export const SettlementLog = ({
     reset,
     handleSubmit,
     formState: { errors },
-  } = useForm<Values>({ resolver: zodResolver(schema), mode: "onBlur" });
+  } = useForm<Values>({
+    resolver: zodResolver(schema),
+    mode: "onBlur",
+    defaultValues: { value: deal.contractValue || undefined },
+  });
   const submit = handleSubmit((data) =>
     mutation.mutate(
       {
@@ -44,7 +48,10 @@ export const SettlementLog = ({
           body: data.conditions,
         },
       },
-      { onSuccess: () => reset() },
+      {
+        onSuccess: () =>
+          reset({ value: data.value, conditions: "", followUp: "" }),
+      },
     ),
   );
   return (
@@ -63,7 +70,7 @@ export const SettlementLog = ({
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label>Contract value (GHC)</Label>
+            <Label>Agreed contract amount (GHS)</Label>
             <Input type="number" step="0.01" {...register("value")} />
             {errors.value && (
               <p className="text-xs text-danger">{errors.value.message}</p>
