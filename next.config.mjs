@@ -1,6 +1,6 @@
 const apiOrigin = (
   process.env.SKYTECH_API_ORIGIN ??
-  "https://skytech-crm-backend-production.up.railway.app"
+  "https://skytech-crm-backend.onrender.com"
 ).replace(/\/$/, "");
 
 /** @type {import('next').NextConfig} */

@@ -28,7 +28,7 @@ The frontend is integrated with the live Railway API. Browser requests use a sam
 
    ```env
    NEXT_PUBLIC_API_URL=/api/v1
-   SKYTECH_API_ORIGIN=https://skytech-crm-backend-production.up.railway.app
+   SKYTECH_API_ORIGIN=https://skytech-crm-backend.onrender.com
    NEXT_PUBLIC_ENABLE_DEMO_AUTH=false
    ```
 
