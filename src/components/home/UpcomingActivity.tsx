@@ -381,33 +381,36 @@ const ActivityRowView = ({
     >
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex min-w-0 items-start gap-2.5">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMarkDone();
-            }}
-            disabled={!row.toggleable}
-            className={cn(
-              "grid h-5 w-5 shrink-0 place-items-center rounded-full cursor-pointer transition",
-              !row.toggleable && "cursor-default",
-              done ? "text-green-600" : "text-gray-300 hover:text-green-500",
-            )}
-            aria-label={done ? "Mark not done" : "Mark done"}
-            title={
-              row.toggleable
-                ? done
-                  ? "Mark not done"
-                  : "Mark done"
-                : undefined
-            }
-          >
-            {done ? (
-              <CheckCircle2 className="h-5 w-5" />
-            ) : (
-              <Circle className="h-5 w-5" />
-            )}
-          </button>
+          {row.status === "overdue" && row.type === "task" ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleReason();
+              }}
+              className="shrink-0 rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 dark:border-red-500/50 dark:bg-red-500/10 dark:text-red-300"
+            >
+              Close and enter reason
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onMarkDone();
+              }}
+              disabled={!row.toggleable}
+              className={cn(
+                "grid h-5 w-5 shrink-0 place-items-center rounded-full cursor-pointer transition",
+                !row.toggleable && "cursor-default",
+                done ? "text-green-600" : "text-gray-300 hover:text-green-500",
+              )}
+              aria-label={done ? "Mark not done" : "Mark done"}
+              title={row.toggleable ? (done ? "Mark not done" : "Mark done") : undefined}
+            >
+              {done ? <CheckCircle2 className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
+            </button>
+          )}
           <p className="flex min-w-0 items-start gap-1.5 text-sm font-medium text-foreground">
             <Icon className="h-5 w-5 shrink-0 text-green-600" />
             <span className="break-words text-sm leading-5">{row.title}</span>

@@ -26,6 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ProfileSheet } from "./ProfileSheet";
+import { useTasks } from "@/hooks/useTasks";
+import type { AppNotification } from "@/types/notification.types";
 
 export const TopBar = () => {
   const router = useRouter();
@@ -35,8 +37,24 @@ export const TopBar = () => {
   const unread = useUnreadNotificationCount();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
-  const list = notifications.data ?? [];
-  const unreadCount = unread.data ?? 0;
+  const overdueTasks = useTasks({ overdue: true, page: 0, size: 100 });
+  const unresolvedOverdue: AppNotification[] = (
+    overdueTasks.data?.content ?? []
+  )
+    .filter(
+      (task) => task.status !== "DONE" && !task.completionReason?.trim(),
+    )
+    .map((task) => ({
+      id: `overdue-task-${task.id}`,
+      type: "OVERDUE_TASK_REASON_REQUIRED",
+      title: "Overdue task needs a reason",
+      body: `${task.title} — close it and record why it was not completed on time.`,
+      href: `/tasks?open=${task.id}`,
+      read: false,
+      createdAt: task.dueDate ?? task.updatedAt,
+    }));
+  const list = [...unresolvedOverdue, ...(notifications.data ?? [])];
+  const unreadCount = (unread.data ?? 0) + unresolvedOverdue.length;
   const user = useAuthStore((state) => state.user);
   const name = user ? `${user.firstName} ${user.lastName}` : "Loading profile";
   return (
@@ -109,7 +127,8 @@ export const TopBar = () => {
                     key={item.id}
                     className="block cursor-pointer"
                     onSelect={() => {
-                      if (!item.read) markRead.mutate(item.id);
+                      if (!item.read && !item.id.startsWith("overdue-task-"))
+                        markRead.mutate(item.id);
                       if (item.href) router.push(item.href);
                     }}
                   >
