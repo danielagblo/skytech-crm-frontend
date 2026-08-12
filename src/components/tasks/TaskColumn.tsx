@@ -29,7 +29,7 @@ export const TaskColumn = ({
   counts: Record<string, { subtasks: number; comments: number }>;
   onOpen: (task: Task) => void;
 }) => (
-  <section className="min-w-[250px] flex-1 xl:max-w-[270px] xl:flex-none min-[2200px]:max-w-none min-[2200px]:flex-1">
+  <section className="flex h-full min-w-[250px] flex-1 flex-col xl:max-w-[270px] xl:flex-none min-[2200px]:max-w-none min-[2200px]:flex-1">
     <div
       className={`mb-2 flex items-center justify-between border-l-2 px-3 py-2 ${style[status]}`}
     >
@@ -41,7 +41,7 @@ export const TaskColumn = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`min-h-[540px] space-y-2 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
+          className={`scrollbar-none min-h-[540px] flex-1 space-y-2 overflow-y-auto overscroll-contain pb-20 lg:min-h-0 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
         >
           {tasks.map((task, index) => (
             <Draggable

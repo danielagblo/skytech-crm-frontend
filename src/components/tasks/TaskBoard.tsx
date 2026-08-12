@@ -229,7 +229,7 @@ export const TaskBoard = () => {
     },
   ];
   return (
-    <div className="space-y-0">
+    <div className="flex flex-col lg:h-[calc(100dvh-7.75rem)] lg:min-h-0 lg:overflow-hidden 2xl:h-[calc(100dvh-8.25rem)]">
       <div className="flex flex-wrap items-center gap-2 border-b bg-card px-2 py-3 sm:px-3">
         <div className="relative min-w-56 flex-1 sm:max-w-64">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -294,7 +294,7 @@ export const TaskBoard = () => {
         ))}
       </div>
       <DragDropContext onDragEnd={drop}>
-        <div className="dot-grid flex min-h-[650px] gap-8 overflow-x-auto border-x border-b px-10 py-2 max-xl:gap-3 max-xl:px-3 2xl:gap-10">
+        <div className="dot-grid flex min-h-[650px] flex-1 gap-8 overflow-x-auto overflow-y-hidden border-x border-b px-10 py-2 max-xl:gap-3 max-xl:px-3 lg:min-h-0 2xl:gap-10">
           {statuses.map((status) => (
             <TaskColumn
               key={status}

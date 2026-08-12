@@ -56,7 +56,7 @@ export const PipelineColumn = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`scrollbar-none min-h-[580px] flex-1 space-y-2 overflow-y-auto overscroll-contain p-1 transition lg:min-h-0 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
+          className={`scrollbar-none min-h-[580px] flex-1 space-y-2 overflow-y-auto overscroll-contain p-1 transition lg:min-h-0 ${stage === "CLIENT_RETENTION" ? "pb-28" : "pb-2"} ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
         >
           {deals.map((deal, index) => (
             <Draggable
