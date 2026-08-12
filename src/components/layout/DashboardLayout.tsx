@@ -2,12 +2,15 @@
 
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 
 export const DashboardLayout = ({
   children,
 }: {
   children: React.ReactNode;
-}) => (
+}) => {
+  usePresenceHeartbeat();
+  return (
   <div className="min-h-screen bg-background text-foreground">
     <Sidebar />
     <div className="min-h-screen pb-[76px] lg:pl-28 lg:pb-0">
@@ -17,4 +20,5 @@ export const DashboardLayout = ({
       </main>
     </div>
   </div>
-);
+  );
+};

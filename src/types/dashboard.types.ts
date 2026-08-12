@@ -42,7 +42,8 @@ export interface DashboardOverview {
   agentRank: {
     rank: number;
     totalAgents: number;
-    screenTime: number;
+    loggedCallSeconds: number;
+    activeSessionSeconds: number;
     targetAchievement: number;
     salesRevenue: number;
   };

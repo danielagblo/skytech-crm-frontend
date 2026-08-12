@@ -5,7 +5,6 @@ import type {
   ConvertLeadRequest,
   CreateLeadRequest,
   Lead,
-  LeadAssignmentConfig,
   LeadFilters,
   LeadStats,
   UpdateLeadRequest,
@@ -33,11 +32,4 @@ export const leadsService = {
       assignees,
       autoAssign,
     }),
-  getAutoAssignConfig: () =>
-    api.get<ApiResponse<LeadAssignmentConfig>>("/leads/auto-assign/config"),
-  updateAutoAssignConfig: (data: LeadAssignmentConfig) =>
-    api.put<ApiResponse<LeadAssignmentConfig>>(
-      "/leads/auto-assign/config",
-      data,
-    ),
 };

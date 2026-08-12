@@ -76,7 +76,7 @@ export default function AutomationsPage() {
     ) : active === "payment" ? (
       <PaymentAutomation
         items={applyOverrides(
-          items.filter((item) => item.automationType === "PAYMENT"),
+          items.filter((item) => item.automationType.startsWith("PAYMENT_")),
         )}
         onToggle={handleToggle}
         pending={toggle.isPending}

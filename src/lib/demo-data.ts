@@ -58,6 +58,8 @@ export const demoUsers: User[] = [
   profilePhotoUrl: null,
   active: true,
   lastLogin: stamp,
+  lastSeenAt: index < 2 ? stamp : null,
+  presenceStatus: index < 2 ? "ONLINE" : "OFFLINE",
   createdAt: stamp,
 }));
 
@@ -256,7 +258,8 @@ export const demoDashboard: DashboardOverview = {
   agentRank: {
     rank: 1,
     totalAgents: 12,
-    screenTime: 78,
+    loggedCallSeconds: 28_080,
+    activeSessionSeconds: 52_200,
     targetAchievement: 86,
     salesRevenue: 92,
   },
@@ -295,7 +298,8 @@ export const demoUserPerformance: UserPerformance = {
   rank: 1,
   closedDeals: 18,
   revenue: 89000,
-  hours: 168,
+  loggedCallSeconds: 28_080,
+  activeSessionSeconds: 52_200,
   byMonth: { January: 18000, February: 24500, March: 21000, April: 25500 },
 };
 
@@ -429,7 +433,7 @@ export const demoAutomations: Automation[] = [
   },
   {
     id: "automation-3",
-    automationType: "PAYMENT",
+    automationType: "PAYMENT_RECEIVED",
     name: "Payment acknowledgement",
     active: true,
     triggerConfig: {},
@@ -474,6 +478,14 @@ export const demoAutomations: Automation[] = [
 ];
 
 export const demoAutomationOptions: AutomationOptions = {
-  types: ["BIRTHDAY", "PUBLIC_HOLIDAY", "PAYMENT", "PERSONAL"],
+  types: [
+    "BIRTHDAY",
+    "PUBLIC_HOLIDAY",
+    "PAYMENT_RECEIVED",
+    "PAYMENT_DUE",
+    "PAYMENT_OVERDUE",
+    "PAYMENT_RECOVERY",
+    "PERSONAL",
+  ],
   channels: ["SMS", "EMAIL", "BOTH"],
 };

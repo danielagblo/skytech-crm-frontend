@@ -14,6 +14,16 @@ import { EmptyState } from "@/components/shared/EmptyState";
 const labelFor = (step: AutomationStep, index: number) =>
   step.label || step.action || `Delivery step ${index + 1}`;
 
+const triggerLabel = (type: Automation["automationType"]) => {
+  const labels: Partial<Record<Automation["automationType"], string>> = {
+    PAYMENT_RECEIVED: "Payment received",
+    PAYMENT_DUE: "Payment due",
+    PAYMENT_OVERDUE: "Payment overdue",
+    PAYMENT_RECOVERY: "Payment recovery",
+  };
+  return labels[type] ?? type.replaceAll("_", " ");
+};
+
 export const PaymentAutomation = ({
   items,
   onToggle,
@@ -29,7 +39,7 @@ export const PaymentAutomation = ({
     <div>
       <h2 className="text-lg font-semibold">Payment automations</h2>
       <p className="text-sm text-muted-foreground">
-        Event-driven acknowledgements sent after a positive payment is recorded.
+        Event-driven payment messages with persisted, delayed delivery steps.
       </p>
     </div>
     {items.length === 0 ? (
@@ -67,8 +77,8 @@ export const PaymentAutomation = ({
               <FlowNode
                 icon={ReceiptText}
                 eyebrow="Trigger"
-                title="Positive payment recorded"
-                body="Runs for invoice payments and positive payment deal logs."
+                title={triggerLabel(item.automationType)}
+                body="Runs only for its explicit payment event; due and recovery events are not treated as received payments."
               />
               <ArrowDown className="mx-auto h-5 w-5 text-muted-foreground" />
               <FlowNode
@@ -98,9 +108,14 @@ export const PaymentAutomation = ({
                     <div className="min-w-0">
                       <p className="font-medium">{labelFor(step, index)}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {step.message}
+                      {step.message}
                       </p>
                     </div>
+                    {Number(step.waitDays ?? 0) > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        Wait {step.waitDays} day{step.waitDays === 1 ? "" : "s"}
+                      </span>
+                    )}
                     <span className="inline-flex w-fit items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium">
                       {step.channel === "EMAIL" ? (
                         <Mail className="h-3.5 w-3.5" />

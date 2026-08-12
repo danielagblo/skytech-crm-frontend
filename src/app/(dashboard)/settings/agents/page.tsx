@@ -15,6 +15,13 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AgentTable } from "@/components/settings/agents/AgentTable";
 import { AddAgentModal } from "@/components/settings/agents/AddAgentModal";
 import { AgentPerformanceTable } from "@/components/settings/agents/AgentPerformanceTable";
@@ -117,8 +124,31 @@ export default function AgentsPage() {
                 }}
               />
             </div>
-            <div className="mt-4 divide-y">
-              {(leads.data?.content ?? []).map((lead) => (
+          <div className="mt-4 divide-y">
+            <div className="pb-4">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                Assignment strategy
+              </p>
+              <Select
+                value={assignment.data?.config.strategy ?? "LEAST_LOADED"}
+                disabled={updateAssignment.isPending}
+                onValueChange={(strategy: "LEAST_LOADED" | "ROUND_ROBIN") =>
+                  updateAssignment.mutate({
+                    enabled: assignmentOverride ?? Boolean(assignment.data?.enabled),
+                    config: { strategy },
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LEAST_LOADED">Least loaded</SelectItem>
+                  <SelectItem value="ROUND_ROBIN">Round robin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(leads.data?.content ?? []).map((lead) => (
                 <div key={lead.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold">

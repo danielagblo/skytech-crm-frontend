@@ -6,7 +6,6 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import { leadsService } from "@/services/leads.service";
 import type {
   ConvertLeadRequest,
-  LeadAssignmentConfig,
   LeadFilters,
   UpdateLeadRequest,
 } from "@/types/lead.types";
@@ -48,12 +47,6 @@ export const useLeadStats = () =>
     queryKey: ["lead-stats"],
     queryFn: () =>
       isDemoSession() ? demoResponse(demoLeadStats) : leadsService.getStats(),
-    select: (response) => response.data.data,
-  });
-export const useLeadAutoAssign = () =>
-  useQuery({
-    queryKey: ["lead-auto-assign"],
-    queryFn: leadsService.getAutoAssignConfig,
     select: (response) => response.data.data,
   });
 export const useCreateLead = () => {
@@ -125,20 +118,5 @@ export const useAssignLead = () => {
     },
     onError: (error) =>
       toast.error(getApiErrorMessage(error, "The lead could not be assigned.")),
-  });
-};
-export const useUpdateLeadAutoAssign = () => {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (data: LeadAssignmentConfig) =>
-      leadsService.updateAutoAssignConfig(data),
-    onSuccess: () => {
-      void client.invalidateQueries({ queryKey: ["lead-auto-assign"] });
-      toast.success("Automatic lead assignment updated.");
-    },
-    onError: (error) =>
-      toast.error(
-        getApiErrorMessage(error, "Automatic assignment could not be updated."),
-      ),
   });
 };

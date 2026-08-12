@@ -1,7 +1,7 @@
 import { Clock3, Target, TrendingUp } from "lucide-react";
 import type { DashboardOverview } from "@/types/dashboard.types";
 import type { User } from "@/types/user.types";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDuration } from "@/lib/utils";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 export const AgentRankCard = ({
   user,
@@ -12,7 +12,16 @@ export const AgentRankCard = ({
 }) => {
   const name = user ? `${user.firstName} ${user.lastName}` : "Current user";
   const items = [
-    { icon: Clock3, label: "Screen time", value: `${rank.screenTime} hrs` },
+    {
+      icon: Clock3,
+      label: "Logged call time",
+      value: formatDuration(rank.loggedCallSeconds),
+    },
+    {
+      icon: Clock3,
+      label: "Active CRM session",
+      value: formatDuration(rank.activeSessionSeconds),
+    },
     {
       icon: Target,
       label: "Target achievement",

@@ -1,5 +1,10 @@
 import type { User, UserPerformance } from "@/types/user.types";
-import { formatCurrency, formatDate, formatRelative } from "@/lib/utils";
+import {
+  formatCurrency,
+  formatDate,
+  formatDuration,
+  formatRelative,
+} from "@/lib/utils";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { EmptyState } from "@/components/shared/EmptyState";
 import {
@@ -10,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 export const AgentTable = ({
   agents,
   performance,
@@ -32,7 +38,8 @@ export const AgentTable = ({
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Account / last login</TableHead>
+              <TableHead>Presence</TableHead>
+              <TableHead>Account</TableHead>
               <TableHead>Revenue</TableHead>
               <TableHead>Logged call time</TableHead>
               <TableHead>Date added</TableHead>
@@ -61,20 +68,29 @@ export const AgentTable = ({
                 <TableCell>
                   <span className="flex items-center gap-2">
                     <span
-                      className={`h-2 w-2 rounded-full ${agent.active ? "bg-green-500" : "bg-gray-300"}`}
+                      className={`h-2 w-2 rounded-full ${agent.presenceStatus === "ONLINE" ? "bg-green-500" : "bg-gray-300"}`}
                     />
-                    {agent.active
-                      ? agent.lastLogin
-                        ? `Enabled · logged in ${formatRelative(agent.lastLogin)}`
-                        : "Enabled · never logged in"
-                      : "Disabled"}
+                    {agent.presenceStatus === "ONLINE"
+                      ? "Online"
+                      : agent.lastSeenAt
+                        ? `Offline · seen ${formatRelative(agent.lastSeenAt)}`
+                        : "Offline · never seen"}
                   </span>
+                </TableCell>
+                <TableCell>
+                  {agent.active
+                    ? agent.lastLogin
+                      ? `Enabled · login ${formatRelative(agent.lastLogin)}`
+                      : "Enabled · never logged in"
+                    : "Disabled"}
                 </TableCell>
                 <TableCell>
                   {formatCurrency(performance[agent.id]?.revenue ?? 0)}
                 </TableCell>
-                <TableCell title="Sum of recorded deal-call durations, not browser session time.">
-                  {performance[agent.id]?.hours ?? 0} hrs
+                <TableCell title="Sum of recorded deal-call durations.">
+                  {formatDuration(
+                    performance[agent.id]?.loggedCallSeconds ?? 0,
+                  )}
                 </TableCell>
                 <TableCell>{formatDate(agent.createdAt)}</TableCell>
               </TableRow>

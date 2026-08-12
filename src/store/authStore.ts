@@ -29,6 +29,8 @@ export const demoUser: User = {
   profilePhotoUrl: "/assets/profile_Placeholder.png",
   active: true,
   lastLogin: new Date(0).toISOString(),
+  lastSeenAt: new Date().toISOString(),
+  presenceStatus: "ONLINE",
   createdAt: new Date(0).toISOString(),
 };
 

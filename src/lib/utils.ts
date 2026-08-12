@@ -24,3 +24,13 @@ export const initials = (name: string) =>
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+export const formatDuration = (seconds: number) => {
+  const safe = Math.max(0, Math.round(seconds));
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+  const remainder = safe % 60;
+  if (hours) return `${hours}h ${minutes}m`;
+  if (minutes) return `${minutes}m ${remainder}s`;
+  return `${remainder}s`;
+};
