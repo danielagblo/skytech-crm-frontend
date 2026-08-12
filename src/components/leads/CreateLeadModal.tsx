@@ -220,7 +220,7 @@ export const CreateLeadModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+      <DialogContent className="max-h-[90vh] sm:max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{lead ? "Edit lead" : "Create lead"}</DialogTitle>
         </DialogHeader>
