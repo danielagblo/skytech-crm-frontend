@@ -14,6 +14,7 @@ export const LeadRow = ({
   users: User[];
   onOpen: (lead: Lead) => void;
 }) => {
+  const conversionScore = Math.min(100, Math.max(0, lead.conversionScore));
   const assignees = lead.assignedTo
     .map((id) => users.find((user) => user.id === id))
     .filter((user): user is User => Boolean(user)) as UserSummary[];
@@ -36,10 +37,10 @@ export const LeadRow = ({
           <span className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-100">
             <span
               className="block h-full bg-primary"
-              style={{ width: `${lead.conversionScore}%` }}
+              style={{ width: `${conversionScore}%` }}
             />
           </span>
-          {lead.conversionScore}%
+          {conversionScore}%
         </div>
       </TableCell>
       <TableCell>
