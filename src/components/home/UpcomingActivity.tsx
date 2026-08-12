@@ -327,12 +327,13 @@ export const UpcomingActivity = ({
         task={resolutionTask}
         open={Boolean(resolutionTask)}
         pending={updateTask.isPending}
+        mode="complete"
         onOpenChange={(open) => !open && setResolutionTask(null)}
         onConfirm={async (reason) => {
           if (!resolutionTask) return;
           await updateTask.mutateAsync({
             id: resolutionTask.id,
-            status: resolutionTask.status,
+            status: "DONE",
             reason,
           });
           setResolutionTask(null);
@@ -381,18 +382,7 @@ const ActivityRowView = ({
     >
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex min-w-0 items-start gap-2.5">
-          {row.status === "overdue" && row.type === "task" ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onToggleReason();
-              }}
-              className="shrink-0 rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 dark:border-red-500/50 dark:bg-red-500/10 dark:text-red-300"
-            >
-              Close and enter reason
-            </button>
-          ) : (
+          {!(row.status === "overdue" && row.type === "task") && (
             <button
               type="button"
               onClick={(event) => {
@@ -415,6 +405,18 @@ const ActivityRowView = ({
             <Icon className="h-5 w-5 shrink-0 text-green-600" />
             <span className="break-words text-sm leading-5">{row.title}</span>
           </p>
+          {row.status === "overdue" && row.type === "task" && mine && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleReason();
+              }}
+              className="shrink-0 rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 dark:border-red-500/50 dark:bg-red-500/10 dark:text-red-300"
+            >
+              Close task and enter reason
+            </button>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pl-7">

@@ -94,16 +94,16 @@ export const HomeDashboard = () => {
         <div className="min-w-0 space-y-4">
           <UpcomingActivity followUps={data.followUpReminders} />
           <FollowUpReminders rows={data.followUpReminders} />
+          <TopDealsChart
+            sixMonths={sixMonths.data?.content ?? []}
+            year={year.data?.content ?? []}
+            gated={sixMonths.isError || year.isError}
+          />
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div>
         <RevenueChart data={data.topRevenuePerAgent} />
-        <TopDealsChart
-          sixMonths={sixMonths.data?.content ?? []}
-          year={year.data?.content ?? []}
-          gated={sixMonths.isError || year.isError}
-        />
       </div>
       {can("view:settings") && <ActivityLog />}
     </div>
