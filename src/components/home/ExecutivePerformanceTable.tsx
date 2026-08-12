@@ -76,20 +76,10 @@ export const ExecutivePerformanceTable = ({
                 </TableCell>
                 <TableCell>
                   <div
-                    className="flex min-w-24 items-center gap-2"
+                    className="tabular-nums"
                     title="Backend score: Bayesian-adjusted customer rating, revenue, auto-review quality, deals closed, and conversion rate."
                   >
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                      <span
-                        className="block h-full rounded-full bg-primary"
-                        style={{
-                          width: `${Math.min(100, Math.max(0, row.score))}%`,
-                        }}
-                      />
-                    </div>
-                    <strong className="tabular-nums">
-                      {row.score.toFixed(1)}
-                    </strong>
+                    <strong>{row.score.toFixed(1)}</strong>
                   </div>
                 </TableCell>
               </TableRow>

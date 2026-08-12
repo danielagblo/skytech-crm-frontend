@@ -89,6 +89,7 @@ export const HomeDashboard = () => {
           {can("view:executive-performance") && (
             <ExecutivePerformanceTable rows={data.executivePerformance} />
           )}
+          <AgentRankCard user={user} rank={data.agentRank} />
         </div>
         <div className="min-w-0 space-y-4">
           <UpcomingActivity followUps={data.followUpReminders} />
@@ -97,7 +98,6 @@ export const HomeDashboard = () => {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <AgentRankCard user={user} rank={data.agentRank} />
         <RevenueChart data={data.topRevenuePerAgent} />
         <TopDealsChart
           sixMonths={sixMonths.data?.content ?? []}
