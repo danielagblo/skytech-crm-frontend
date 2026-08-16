@@ -311,9 +311,7 @@ export const TaskBoard = () => {
         task={selected}
         users={users.data?.content ?? []}
         open={Boolean(selected)}
-        pending={updateStatus.isPending}
         onOpenChange={(value) => !value && setSelected(null)}
-        onStatusChange={(status) => selected && moveStatus(selected, status)}
       />
       <CreateTaskModal open={create} onOpenChange={setCreate} />
       <OverdueResolutionModal

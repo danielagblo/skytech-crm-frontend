@@ -123,7 +123,7 @@ export const PipelineBoard = () => {
   return (
     <>
       <DragDropContext onDragEnd={drop}>
-        <div className="dot-grid scrollbar-thin flex min-h-[680px] gap-2 overflow-x-auto overflow-y-hidden border px-2 py-1 lg:h-full lg:min-h-0">
+        <div className="dot-grid scrollbar-thin flex min-h-[620px] flex-1 gap-3 overflow-x-auto overflow-y-hidden rounded-lg border p-2 sm:p-3 lg:h-full lg:min-h-0 2xl:gap-4 2xl:p-4">
           {stages.map((stage) => (
             <PipelineColumn
               key={stage}
@@ -144,9 +144,7 @@ export const PipelineBoard = () => {
         )}
         users={users.data?.content ?? []}
         open={Boolean(selected)}
-        pending={updateStage.isPending}
         onOpenChange={(value) => !value && setSelected(null)}
-        onStageChange={(stage) => selected && commitStage(selected.id, stage)}
       />
     </>
   );
