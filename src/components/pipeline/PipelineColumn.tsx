@@ -36,27 +36,29 @@ export const PipelineColumn = ({
   logs: Record<string, DealLog[]>;
   onOpen: (deal: Deal) => void;
 }) => (
-  <section className="flex h-full min-w-[245px] flex-1 flex-col xl:max-w-[260px] xl:flex-none min-[2200px]:max-w-none min-[2200px]:flex-1">
-    <div className="mb-1 shrink-0 bg-card px-3 py-3">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-medium text-slate-500">{labels[stage]}</h3>
-        <span className="text-[10px] text-muted-foreground">
-          {deals.length} deals
-        </span>
+  <section className="flex h-full min-w-[250px] flex-1 flex-col 2xl:min-w-[265px] min-[2200px]:min-w-0">
+    <div className="mb-2 shrink-0 border-b bg-card px-2 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className={`h-2.5 w-2.5 rounded-full ${bars[stage]}`} />
+          <h3 className="text-sm font-semibold">{labels[stage]}</h3>
+          <span className="rounded-full bg-muted px-2 text-xs">
+            {deals.length}
+          </span>
+        </div>
+        <strong className="text-xs">
+          {formatCurrency(
+            deals.reduce((total, deal) => total + deal.contractValue, 0),
+          )}
+        </strong>
       </div>
-      <strong className="mt-1 block text-base font-semibold">
-        {formatCurrency(
-          deals.reduce((total, deal) => total + deal.contractValue, 0),
-        )}
-      </strong>
-      <span className={`mt-2 block h-0.5 w-full ${bars[stage]}`} />
     </div>
     <Droppable droppableId={stage}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`scrollbar-none min-h-[580px] flex-1 space-y-2 overflow-y-auto overscroll-contain p-1 transition lg:min-h-0 ${stage === "CLIENT_RETENTION" ? "pb-28" : "pb-2"} ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
+          className={`scrollbar-none min-h-[520px] flex-1 space-y-2 overflow-y-auto overscroll-contain p-1.5 transition lg:min-h-0 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-card/35"}`}
         >
           {deals.map((deal, index) => (
             <Draggable
