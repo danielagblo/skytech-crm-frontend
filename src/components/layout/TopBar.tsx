@@ -37,25 +37,28 @@ export const TopBar = () => {
   const unread = useUnreadNotificationCount();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
+  const user = useAuthStore((state) => state.user);
   const overdueTasks = useTasks({ overdue: true, page: 0, size: 100 });
   const unresolvedOverdue: AppNotification[] = (
     overdueTasks.data?.content ?? []
   )
     .filter(
-      (task) => task.status !== "DONE" && !task.completionReason?.trim(),
+      (task) =>
+        task.status !== "DONE" &&
+        !task.completionReason?.trim() &&
+        Boolean(user?.id && task.assigneeIds.includes(user.id)),
     )
     .map((task) => ({
       id: `overdue-task-${task.id}`,
       type: "OVERDUE_TASK_REASON_REQUIRED",
       title: "Overdue task needs a reason",
       body: `${task.title} — close it and record why it was not completed on time.`,
-      href: `/tasks?open=${task.id}`,
+      href: `/tasks?open=${task.id}&reason=1`,
       read: false,
       createdAt: task.dueDate ?? task.updatedAt,
     }));
   const list = [...unresolvedOverdue, ...(notifications.data ?? [])];
   const unreadCount = (unread.data ?? 0) + unresolvedOverdue.length;
-  const user = useAuthStore((state) => state.user);
   const name = user ? `${user.firstName} ${user.lastName}` : "Loading profile";
   return (
     <>

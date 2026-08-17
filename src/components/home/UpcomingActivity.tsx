@@ -371,7 +371,13 @@ const ActivityRowView = ({
         ? CalendarDays
         : Clock3;
   const done = row.status === "done";
-  const showReason = row.type === "task" && !done && (staff || mine);
+  const awaitingOwnReason =
+    row.status === "overdue" &&
+    row.type === "task" &&
+    mine &&
+    !row.task?.completionReason?.trim();
+  const showReason =
+    row.type === "task" && !done && (staff || mine) && !awaitingOwnReason;
   const showNote = Boolean(row.note);
   return (
     <div
@@ -405,7 +411,7 @@ const ActivityRowView = ({
             <Icon className="h-5 w-5 shrink-0 text-green-600" />
             <span className="break-words text-sm leading-5">{row.title}</span>
           </p>
-          {row.status === "overdue" && row.type === "task" && mine && (
+          {awaitingOwnReason && (
             <button
               type="button"
               onClick={(event) => {

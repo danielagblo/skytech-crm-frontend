@@ -18,6 +18,7 @@ import { tasksService } from "@/services/tasks.service";
 import { useTasks, useTaskStats, useUpdateTaskStatus } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import { useCreateActivity } from "@/hooks/useActivities";
+import { useAuthStore } from "@/store/authStore";
 import { TaskColumn } from "./TaskColumn";
 import { TaskDetail } from "./TaskDetail";
 import { CreateTaskModal } from "./CreateTaskModal";
@@ -46,6 +47,7 @@ export const TaskBoard = () => {
   const [priority, setPriority] = useState<Priority>();
   const [assignee, setAssignee] = useState<string>();
   const searchParams = useSearchParams();
+  const currentUserId = useAuthStore((state) => state.user?.id);
   const openedRef = useRef<string | null>(null);
   const tasks = useTasks({
     search: search || undefined,
@@ -73,13 +75,27 @@ export const TaskBoard = () => {
     const openId =
       searchParams?.get("open") ??
       new URLSearchParams(window.location.search).get("open");
-    if (!openId || openedRef.current === openId || items.length === 0) return;
+    const reasonRequested =
+      (searchParams?.get("reason") ??
+        new URLSearchParams(window.location.search).get("reason")) === "1";
+    const requestKey = `${openId ?? ""}:${reasonRequested ? "reason" : "detail"}`;
+    if (!openId || openedRef.current === requestKey || items.length === 0)
+      return;
     const target = items.find((task) => task.id === openId);
     if (!target) return;
-    openedRef.current = openId;
-    const timer = window.setTimeout(() => setSelected(target), 0);
+    if (reasonRequested && !currentUserId) return;
+    openedRef.current = requestKey;
+    const canEnterReason =
+      reasonRequested &&
+      target.status !== "DONE" &&
+      !target.completionReason?.trim() &&
+      target.assigneeIds.includes(currentUserId ?? "");
+    const timer = window.setTimeout(() => {
+      if (canEnterReason) setOverdueResolution(target);
+      else setSelected(target);
+    }, 0);
     return () => window.clearTimeout(timer);
-  }, [searchParams, items]);
+  }, [searchParams, items, currentUserId]);
   const detailQueries = useQueries({
     queries: items.flatMap((task) => [
       {
