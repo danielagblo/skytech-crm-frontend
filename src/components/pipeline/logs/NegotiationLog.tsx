@@ -211,7 +211,12 @@ export const NegotiationLog = ({
                   <img
                     src={option.icon}
                     alt={option.label}
-                    className={cn("h-8 w-8", selected && option.activeClass)}
+                    className={cn(
+                      "h-8 w-8 transition",
+                      selected
+                        ? option.activeClass
+                        : "dark:invert dark:brightness-200",
+                    )}
                   />
                   <span
                     className={cn(
@@ -304,7 +309,12 @@ export const NegotiationLog = ({
                     <img
                       src={option.icon}
                       alt={option.label}
-                      className={cn("h-8 w-8", selected && option.activeClass)}
+                      className={cn(
+                        "h-8 w-8 transition",
+                        selected
+                          ? option.activeClass
+                          : "dark:invert dark:brightness-200",
+                      )}
                     />
                     <span
                       className={cn(
