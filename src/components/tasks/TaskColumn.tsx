@@ -69,7 +69,7 @@ export const TaskColumn = ({
           ))}
           {provided.placeholder}
           {tasks.length === 0 && (
-            <p className="rounded-xl border border-dashed bg-white/70 p-6 text-center text-xs text-muted-foreground">
+            <p className="rounded-xl border border-dashed border-border bg-card/70 p-6 text-center text-xs text-muted-foreground dark:bg-card/45">
               Drop a task here
             </p>
           )}

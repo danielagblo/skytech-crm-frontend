@@ -229,13 +229,13 @@ export const TaskBoard = () => {
       label: "Total Task",
       value: statsData.total,
       icon: ListChecks,
-      color: "text-slate-700",
+      color: "text-foreground",
     },
     {
       label: "Total Task Done",
       value: statsData.done,
       icon: CheckSquare2,
-      color: "text-slate-700",
+      color: "text-foreground",
     },
     {
       label: "Overdue",
@@ -299,13 +299,13 @@ export const TaskBoard = () => {
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <div
             key={String(label)}
-            className="border-r px-4 py-2.5 last:border-r-0"
+            className="border-r border-border px-4 py-2.5 last:border-r-0"
           >
-            <p className="flex items-center gap-2 text-sm text-slate-600">
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <Icon className={`h-4 w-4 ${color}`} />
               {label}
             </p>
-            <p className="mt-1 text-xl font-semibold text-slate-700">{value}</p>
+            <p className="mt-1 text-xl font-semibold text-foreground">{value}</p>
           </div>
         ))}
       </div>
