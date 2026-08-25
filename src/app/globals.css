@@ -113,6 +113,14 @@ select {
   border-color: hsl(var(--border)) !important;
 }
 
+/* Invoice paper is a print preview and must remain light in every app theme. */
+.invoice-sheet,
+.dark .invoice-sheet {
+  background-color: #fff !important;
+  color: #262626 !important;
+  color-scheme: light;
+}
+
 /* Ultra-large displays (TVs / 4K+) — scale the rem-based UI so text and
    layout stay proportionate without touching any component styles. */
 @media (min-width: 2000px) {

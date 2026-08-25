@@ -481,7 +481,7 @@ export const InvoiceWorkspace = ({
     issuerAddress: issuerInfo.address || undefined,
     issuerTaxId: issuerInfo.taxId || undefined,
     paymentInstructions: issuerInfo.paymentInstructions || undefined,
-    logoUrl: "/assets/skytech_Logo.png",
+    logoUrl: "/assets/invoice_logo.png",
     clientName: previewRecipientName,
     clientCompany: previewCompany,
     clientAddress: [previewEmail, previewAddress].filter(Boolean).join("\n"),

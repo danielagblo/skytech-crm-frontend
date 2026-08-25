@@ -66,9 +66,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 155,
+    height: 52,
+    objectFit: "contain",
+    objectPosition: "right",
   },
   metaRow: {
     marginTop: 56,

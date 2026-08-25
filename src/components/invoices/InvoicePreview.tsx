@@ -82,7 +82,7 @@ export default function InvoicePreview({
     <div className="w-full flex justify-center bg-neutral-100 p-4 md:p-8">
       {/* Page: fixed aspect to emulate a portrait invoice sheet */}
       <div
-        className="bg-white text-neutral-800 shadow-sm w-full"
+        className="invoice-sheet bg-white text-neutral-800 shadow-sm w-full"
         style={{ maxWidth: "816px" }}
       >
         <div className="px-8 pt-12 pb-10 md:px-16 md:pt-16 md:pb-12 flex flex-col h-full">
@@ -111,15 +111,15 @@ export default function InvoicePreview({
             </div>
 
             {/* Company logo (upper right) */}
-            <div className="relative w-20 h-20 md:w-28 md:h-28 flex items-center justify-center shrink-0">
+            <div className="relative flex h-14 w-40 shrink-0 items-center justify-end md:h-20 md:w-56">
               {data.logoUrl ? (
                 <img
                   src={data.logoUrl}
                   alt={data.issuerName}
-                  className="rounded-full object-cover w-full h-full"
+                  className="h-full w-full object-contain object-right"
                 />
               ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-neutral-100">
+                <div className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-neutral-100 md:h-20 md:w-20">
                   <span
                     className="text-xl md:text-3xl leading-none mb-1"
                     style={{ fontFamily: "'Brush Script MT', cursive" }}
