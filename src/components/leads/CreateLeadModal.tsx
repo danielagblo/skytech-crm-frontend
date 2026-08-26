@@ -29,43 +29,61 @@ import { Switch } from "@/components/ui/switch";
 import { useCreateLead, useUpdateLead } from "@/hooks/useLeads";
 import { LEAD_INDUSTRIES } from "@/lib/crm-options";
 
-const schema = z.object({
-  assigneeIds: z.array(z.string()).default([]),
-  firstName: z.string().min(2, "Enter a first name."),
-  lastName: z.string().min(2, "Enter a last name."),
-  birthday: z.string().optional(),
-  role: z.string().min(2, "Enter the contact role."),
-  leadSource: z.enum([
-    "SMS",
-    "EMAIL",
-    "FACEBOOK",
-    "GOOGLE",
-    "BANNER",
-    "META_ADS",
-  ]),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
-  companyName: z.string().min(2, "Enter a company name."),
-  industry: z.string().min(2, "Choose an industry."),
-  phone1: z.string().min(8, "Enter a valid phone number."),
-  phone2: z.string().optional(),
-  whatsapp: z.string().optional(),
-  emailAddress: z.union([
-    z.literal(""),
-    z.string().email("Enter a valid email."),
-  ]),
-  address: z.string().min(4, "Enter an address."),
-  launchTimeline: z.enum([
-    "IN_1_WEEK",
-    "ONE_TO_TWO_MONTHS",
-    "THREE_PLUS_MONTHS",
-  ]),
-  meetingArranged: z.boolean(),
-  hasPublicOffice: z.boolean(),
-  smsOptIn: z.boolean(),
-  emailOptIn: z.boolean(),
-  newsletterOptIn: z.boolean(),
-  description: z.string().min(10, "Add at least 10 characters."),
-});
+const schema = z
+  .object({
+    assigneeIds: z.array(z.string()).default([]),
+    firstName: z.string().min(2, "Enter a first name."),
+    lastName: z.string().min(2, "Enter a last name."),
+    birthday: z.string().optional(),
+    role: z.string().min(2, "Enter the contact role."),
+    leadSource: z.enum([
+      "SMS",
+      "EMAIL",
+      "FACEBOOK",
+      "GOOGLE",
+      "BANNER",
+      "META_ADS",
+    ]),
+    priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+    companyName: z.string().min(2, "Enter a company name."),
+    industry: z.string().min(2, "Choose an industry."),
+    phone1: z.string(),
+    phone2: z.string().optional(),
+    whatsapp: z.string().optional(),
+    emailAddress: z.union([
+      z.literal(""),
+      z.string().email("Enter a valid email."),
+    ]),
+    address: z.string().min(4, "Enter an address."),
+    launchTimeline: z.enum([
+      "IN_1_WEEK",
+      "ONE_TO_TWO_MONTHS",
+      "THREE_PLUS_MONTHS",
+    ]),
+    meetingArranged: z.boolean(),
+    hasPublicOffice: z.boolean(),
+    smsOptIn: z.boolean(),
+    emailOptIn: z.boolean(),
+    newsletterOptIn: z.boolean(),
+    description: z.string().min(10, "Add at least 10 characters."),
+  })
+  .superRefine((values, context) => {
+    if (values.smsOptIn && values.phone1.trim().length < 8)
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phone1"],
+        message: "Enter a valid phone number for SMS communication.",
+      });
+    if (
+      (values.emailOptIn || values.newsletterOptIn) &&
+      !values.emailAddress.trim()
+    )
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["emailAddress"],
+        message: "Email is required for email communication or the newsletter.",
+      });
+  });
 type Values = z.infer<typeof schema>;
 
 const defaults: Values = {
@@ -86,8 +104,8 @@ const defaults: Values = {
   launchTimeline: "ONE_TO_TWO_MONTHS",
   meetingArranged: true,
   hasPublicOffice: true,
-  smsOptIn: true,
-  emailOptIn: true,
+  smsOptIn: false,
+  emailOptIn: false,
   newsletterOptIn: false,
   description: "",
 };
@@ -202,15 +220,15 @@ export const CreateLeadModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[90vh] sm:max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{lead ? "Edit lead" : "Create lead"}</DialogTitle>
         </DialogHeader>
         <form className="space-y-5" onSubmit={submit}>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="sm:col-span-2 lg:col-span-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="sm:col-span-2 xl:col-span-3">
               <Label>Assign to</Label>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {users
                   .filter((user) => user.active)
                   .map((user) => (
@@ -388,22 +406,26 @@ export const CreateLeadModal = ({
             ))}
           </div>
           <div className="flex flex-wrap gap-5 rounded-xl bg-muted p-4">
-            {(
-              [
-                ["SMS reminder", "smsOptIn"],
-                ["Email reminder", "emailOptIn"],
-                ["Newsletter", "newsletterOptIn"],
-              ] as const
-            ).map(([label, key]) => (
-              <label key={key} className="flex items-center gap-2 text-sm">
-                <Switch
-                  checked={Boolean(toggles[key])}
-                  onCheckedChange={(value) => setValue(key, value)}
-                />
-                {label}
-              </label>
-            ))}
+              {(
+                [
+                  ["Communications by SMS", "smsOptIn"],
+                  ["Communications by email", "emailOptIn"],
+                  ["Subscribe to newsletter", "newsletterOptIn"],
+                ] as const
+              ).map(([label, key]) => (
+                <label key={key} className="flex items-center gap-2 text-sm">
+                  <Switch
+                    checked={Boolean(toggles[key])}
+                    onCheckedChange={(value) => setValue(key, value)}
+                  />
+                  {label}
+                </label>
+              ))}
           </div>
+          <p className="text-xs text-muted-foreground">
+            These choices only save the lead&apos;s communication consent.
+            Creating the lead will not send an SMS or email.
+          </p>
           <div>
             <Label>Description</Label>
             <Textarea {...register("description")} />

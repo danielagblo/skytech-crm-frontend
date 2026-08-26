@@ -52,7 +52,7 @@ export const TaskStatusStepper = ({
             disabled={pending}
             onClick={() => onStatusChange("DONE")}
           >
-            Mark done
+            Close and enter reason
             <ArrowRight className="size-3.5" />
           </Button>
         </div>

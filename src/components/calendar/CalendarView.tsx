@@ -55,40 +55,36 @@ export const CalendarView = () => {
     () =>
       (tasks.data?.content ?? [])
         .filter((task) => task.dueDate)
-        .map(
-          (task): CalendarEvent => ({
-            id: `task-${task.id}`,
-            title: task.title,
-            description: task.description ?? null,
-            ownerId: task.createdById,
-            linkedLeadId: task.linkedLeadId,
-            linkedDealId: task.linkedDealId,
-            startTime: task.dueDate as string,
-            endTime: task.dueDate as string,
-            eventType: "TASK_DUE",
-            assignees: task.assigneeIds,
-            createdAt: task.createdAt,
-          }),
-        ),
+        .map((task): CalendarEvent => ({
+          id: `task-${task.id}`,
+          title: task.title,
+          description: task.description ?? null,
+          ownerId: task.createdById,
+          linkedLeadId: task.linkedLeadId,
+          linkedDealId: task.linkedDealId,
+          startTime: task.dueDate as string,
+          endTime: task.dueDate as string,
+          eventType: "TASK_DUE",
+          assignees: task.assigneeIds,
+          createdAt: task.createdAt,
+        })),
     [tasks.data],
   );
   const followUps = useMemo<CalendarEvent[]>(
     () =>
-      (overview.data?.followUpReminders ?? []).map(
-        (row): CalendarEvent => ({
-          id: `follow-${row.dealId}-${new Date(row.followUpAt).getTime()}`,
-          title: `${row.type === "SETTLEMENT" ? "Settlement" : "Negotiation"} follow-up · ${row.dealTitle}`,
-          description: null,
-          ownerId: "",
-          linkedLeadId: null,
-          linkedDealId: row.dealId,
-          startTime: row.followUpAt,
-          endTime: row.followUpAt,
-          eventType: "CALL_LOG_FOLLOWUP",
-          assignees: [],
-          createdAt: row.followUpAt,
-        }),
-      ),
+      (overview.data?.followUpReminders ?? []).map((row): CalendarEvent => ({
+        id: `follow-${row.dealId}-${new Date(row.followUpAt).getTime()}`,
+        title: `${row.type === "SETTLEMENT" ? "Settlement" : "Negotiation"} follow-up · ${row.dealTitle}`,
+        description: null,
+        ownerId: "",
+        linkedLeadId: null,
+        linkedDealId: row.dealId,
+        startTime: row.followUpAt,
+        endTime: row.followUpAt,
+        eventType: "CALL_LOG_FOLLOWUP",
+        assignees: [],
+        createdAt: row.followUpAt,
+      })),
     [overview.data],
   );
   const mergedEvents = useMemo<CalendarEvent[]>(() => {
@@ -113,6 +109,15 @@ export const CalendarView = () => {
         ]),
       ),
     [days, mergedEvents],
+  );
+  const eventDateKeys = useMemo(
+    () =>
+      new Set(
+        mergedEvents.map((item) =>
+          format(new Date(item.startTime), "yyyy-MM-dd"),
+        ),
+      ),
+    [mergedEvents],
   );
   const next = mergedEvents
     .filter((item) => new Date(item.startTime) > new Date())
@@ -159,23 +164,32 @@ export const CalendarView = () => {
               {"MTWTFSS".split("").map((day, index) => (
                 <span key={`${day}${index}`}>{day}</span>
               ))}
-              {monthDays.map((day) => (
-                <button
-                  key={day.toISOString()}
-                  onClick={() => setAnchor(day)}
-                  className={`mt-2 aspect-square rounded-full text-xs ${format(day, "yyyy-MM-dd") === format(anchor, "yyyy-MM-dd") ? "bg-primary font-semibold text-black" : day.getMonth() !== anchor.getMonth() ? "text-gray-300" : "hover:bg-muted"}`}
-                >
-                  {format(day, "d")}
-                </button>
-              ))}
+              {monthDays.map((day) => {
+                const key = format(day, "yyyy-MM-dd");
+                const selected = key === format(anchor, "yyyy-MM-dd");
+                const hasItems = eventDateKeys.has(key);
+                return (
+                  <button
+                    key={day.toISOString()}
+                    onClick={() => setAnchor(day)}
+                    aria-label={`${format(day, "do MMMM")}${hasItems ? ", has scheduled items" : ""}`}
+                    className={`relative mt-2 aspect-square rounded-full text-xs transition ${selected ? "bg-primary font-semibold text-black" : day.getMonth() !== anchor.getMonth() ? "text-muted-foreground/40" : hasItems ? "bg-muted font-semibold ring-1 ring-border hover:bg-accent" : "hover:bg-muted"}`}
+                  >
+                    {format(day, "d")}
+                    {hasItems && !selected && (
+                      <span className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <div className="rounded-2xl bg-gray-900 p-4 text-white">
+          <div className="rounded-2xl border border-primary/25 bg-card p-4 text-card-foreground shadow-sm">
             <p className="flex items-center gap-2 text-sm font-semibold">
               <Clock3 className="h-4 w-4 text-primary" />
               Next due
             </p>
-            <p className="mt-2 text-xs text-gray-400">
+            <p className="mt-2 text-xs text-muted-foreground">
               {next
                 ? `${next.title} · ${format(new Date(next.startTime), "do MMM, h:mm a")}`
                 : "No upcoming events this week"}

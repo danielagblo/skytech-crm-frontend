@@ -3,7 +3,6 @@ import { useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { useDashboard, useTopDeals } from "@/hooks/useDashboard";
 import { useAuthStore } from "@/store/authStore";
-import { PageHeader } from "@/components/shared/PageHeader";
 import { CallStatsCard } from "./CallStatsCard";
 import { ExecutivePerformanceTable } from "./ExecutivePerformanceTable";
 import { AgentRankCard } from "./AgentRankCard";
@@ -54,56 +53,57 @@ export const HomeDashboard = () => {
     );
   const data = overview.data;
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={periodLabel}
-        description="Your sales operation at a glance"
-        actions={
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-white/70 p-3 shadow-sm backdrop-blur">
-            <div className="pr-1">
-              <p className="eyebrow">Timeframe</p>
+    <div className="min-w-0 space-y-4 overflow-hidden">
+      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(520px,1.05fr)] min-[2200px]:grid-cols-[minmax(0,1fr)_minmax(720px,1fr)]">
+        <div className="min-w-0 space-y-4">
+          <section className="overflow-hidden border bg-card">
+            <div className="flex h-9 items-center justify-between bg-muted px-5">
+              <span className="text-sm font-medium">{periodLabel}</span>
+              <Select
+                value={period}
+                onValueChange={(value: DashboardPeriod) => setPeriod(value)}
+              >
+                <SelectTrigger className="h-7 w-40 border-0 bg-transparent px-2 shadow-none">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DASHBOARD_PERIODS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Select
-              value={period}
-              onValueChange={(value: DashboardPeriod) => setPeriod(value)}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DASHBOARD_PERIODS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        }
-      />
-
-      <div className="grid items-start gap-4 xl:grid-cols-2">
-        <div className="space-y-4">
-          <CallStatsCard title="Outgoing calls" stats={data.outgoingCalls} />
-          <CallStatsCard title="Incoming calls" stats={data.incomingCalls} />
-          <FollowUpReminders rows={data.followUpReminders} />
-        </div>
-        <div className="space-y-4">
-          <UpcomingActivity followUps={data.followUpReminders} />
+            <div className="divide-y px-5">
+              <CallStatsCard
+                title="Outgoing calls"
+                stats={data.outgoingCalls}
+              />
+              <CallStatsCard
+                title="Incoming calls"
+                stats={data.incomingCalls}
+              />
+            </div>
+          </section>
+          {can("view:executive-performance") && (
+            <ExecutivePerformanceTable rows={data.executivePerformance} />
+          )}
           <AgentRankCard user={user} rank={data.agentRank} />
         </div>
+        <div className="min-w-0 space-y-4">
+          <UpcomingActivity followUps={data.followUpReminders} />
+          <FollowUpReminders rows={data.followUpReminders} />
+          <TopDealsChart
+            sixMonths={sixMonths.data?.content ?? []}
+            year={year.data?.content ?? []}
+            gated={sixMonths.isError || year.isError}
+          />
+        </div>
       </div>
-      {can("view:executive-performance") && (
-        <ExecutivePerformanceTable rows={data.executivePerformance} />
-      )}
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div>
         <RevenueChart data={data.topRevenuePerAgent} />
-        <TopDealsChart
-          sixMonths={sixMonths.data?.content ?? []}
-          year={year.data?.content ?? []}
-          gated={sixMonths.isError || year.isError}
-        />
       </div>
       {can("view:settings") && <ActivityLog />}
     </div>

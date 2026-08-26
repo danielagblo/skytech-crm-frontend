@@ -1,13 +1,12 @@
 "use client";
 import { AlertCircle } from "lucide-react";
-import { useDeal, useDealLogs, useUpdateDealStage } from "@/hooks/useDeals";
+import { useDeal, useDealLogs } from "@/hooks/useDeals";
 import { useLead } from "@/hooks/useLeads";
 import { useUsers } from "@/hooks/useUsers";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DealStageStepper } from "./DealStageStepper";
 import { NegotiationLog } from "./logs/NegotiationLog";
 import { SettlementLog } from "./logs/SettlementLog";
 import { PaymentLog } from "./logs/PaymentLog";
@@ -17,7 +16,6 @@ export const DealDetailPage = ({ dealId }: { dealId: string }) => {
   const logs = useDealLogs(dealId);
   const users = useUsers({ page: 0, size: 100 });
   const lead = useLead(deal.data?.leadId ?? "");
-  const updateStage = useUpdateDealStage();
   if (deal.isLoading) return <Skeleton className="h-96 max-w-3xl" />;
   if (deal.isError || !deal.data)
     return (
@@ -36,19 +34,14 @@ export const DealDetailPage = ({ dealId }: { dealId: string }) => {
         title={item.title}
         description={`${lead.data?.companyName || "No linked company"} · ${lead.data?.firstName || "No linked contact"}`}
       />
-      <DealStageStepper
-        stage={item.stage}
-        pending={updateStage.isPending}
-        onChange={(stage) => updateStage.mutate({ id: item.id, stage })}
-      />
-      <Tabs defaultValue="negotiation">
-        <TabsList>
+      <Tabs defaultValue="negotiation" className="w-full">
+        <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="negotiation">Negotiation</TabsTrigger>
           <TabsTrigger value="settlement">Settlement</TabsTrigger>
           <TabsTrigger value="payment">Payment</TabsTrigger>
           <TabsTrigger value="retention">Retention</TabsTrigger>
         </TabsList>
-        <div className="surface mt-4 max-w-3xl p-6">
+        <div className="surface mt-4 w-full p-5 sm:p-6 lg:p-8">
           <TabsContent value="negotiation">
             <NegotiationLog
               deal={item}

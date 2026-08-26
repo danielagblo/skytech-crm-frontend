@@ -31,13 +31,13 @@ export const DealCard = ({
   return (
     <button
       onClick={onClick}
-      className="w-full rounded-xl border bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="w-full rounded-md border bg-card p-3 text-left shadow-[0_1px_2px_rgba(15,23,42,.04)] transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-2">
         <h4 className="line-clamp-2 text-sm font-semibold">{deal.title}</h4>
         {deal.priority && <PriorityBadge priority={deal.priority} />}
       </div>
-      <p className="mt-1 text-xs font-semibold text-green-700">
+      <p className="mt-1 text-xs font-semibold text-green-700 dark:text-green-400">
         {formatCurrency(deal.contractValue)}
       </p>
       <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
@@ -60,7 +60,7 @@ export const DealCard = ({
       </div>
       {deal.stage === "PAYMENT" && (
         <p
-          className={`mt-3 rounded-md px-2 py-1 text-xs font-semibold ${deal.paidInFull ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+          className={`mt-3 rounded-md px-2 py-1 text-xs font-semibold ${deal.paidInFull ? "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300" : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"}`}
         >
           {deal.paidInFull
             ? "Paid in full"

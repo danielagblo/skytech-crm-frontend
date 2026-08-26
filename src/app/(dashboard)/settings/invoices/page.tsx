@@ -3,7 +3,6 @@ import {
   InvoiceWorkspace,
   type InvoiceIssuerSettings,
 } from "@/components/settings/invoices/InvoiceWorkspace";
-import { PageHeader } from "@/components/shared/PageHeader";
 
 export const metadata: Metadata = { title: "Invoices" };
 
@@ -18,11 +17,7 @@ const issuerInfo: InvoiceIssuerSettings = {
 
 export default function InvoicesPage() {
   return (
-    <div className="space-y-5">
-      <PageHeader
-        title="Invoices"
-        description="Generate, preview and track customer invoices"
-      />
+    <div>
       <InvoiceWorkspace issuerInfo={issuerInfo} />
     </div>
   );

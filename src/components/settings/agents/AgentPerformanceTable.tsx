@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDuration } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/EmptyState";
 export const AgentPerformanceTable = ({ userId }: { userId?: string }) => {
   const performance = useUserPerformance(userId ?? "");
@@ -35,7 +35,8 @@ export const AgentPerformanceTable = ({ userId }: { userId?: string }) => {
               <TableHead>Rank</TableHead>
               <TableHead>Deals Closed</TableHead>
               <TableHead>Revenue</TableHead>
-              <TableHead>Hours Spent</TableHead>
+              <TableHead>Logged Call Time</TableHead>
+              <TableHead>Active CRM Session</TableHead>
               <TableHead>Month</TableHead>
             </TableRow>
           </TableHeader>
@@ -45,7 +46,12 @@ export const AgentPerformanceTable = ({ userId }: { userId?: string }) => {
                 <TableCell>{performance.data?.rank}</TableCell>
                 <TableCell>{performance.data?.closedDeals}</TableCell>
                 <TableCell>{formatCurrency(revenue)}</TableCell>
-                <TableCell>{performance.data?.hours} hrs</TableCell>
+                <TableCell>
+                  {formatDuration(performance.data?.loggedCallSeconds ?? 0)}
+                </TableCell>
+                <TableCell>
+                  {formatDuration(performance.data?.activeSessionSeconds ?? 0)}
+                </TableCell>
                 <TableCell>{month}</TableCell>
               </TableRow>
             ))}

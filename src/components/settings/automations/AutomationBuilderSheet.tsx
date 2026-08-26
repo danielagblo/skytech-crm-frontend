@@ -44,13 +44,17 @@ const stepSchema = z.object({
   channel: z.enum(["SMS", "EMAIL", "BOTH"]),
   subject: z.string().max(200),
   message: z.string().trim().min(1, "Enter the message.").max(2000),
+  waitDays: z.coerce.number().int().min(0).default(0),
 });
 const schema = z
   .object({
     automationType: z.enum([
       "BIRTHDAY",
       "PUBLIC_HOLIDAY",
-      "PAYMENT",
+      "PAYMENT_RECEIVED",
+      "PAYMENT_DUE",
+      "PAYMENT_OVERDUE",
+      "PAYMENT_RECOVERY",
       "PERSONAL",
     ]),
     name: z.string().trim().min(3, "Name this automation.").max(255),
@@ -76,7 +80,10 @@ type Values = z.infer<typeof schema>;
 const fallbackTypes: Array<{ value: AutomationType; label: string }> = [
   { value: "BIRTHDAY", label: "Birthday greeting" },
   { value: "PUBLIC_HOLIDAY", label: "Public holiday" },
-  { value: "PAYMENT", label: "Payment acknowledgement" },
+  { value: "PAYMENT_RECEIVED", label: "Payment received" },
+  { value: "PAYMENT_DUE", label: "Payment due" },
+  { value: "PAYMENT_OVERDUE", label: "Payment overdue" },
+  { value: "PAYMENT_RECOVERY", label: "Payment recovery" },
   { value: "PERSONAL", label: "Personal (stored only)" },
 ];
 const supportedTypes = new Set<AutomationType>(
@@ -137,7 +144,7 @@ const defaults = (): Values => ({
   active: true,
   triggerDate: "",
   contactIds: [],
-  steps: [{ channel: "BOTH", subject: "", message: "" }],
+  steps: [{ channel: "BOTH", subject: "", message: "", waitDays: 0 }],
 });
 
 interface AutomationBuilderSheetProps {
@@ -210,13 +217,14 @@ export const AutomationBuilderSheet = ({
           ? false
           : automation.active,
       triggerDate: automation.triggerConfig.date ?? "",
-      contactIds: Array.isArray(automation.triggerConfig.contactIds)
-        ? (automation.triggerConfig.contactIds as string[])
+      contactIds: Array.isArray(automation.contactIds)
+        ? automation.contactIds
         : [],
       steps: automation.steps.map((step) => ({
         channel: step.channel,
         subject: step.subject ?? "",
         message: step.message,
+        waitDays: step.waitDays ?? 0,
       })),
     });
   }, [automation, form, open, personalExecutable]);
@@ -230,16 +238,19 @@ export const AutomationBuilderSheet = ({
         values.automationType === "PERSONAL" && !personalExecutable
           ? false
           : values.active,
+      contactIds:
+        values.automationType === "PERSONAL" ? values.contactIds : undefined,
       triggerConfig:
         values.automationType === "PUBLIC_HOLIDAY"
           ? { date: values.triggerDate }
           : values.automationType === "PERSONAL"
-            ? { date: values.triggerDate, contactIds: values.contactIds }
+            ? { date: values.triggerDate }
             : {},
-      steps: values.steps.map(({ channel, subject, message }) => ({
+      steps: values.steps.map(({ channel, subject, message, waitDays }) => ({
         channel,
         subject: subject || undefined,
         message,
+        waitDays,
       })),
     };
     if (automation) await update.mutateAsync({ id: automation.id, data });
@@ -328,9 +339,14 @@ export const AutomationBuilderSheet = ({
                 </p>
               </div>
             )}
-            {(automationType === "PUBLIC_HOLIDAY" || automationType === "PERSONAL") && (
+            {(automationType === "PUBLIC_HOLIDAY" ||
+              automationType === "PERSONAL") && (
               <div>
-                <Label>{automationType === "PERSONAL" ? "Trigger date" : "Holiday date"}</Label>
+                <Label>
+                  {automationType === "PERSONAL"
+                    ? "Trigger date"
+                    : "Holiday date"}
+                </Label>
                 <div className="relative">
                   <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -352,7 +368,7 @@ export const AutomationBuilderSheet = ({
                 )}
               </div>
             )}
-            {automationType === "PAYMENT" && (
+            {automationType.startsWith("PAYMENT_") && (
               <div className="flex gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
                 <Workflow className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                 <p>
@@ -366,7 +382,8 @@ export const AutomationBuilderSheet = ({
                 <div>
                   <h3 className="font-semibold">Target contacts</h3>
                   <p className="text-xs text-muted-foreground">
-                    Select the contacts this personal automation should apply to.
+                    Select the contacts this personal automation should apply
+                    to.
                   </p>
                 </div>
                 {leads.isLoading ? (
@@ -427,7 +444,12 @@ export const AutomationBuilderSheet = ({
                   size="sm"
                   variant="outline"
                   onClick={() =>
-                    steps.append({ channel: "SMS", subject: "", message: "" })
+                    steps.append({
+                      channel: "SMS",
+                      subject: "",
+                      message: "",
+                      waitDays: 0,
+                    })
                   }
                 >
                   <Plus className="h-4 w-4" />
@@ -477,6 +499,17 @@ export const AutomationBuilderSheet = ({
                         </span>
                       </Label>
                       <Input {...form.register(`steps.${index}.subject`)} />
+                    </div>
+                    <div>
+                      <Label>Wait before this step (days)</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={1}
+                        {...form.register(`steps.${index}.waitDays`, {
+                          valueAsNumber: true,
+                        })}
+                      />
                     </div>
                     <div>
                       <Label>Message</Label>

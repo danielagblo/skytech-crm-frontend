@@ -85,7 +85,7 @@ export const PaymentLog = ({
     <div className="space-y-5">
       <div className="grid grid-cols-3 rounded-xl bg-gray-900 p-3 text-white">
         {[
-          ["Contract value", deal.contractValue],
+          ["Agreed amount", deal.contractValue],
           ["Total paid", deal.totalPaid],
           ["Left", deal.arrears],
         ].map(([label, value]) => (
@@ -112,6 +112,12 @@ export const PaymentLog = ({
             onCheckedChange={(checked) => setValue("invoiceIssued", checked)}
           />
         </div>
+        {values.invoiceIssued && (
+          <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+            Issuing an invoice does not prove delivery. Open the invoice and check
+            “Invoice reception confirmed” only after the client definitely receives it.
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Invoice number</Label>

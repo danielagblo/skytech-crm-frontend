@@ -47,13 +47,16 @@ export interface Invoice {
   subtotal: number;
   taxAmount: number;
   total: number;
-  paidAmount: number;
+  amountPaid: number;
   balanceDue: number;
   notes: string | null;
   terms: string | null;
   version: number;
   issuedAt?: string | null;
   sentAt?: string | null;
+  receptionConfirmed: boolean;
+  receptionConfirmedAt?: string | null;
+  receptionConfirmedById?: string | null;
   lastSendError: string | null;
   items: InvoiceLineItem[];
   payments: InvoicePayment[];

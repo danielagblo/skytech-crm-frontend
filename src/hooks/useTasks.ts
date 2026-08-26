@@ -11,6 +11,13 @@ import type {
   TaskFilters,
   UpdateTaskRequest,
 } from "@/types/task.types";
+import {
+  demoPage,
+  demoResponse,
+  demoTasks,
+  demoTaskStats,
+  isDemoSession,
+} from "@/lib/demo-data";
 
 const invalidate = (client: ReturnType<typeof useQueryClient>) =>
   Promise.all([
@@ -20,7 +27,10 @@ const invalidate = (client: ReturnType<typeof useQueryClient>) =>
 export const useTasks = (filters: TaskFilters = {}) =>
   useQuery({
     queryKey: ["tasks", filters],
-    queryFn: () => tasksService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoTasks))
+        : tasksService.getAll(filters),
     select: (response) => response.data.data,
   });
 export const useTask = (id: string) =>
@@ -33,20 +43,21 @@ export const useTask = (id: string) =>
 export const useTaskStats = () =>
   useQuery({
     queryKey: ["task-stats"],
-    queryFn: tasksService.getStats,
+    queryFn: () =>
+      isDemoSession() ? demoResponse(demoTaskStats) : tasksService.getStats(),
     select: (response) => response.data.data,
   });
 export const useTaskSubtasks = (taskId: string) =>
   useQuery({
     queryKey: ["task-subtasks", taskId],
-    queryFn: () => tasksService.getSubtasks(taskId),
+    queryFn: () => isDemoSession() ? demoResponse(demoPage([])) : tasksService.getSubtasks(taskId),
     select: (response) => response.data.data.content,
     enabled: Boolean(taskId),
   });
 export const useTaskComments = (taskId: string) =>
   useQuery({
     queryKey: ["task-comments", taskId],
-    queryFn: () => tasksService.getComments(taskId),
+    queryFn: () => isDemoSession() ? demoResponse(demoPage([])) : tasksService.getComments(taskId),
     select: (response) => response.data.data.content,
     enabled: Boolean(taskId),
   });
@@ -169,6 +180,7 @@ export const useToggleSubtask = () => {
       void client.invalidateQueries({
         queryKey: ["task-subtasks", variables.taskId],
       });
+      toast.success("Subtask updated.");
     },
     onError: (error) =>
       toast.error(

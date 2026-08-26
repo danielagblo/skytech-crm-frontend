@@ -11,7 +11,12 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useNotificationStore } from "@/store/notificationStore";
+import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+  useNotifications,
+  useUnreadNotificationCount,
+} from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/authStore";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import {
@@ -21,13 +26,39 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ProfileSheet } from "./ProfileSheet";
+import { useTasks } from "@/hooks/useTasks";
+import type { AppNotification } from "@/types/notification.types";
 
 export const TopBar = () => {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [profileOpen, setProfileOpen] = useState(false);
-  const { list, unreadCount, markAllRead } = useNotificationStore();
+  const notifications = useNotifications();
+  const unread = useUnreadNotificationCount();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
   const user = useAuthStore((state) => state.user);
+  const overdueTasks = useTasks({ overdue: true, page: 0, size: 100 });
+  const unresolvedOverdue: AppNotification[] = (
+    overdueTasks.data?.content ?? []
+  )
+    .filter(
+      (task) =>
+        task.status !== "DONE" &&
+        !task.completionReason?.trim() &&
+        Boolean(user?.id && task.assigneeIds.includes(user.id)),
+    )
+    .map((task) => ({
+      id: `overdue-task-${task.id}`,
+      type: "OVERDUE_TASK_REASON_REQUIRED",
+      title: "Overdue task needs a reason",
+      body: `${task.title} — close it and record why it was not completed on time.`,
+      href: `/tasks?open=${task.id}&reason=1`,
+      read: false,
+      createdAt: task.dueDate ?? task.updatedAt,
+    }));
+  const list = [...unresolvedOverdue, ...(notifications.data ?? [])];
+  const unreadCount = (unread.data ?? 0) + unresolvedOverdue.length;
   const name = user ? `${user.firstName} ${user.lastName}` : "Loading profile";
   return (
     <>
@@ -63,11 +94,8 @@ export const TopBar = () => {
             }
             aria-label="Toggle theme"
           >
-            {resolvedTheme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
+            <Sun className="hidden h-5 w-5 dark:block" />
+            <Moon className="h-5 w-5 dark:hidden" />
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -86,7 +114,7 @@ export const TopBar = () => {
                 <strong>Notifications</strong>
                 <button
                   className="flex items-center gap-1 text-xs text-green-700"
-                  onClick={markAllRead}
+                  onClick={() => markAllRead.mutate()}
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
                   Mark read
@@ -98,7 +126,15 @@ export const TopBar = () => {
                 </p>
               ) : (
                 list.slice(0, 6).map((item) => (
-                  <DropdownMenuItem key={item.id} className="block">
+                  <DropdownMenuItem
+                    key={item.id}
+                    className="block cursor-pointer"
+                    onSelect={() => {
+                      if (!item.read && !item.id.startsWith("overdue-task-"))
+                        markRead.mutate(item.id);
+                      if (item.href) router.push(item.href);
+                    }}
+                  >
                     <p className="font-medium">{item.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {item.body}

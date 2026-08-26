@@ -12,6 +12,13 @@ import type {
   DealFilters,
   UpdateDealRequest,
 } from "@/types/deal.types";
+import {
+  demoPage,
+  demoPipeline,
+  demoResponse,
+  demoDeals,
+  isDemoSession,
+} from "@/lib/demo-data";
 
 const invalidate = (client: ReturnType<typeof useQueryClient>) =>
   Promise.all([
@@ -23,26 +30,33 @@ const invalidate = (client: ReturnType<typeof useQueryClient>) =>
 export const useDeals = (filters: DealFilters = {}) =>
   useQuery({
     queryKey: ["deals", filters],
-    queryFn: () => dealsService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoDeals))
+        : dealsService.getAll(filters),
     select: (response) => response.data.data,
   });
 export const usePipeline = () =>
   useQuery({
     queryKey: ["pipeline"],
-    queryFn: dealsService.getPipeline,
+    queryFn: () =>
+      isDemoSession() ? demoResponse(demoPipeline) : dealsService.getPipeline(),
     select: (response) => response.data.data,
   });
 export const useDeal = (id: string) =>
   useQuery({
     queryKey: ["deals", id],
-    queryFn: () => dealsService.getById(id),
+    queryFn: () => {
+      const demoDeal = demoDeals.find((deal) => deal.id === id);
+      return isDemoSession() && demoDeal ? demoResponse(demoDeal) : dealsService.getById(id);
+    },
     select: (response) => response.data.data,
     enabled: Boolean(id),
   });
 export const useDealLogs = (dealId: string) =>
   useQuery({
     queryKey: ["deal-logs", dealId],
-    queryFn: () => dealsService.getLogs(dealId),
+    queryFn: () => isDemoSession() ? demoResponse(demoPage([])) : dealsService.getLogs(dealId),
     select: (response) => response.data.data.content,
     enabled: Boolean(dealId),
   });

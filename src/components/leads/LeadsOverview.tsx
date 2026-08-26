@@ -36,14 +36,17 @@ export const LeadsOverview = () => {
     ["Lead not successful", stats.data.countsByStatus.LOST ?? 0],
   ] as const;
   return (
-    <>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid border-b bg-card xl:grid-cols-[minmax(0,1.45fr)_minmax(430px,.75fr)]">
+      <div className="grid overflow-hidden sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([label, value]) => (
-          <div key={label} className="surface p-4">
+          <div
+            key={label}
+            className="border-b p-3 last:border-b-0 sm:border-r sm:[&:nth-child(2)]:border-r-0 xl:border-b-0 xl:[&:nth-child(2)]:border-r"
+          >
             <p className="eyebrow">{label}</p>
             <div className="mt-2 flex items-end justify-between">
-              <p className="text-2xl font-semibold">{value}</p>
-              <span className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs text-green-700">
+              <p className="text-2xl font-semibold">+{value}</p>
+              <span className="flex items-center gap-1 bg-green-50 px-2 py-1 text-xs text-green-700">
                 <TrendingUp className="h-3 w-3" />
                 Live
               </span>
@@ -55,6 +58,6 @@ export const LeadsOverview = () => {
         breakdown={stats.data.sourceBreakdown}
         total={stats.data.total}
       />
-    </>
+    </div>
   );
 };

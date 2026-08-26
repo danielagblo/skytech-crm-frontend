@@ -53,7 +53,15 @@ export const DepartmentTargetEditor = ({ period }: { period: string }) => {
           </p>
         </div>
         <Button
-          onClick={() => save.mutate({ period, targets })}
+          onClick={() =>
+            save.mutate(
+              { period, targets },
+              {
+                onSuccess: () => setDraft(null),
+                onError: () => setDraft(null),
+              },
+            )
+          }
           disabled={!draft || same(targets, configured) || save.isPending}
         >
           <Save className="mr-2" />

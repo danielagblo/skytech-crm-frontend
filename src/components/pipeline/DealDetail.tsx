@@ -19,7 +19,6 @@ import { AssigneeStack } from "@/components/shared/AssigneeStack";
 import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { StageBadge } from "@/components/shared/StageBadge";
 import { formatDate } from "@/lib/utils";
-import { DealStageStepper } from "./DealStageStepper";
 import { NegotiationLog } from "./logs/NegotiationLog";
 import { SettlementLog } from "./logs/SettlementLog";
 import { PaymentLog } from "./logs/PaymentLog";
@@ -37,17 +36,13 @@ export const DealDetail = ({
   lead,
   users,
   open,
-  pending,
   onOpenChange,
-  onStageChange,
 }: {
   deal: Deal | null;
   lead?: Lead;
   users: User[];
   open: boolean;
-  pending?: boolean;
   onOpenChange: (value: boolean) => void;
-  onStageChange: (stage: DealStage) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const logs = useDealLogs(deal?.id ?? "");
@@ -75,11 +70,6 @@ export const DealDetail = ({
             </div>
             <SheetTitle className="mt-2 text-xl">{deal.title}</SheetTitle>
           </SheetHeader>
-          <DealStageStepper
-            stage={deal.stage}
-            pending={pending}
-            onChange={onStageChange}
-          />
           <div className="rounded-2xl bg-muted/60 p-4">
             <div className="flex items-center justify-between">
               <div>

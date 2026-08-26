@@ -22,15 +22,18 @@ const meta: Record<DealStage, { label: string; dot: string }> = {
 export const DealStageStepper = ({
   stage,
   pending,
+  paidInFull = false,
   onChange,
 }: {
   stage: DealStage;
   pending?: boolean;
+  paidInFull?: boolean;
   onChange: (stage: DealStage) => void;
 }) => {
   const index = STAGES.indexOf(stage);
   const previous = index > 0 ? STAGES[index - 1] : null;
   const next = index < STAGES.length - 1 ? STAGES[index + 1] : null;
+  const retentionBlocked = next === "CLIENT_RETENTION" && !paidInFull;
   return (
     <section className="rounded-2xl border bg-muted/40 p-3">
       <div className="mb-3 flex items-center justify-between gap-2">
@@ -47,7 +50,7 @@ export const DealStageStepper = ({
           </Button>
           <Button
             size="sm"
-            disabled={!next || pending}
+            disabled={!next || pending || retentionBlocked}
             onClick={() => next && onChange(next)}
           >
             Next stage
@@ -69,7 +72,7 @@ export const DealStageStepper = ({
               <button
                 type="button"
                 className="flex flex-col items-center gap-1.5"
-                disabled={pending}
+                disabled={pending || (item === "CLIENT_RETENTION" && !paidInFull)}
                 onClick={() => onChange(item)}
               >
                 <span
@@ -105,6 +108,11 @@ export const DealStageStepper = ({
           );
         })}
       </div>
+      {!paidInFull && stage !== "CLIENT_RETENTION" && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Retention unlocks only after the agreed contract amount has been paid in full.
+        </p>
+      )}
     </section>
   );
 };

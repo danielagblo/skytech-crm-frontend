@@ -11,10 +11,10 @@ const labels: Record<TaskStatus, string> = {
   OVERDUE: "Overdue",
 };
 const style: Record<TaskStatus, string> = {
-  TODO: "bg-green-50 text-green-700",
-  DOING: "bg-blue-50 text-blue-700",
-  DONE: "bg-emerald-50 text-emerald-700",
-  OVERDUE: "bg-red-50 text-red-700",
+  TODO: "bg-emerald-50 text-slate-700 border-emerald-400",
+  DOING: "bg-orange-50 text-slate-700 border-orange-300",
+  DONE: "bg-green-100 text-slate-700 border-green-500",
+  OVERDUE: "bg-red-50 text-slate-700 border-red-400",
 };
 export const TaskColumn = ({
   status,
@@ -29,21 +29,19 @@ export const TaskColumn = ({
   counts: Record<string, { subtasks: number; comments: number }>;
   onOpen: (task: Task) => void;
 }) => (
-  <section className="min-w-[280px] flex-1">
+  <section className="flex h-full min-w-[250px] flex-1 flex-col xl:max-w-[270px] xl:flex-none min-[2200px]:max-w-none min-[2200px]:flex-1">
     <div
-      className={`mb-3 flex items-center justify-between rounded-xl px-3 py-2 ${style[status]}`}
+      className={`mb-2 flex items-center justify-between border-l-2 px-3 py-2 ${style[status]}`}
     >
       <h3 className="text-sm font-semibold">{labels[status]}</h3>
-      <span className="rounded-full bg-white/70 px-2 text-xs">
-        {tasks.length}
-      </span>
+      <span className="text-base font-medium">{tasks.length}</span>
     </div>
     <Droppable droppableId={status}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`min-h-[500px] space-y-3 rounded-xl p-2 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-white/50"}`}
+          className={`scrollbar-none min-h-[540px] flex-1 space-y-2 overflow-y-auto overscroll-contain pb-20 lg:min-h-0 ${snapshot.isDraggingOver ? "bg-primary/15" : "bg-transparent"}`}
         >
           {tasks.map((task, index) => (
             <Draggable
@@ -71,7 +69,7 @@ export const TaskColumn = ({
           ))}
           {provided.placeholder}
           {tasks.length === 0 && (
-            <p className="rounded-xl border border-dashed bg-white/70 p-6 text-center text-xs text-muted-foreground">
+            <p className="rounded-xl border border-dashed border-border bg-card/70 p-6 text-center text-xs text-muted-foreground dark:bg-card/45">
               Drop a task here
             </p>
           )}

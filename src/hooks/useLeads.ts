@@ -6,10 +6,16 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import { leadsService } from "@/services/leads.service";
 import type {
   ConvertLeadRequest,
-  LeadAssignmentConfig,
   LeadFilters,
   UpdateLeadRequest,
 } from "@/types/lead.types";
+import {
+  demoLeadStats,
+  demoLeads,
+  demoPage,
+  demoResponse,
+  isDemoSession,
+} from "@/lib/demo-data";
 
 const refresh = (client: ReturnType<typeof useQueryClient>) =>
   Promise.all([
@@ -20,26 +26,27 @@ const refresh = (client: ReturnType<typeof useQueryClient>) =>
 export const useLeads = (filters: LeadFilters = {}) =>
   useQuery({
     queryKey: ["leads", filters],
-    queryFn: () => leadsService.getAll(filters),
+    queryFn: () =>
+      isDemoSession()
+        ? demoResponse(demoPage(demoLeads))
+        : leadsService.getAll(filters),
     select: (response) => response.data.data,
   });
 export const useLead = (id: string) =>
   useQuery({
     queryKey: ["leads", id],
-    queryFn: () => leadsService.getById(id),
+    queryFn: () => {
+      const demoLead = demoLeads.find((lead) => lead.id === id);
+      return isDemoSession() && demoLead ? demoResponse(demoLead) : leadsService.getById(id);
+    },
     select: (response) => response.data.data,
     enabled: Boolean(id),
   });
 export const useLeadStats = () =>
   useQuery({
     queryKey: ["lead-stats"],
-    queryFn: leadsService.getStats,
-    select: (response) => response.data.data,
-  });
-export const useLeadAutoAssign = () =>
-  useQuery({
-    queryKey: ["lead-auto-assign"],
-    queryFn: leadsService.getAutoAssignConfig,
+    queryFn: () =>
+      isDemoSession() ? demoResponse(demoLeadStats) : leadsService.getStats(),
     select: (response) => response.data.data,
   });
 export const useCreateLead = () => {
@@ -111,20 +118,5 @@ export const useAssignLead = () => {
     },
     onError: (error) =>
       toast.error(getApiErrorMessage(error, "The lead could not be assigned.")),
-  });
-};
-export const useUpdateLeadAutoAssign = () => {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (data: LeadAssignmentConfig) =>
-      leadsService.updateAutoAssignConfig(data),
-    onSuccess: () => {
-      void client.invalidateQueries({ queryKey: ["lead-auto-assign"] });
-      toast.success("Automatic lead assignment updated.");
-    },
-    onError: (error) =>
-      toast.error(
-        getApiErrorMessage(error, "Automatic assignment could not be updated."),
-      ),
   });
 };

@@ -26,4 +26,5 @@ export const usersService = {
   },
   getPerformance: (id: string) =>
     api.get<ApiResponse<UserPerformance>>(`/users/${id}/performance`),
+  heartbeat: () => api.post<ApiResponse<User>>("/users/me/presence"),
 };

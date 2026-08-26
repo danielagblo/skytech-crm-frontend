@@ -26,6 +26,8 @@ export const invoicesService = {
     api.get<Blob>(`/invoices/${id}/pdf`, { responseType: "blob" }),
   send: (id: string, data: SendInvoiceRequest) =>
     api.post<ApiResponse<Invoice>>(`/invoices/${id}/send`, data),
+  confirmReception: (id: string) =>
+    api.post<ApiResponse<Invoice>>(`/invoices/${id}/confirm-reception`),
   recordPayment: (id: string, data: RecordInvoicePaymentRequest) =>
     api.post<ApiResponse<Invoice>>(`/invoices/${id}/payments`, data),
   void: (id: string) => api.post<ApiResponse<Invoice>>(`/invoices/${id}/void`),

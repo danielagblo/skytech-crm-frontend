@@ -10,7 +10,7 @@ interface RetryConfig extends InternalAxiosRequestConfig {
 }
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
-const api = axios.create({ baseURL, timeout: 15_000 });
+const api = axios.create({ baseURL, timeout: 60_000 });
 let refreshPromise: Promise<string> | null = null;
 
 const stored = (key: string) =>
@@ -25,7 +25,7 @@ const refreshAccessToken = async () => {
     const response = await axios.post<ApiResponse<AccessToken>>(
       `${baseURL}/auth/refresh`,
       snakeize({ refreshToken }),
-      { timeout: 15_000 },
+      { timeout: 60_000 },
     );
     const data = camelize(response.data) as ApiResponse<AccessToken>;
     useAuthStore.getState().setAccessToken(data.data.accessToken);

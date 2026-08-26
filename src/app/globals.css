@@ -17,7 +17,6 @@
   --accent-foreground: 142 72% 29%;
   --workspace: 120 8% 98%;
   color-scheme: light;
-
 }
 .dark {
   --background: 222 42% 7%;
@@ -53,7 +52,7 @@ select {
 }
 @layer components {
   .surface {
-    @apply rounded-xl border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,23,42,.035)];
+    @apply rounded-lg border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,23,42,.03)];
   }
   .eyebrow {
     @apply text-xs font-medium uppercase tracking-wide text-gray-400;
@@ -66,6 +65,13 @@ select {
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: #d1d5db transparent;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -105,4 +111,28 @@ select {
 .dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
 .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
   border-color: hsl(var(--border)) !important;
+}
+
+/* Ultra-large displays (TVs / 4K+) — scale the rem-based UI so text and
+   layout stay proportionate without touching any component styles. */
+@media (min-width: 2000px) {
+  :root {
+    font-size: 18px;
+  }
+}
+@media (min-width: 2560px) {
+  :root {
+    font-size: 20px;
+  }
+}
+@media (min-width: 3200px) {
+  :root {
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .surface {
+    @apply border-gray-200;
+  }
 }

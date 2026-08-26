@@ -89,5 +89,7 @@ export interface LeadStats {
 
 export interface LeadAssignmentConfig {
   enabled: boolean;
-  config: Record<string, unknown>;
+  config: {
+    strategy?: "LEAST_LOADED" | "ROUND_ROBIN";
+  };
 }

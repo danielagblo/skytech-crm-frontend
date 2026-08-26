@@ -13,6 +13,8 @@ export interface User {
   profilePhotoUrl: string | null;
   active: boolean;
   lastLogin: string | null;
+  lastSeenAt: string | null;
+  presenceStatus: "ONLINE" | "OFFLINE";
   createdAt: string;
 }
 
@@ -43,6 +45,7 @@ export interface UserPerformance {
   rank: number;
   closedDeals: number;
   revenue: number;
-  hours: number;
+  loggedCallSeconds: number;
+  activeSessionSeconds: number;
   byMonth: Record<string, number>;
 }

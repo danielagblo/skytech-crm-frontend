@@ -22,7 +22,7 @@ export const useLogin = () => {
             ? `Welcome, ${data.data.user.firstName}.`
             : "Welcome to Skytech CRM.",
         );
-          window.location.assign("/home");
+        window.location.assign("/home");
         return;
       }
       sessionStorage.setItem("skytech_user_id", data.data.userId);
@@ -40,7 +40,6 @@ export const useLogin = () => {
 };
 
 export const useVerifyOtp = () => {
-  const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
   return useMutation({
     mutationFn: authService.verifyOtp,

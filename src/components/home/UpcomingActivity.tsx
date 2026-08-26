@@ -133,7 +133,8 @@ export const UpcomingActivity = ({
         toggleable: true,
         onToggle: () =>
           toggleTask(task.id, task.status === "DONE" ? "TODO" : "DONE"),
-        reason: task.completionReason ?? (overdue ? "No reason recorded yet." : null),
+        reason:
+          task.completionReason ?? (overdue ? "No reason recorded yet." : null),
         task,
       };
     }),
@@ -164,7 +165,7 @@ export const UpcomingActivity = ({
     })),
   ];
 
-  const effectiveFilter = isStaff ? userFilter : me?.id ?? "all";
+  const effectiveFilter = isStaff ? userFilter : (me?.id ?? "all");
   const visible = rows
     .filter((row) => {
       if (
@@ -175,10 +176,8 @@ export const UpcomingActivity = ({
         return false;
       if (row.dueAt) {
         const due = new Date(row.dueAt).getTime();
-        if (range === "next_7_days" && due > now + 7 * DAY_MS)
-          return false;
-        if (range === "next_30_days" && due > now + 30 * DAY_MS)
-          return false;
+        if (range === "next_7_days" && due > now + 7 * DAY_MS) return false;
+        if (range === "next_30_days" && due > now + 30 * DAY_MS) return false;
       }
       return true;
     })
@@ -191,7 +190,7 @@ export const UpcomingActivity = ({
     });
 
   const loading = tasks.isLoading || events.isLoading;
-  const PAGE_SIZE = 8;
+  const PAGE_SIZE = 5;
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageRows = visible.slice(
@@ -200,18 +199,19 @@ export const UpcomingActivity = ({
   );
 
   return (
-    <section className="surface overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-gray-100 p-5 pb-4">
+    <section className="overflow-hidden border bg-card">
+      <div className="flex items-center justify-between gap-2 px-5 pb-3 pt-5">
         <div className="flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-green-600" />
-          <h3 className="font-semibold">Upcoming activity</h3>
+          <h3 className="text-lg font-normal text-slate-500">
+            Upcoming activity
+          </h3>
         </div>
         <span className="text-sm text-muted-foreground">
           {visible.length} item{visible.length === 1 ? "" : "s"}
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-100 px-5 py-3">
+      <div className="flex flex-wrap items-center gap-2 px-5 pb-5">
         <Select
           value={range}
           onValueChange={(value) => {
@@ -233,7 +233,7 @@ export const UpcomingActivity = ({
         </Select>
         {isStaff && (
           <Select
-            value={displayName(userFilter) || userFilter}
+            value={userFilter}
             onValueChange={(value) => {
               setUserFilter(value);
               setPage(1);
@@ -255,7 +255,7 @@ export const UpcomingActivity = ({
         )}
       </div>
 
-      <div className="space-y-1 p-3">
+      <div className="space-y-2 px-5 pb-5">
         {loading ? (
           Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="h-14" />
@@ -277,15 +277,9 @@ export const UpcomingActivity = ({
                 mine={mine}
                 noteOpen={isNoteOpen}
                 reasonOpen={isReasonOpen}
-                onToggleNote={() =>
-                  setExpanded(isNoteOpen ? null : row.key)
-                }
+                onToggleNote={() => setExpanded(isNoteOpen ? null : row.key)}
                 onToggleReason={() => {
-                  if (
-                    row.type === "task" &&
-                    mine &&
-                    row.status === "overdue"
-                  ) {
+                  if (row.type === "task" && mine && row.status === "overdue") {
                     setResolutionTask(row.task ?? null);
                   } else {
                     setReasonOpen(isReasonOpen ? null : row.key);
@@ -303,10 +297,8 @@ export const UpcomingActivity = ({
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-5 py-3">
           <p className="text-xs text-muted-foreground">
             Showing{" "}
-            {visible.length === 0
-              ? 0
-              : (currentPage - 1) * PAGE_SIZE + 1}
-            –{Math.min(currentPage * PAGE_SIZE, visible.length)} of{" "}
+            {visible.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, visible.length)} of{" "}
             {visible.length}
           </p>
           <div className="flex items-center gap-1">
@@ -322,9 +314,7 @@ export const UpcomingActivity = ({
             </span>
             <RowButton
               title="Next page"
-              onClick={() =>
-                setPage((p) => Math.min(totalPages, p + 1))
-              }
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className={currentPage === totalPages ? "opacity-40" : ""}
             >
               <ChevronRight className="h-4 w-4" />
@@ -337,6 +327,7 @@ export const UpcomingActivity = ({
         task={resolutionTask}
         open={Boolean(resolutionTask)}
         pending={updateTask.isPending}
+        mode="complete"
         onOpenChange={(open) => !open && setResolutionTask(null)}
         onConfirm={async (reason) => {
           if (!resolutionTask) return;
@@ -374,99 +365,115 @@ const ActivityRowView = ({
   onMarkDone: () => void;
 }) => {
   const Icon =
-    row.type === "task" ? Target : row.type === "meeting" ? CalendarDays : Clock3;
+    row.type === "task"
+      ? Target
+      : row.type === "meeting"
+        ? CalendarDays
+        : Clock3;
   const done = row.status === "done";
+  const awaitingOwnReason =
+    row.status === "overdue" &&
+    row.type === "task" &&
+    mine &&
+    !row.task?.completionReason?.trim();
   const showReason =
-    row.type === "task" && !done && (staff || mine);
+    row.type === "task" && !done && (staff || mine) && !awaitingOwnReason;
   const showNote = Boolean(row.note);
   return (
     <div
       className={cn(
-        "rounded-lg border p-2.5 transition hover:shadow-sm sm:p-3",
-        row.status === "overdue" ? "border border-red-500" : "hover:border-gray-300",
+        "border bg-muted/45 p-3 transition hover:bg-muted sm:p-3.5",
+        row.status === "overdue" ? "border-red-300" : "border-slate-200",
       )}
     >
-      <div className="grid items-center gap-x-1 gap-y-2 sm:grid-cols-[3fr_2fr_0.5fr]">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMarkDone();
-            }}
-            disabled={!row.toggleable}
-            className={cn(
-              "grid h-5 w-5 shrink-0 place-items-center rounded-full cursor-pointer transition",
-              !row.toggleable && "cursor-default",
-              done ? "text-green-600" : "text-gray-300 hover:text-green-500",
-            )}
-            aria-label={done ? "Mark not done" : "Mark done"}
-            title={row.toggleable ? (done ? "Mark not done" : "Mark done") : undefined}
-          >
-            {done ? (
-              <CheckCircle2 className="h-5 w-5" />
-            ) : (
-              <Circle className="h-5 w-5" />
-            )}
-          </button>
-          <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-gray-800">
-            <Icon className="h-5 w-5 shrink-0 text-green-600" />
-            <span className="truncate text-base">{row.title}</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1.5 pl-7 text-sm text-muted-foreground sm:pl-0">
-          <CalendarDays className="h-5 w-5 shrink-0 text-green-600" />
-          <span className="whitespace-nowrap">
-            Due date: {dueLabel(row.dueAt)}
-          </span>
-          {row.status === "overdue" && (
-            <span className="rounded-full bg-red-500 px-2 py-1 text-xs font-medium text-white">
-              Overdue
-            </span>
-          )}
-        </div>
-
-        <div className="flex shrink-0 items-center gap-0.5 sm:justify-end">
-          {showReason && (
-            <RowButton
-              title={
-                row.status === "overdue" && mine
-                  ? "Explain why it wasn't completed"
-                  : reasonOpen
-                    ? "Hide reason"
-                    : "Why wasn't it completed?"
-              }
-              onClick={onToggleReason}
-              className="text-red-500 hover:bg-red-50 hover:text-red-600"
-            >
-              <MessageSquare
-                className={cn("h-5 w-5", reasonOpen && "fill-red-500 text-white")}
-              />
-            </RowButton>
-          )}
-          {showNote && (
-            <RowButton
-              title={noteOpen ? "Close details" : "Open details"}
-              onClick={onToggleNote}
-            >
-              {noteOpen ? (
-                <ChevronUp className="h-5 w-5" />
-              ) : (
-                <ChevronDown className="h-5 w-5" />
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex min-w-0 items-start gap-2.5">
+          {!(row.status === "overdue" && row.type === "task") && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onMarkDone();
+              }}
+              disabled={!row.toggleable}
+              className={cn(
+                "grid h-5 w-5 shrink-0 place-items-center rounded-full cursor-pointer transition",
+                !row.toggleable && "cursor-default",
+                done ? "text-green-600" : "text-gray-300 hover:text-green-500",
               )}
-            </RowButton>
+              aria-label={done ? "Mark not done" : "Mark done"}
+              title={row.toggleable ? (done ? "Mark not done" : "Mark done") : undefined}
+            >
+              {done ? <CheckCircle2 className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
+            </button>
           )}
-          {row.href && (
-            <RowButton title="Open task" onClick={onOpen}>
-              <ArrowRight className="h-5 w-5" />
-            </RowButton>
+          <p className="flex min-w-0 items-start gap-1.5 text-sm font-medium text-foreground">
+            <Icon className="h-5 w-5 shrink-0 text-green-600" />
+            <span className="break-words text-sm leading-5">{row.title}</span>
+          </p>
+          {awaitingOwnReason && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleReason();
+              }}
+              className="shrink-0 rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 dark:border-red-500/50 dark:bg-red-500/10 dark:text-red-300"
+            >
+              Close task and enter reason
+            </button>
           )}
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 pl-7">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+            <CalendarDays className="h-4 w-4 shrink-0 text-green-600" />
+            <span>Due date: {dueLabel(row.dueAt)}</span>
+          </div>
+          <div className="flex shrink-0 items-center gap-0.5">
+            {showReason && (
+              <RowButton
+                title={
+                  row.status === "overdue" && mine
+                    ? "Explain why it wasn't completed"
+                    : reasonOpen
+                      ? "Hide reason"
+                      : "Why wasn't it completed?"
+                }
+                onClick={onToggleReason}
+                className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+              >
+                <MessageSquare
+                  className={cn(
+                    "h-5 w-5",
+                    reasonOpen && "fill-red-500 text-white",
+                  )}
+                />
+              </RowButton>
+            )}
+            {showNote && (
+              <RowButton
+                title={noteOpen ? "Close details" : "Open details"}
+                onClick={onToggleNote}
+              >
+                {noteOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </RowButton>
+            )}
+            {row.href && (
+              <RowButton title="Open task" onClick={onOpen}>
+                <ArrowRight className="h-5 w-5" />
+              </RowButton>
+            )}
+          </div>
         </div>
       </div>
 
       {reasonOpen && (
-        <div className="mt-2 ml-8 rounded-lg border border-red-200 bg-red-50/60 p-3">
+        <div className="ml-7 mt-2 rounded-lg border border-red-300/60 bg-red-500/10 p-3">
           <p className="text-sm font-semibold uppercase tracking-wide text-red-500">
             Completion note
           </p>
@@ -476,7 +483,7 @@ const ActivityRowView = ({
         </div>
       )}
       {noteOpen && row.note && (
-        <div className="mt-2 ml-8 rounded-lg border border-green-300 bg-gray-50 p-3">
+        <div className="ml-7 mt-2 rounded-lg border border-green-300/60 bg-background/70 p-3">
           <p className="leading-relaxed text-gray-600">{row.note}</p>
         </div>
       )}
@@ -504,7 +511,7 @@ const RowButton = ({
       onClick();
     }}
     className={cn(
-      "grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition hover:text-gray-900",
+      "grid h-7 w-7 place-items-center rounded-full bg-background text-muted-foreground transition hover:bg-accent hover:text-foreground",
       className,
     )}
   >

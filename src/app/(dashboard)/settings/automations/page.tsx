@@ -7,7 +7,6 @@ import {
   useAutomations,
   useToggleAutomation,
 } from "@/hooks/useAutomations";
-import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AutomationList } from "@/components/settings/automations/AutomationList";
@@ -52,7 +51,9 @@ export default function AutomationsPage() {
   const content =
     active === "birthday" ? (
       <BirthdayAutomation
-        items={applyOverrides(items.filter((item) => item.automationType === "BIRTHDAY"))}
+        items={applyOverrides(
+          items.filter((item) => item.automationType === "BIRTHDAY"),
+        )}
         onToggle={handleToggle}
         pending={toggle.isPending}
         onEdit={(item) => {
@@ -62,7 +63,9 @@ export default function AutomationsPage() {
       />
     ) : active === "holidays" ? (
       <HolidayAutomation
-        items={applyOverrides(items.filter((item) => item.automationType === "PUBLIC_HOLIDAY"))}
+        items={applyOverrides(
+          items.filter((item) => item.automationType === "PUBLIC_HOLIDAY"),
+        )}
         onToggle={handleToggle}
         pending={toggle.isPending}
         onEdit={(item) => {
@@ -72,7 +75,9 @@ export default function AutomationsPage() {
       />
     ) : active === "payment" ? (
       <PaymentAutomation
-        items={applyOverrides(items.filter((item) => item.automationType === "PAYMENT"))}
+        items={applyOverrides(
+          items.filter((item) => item.automationType.startsWith("PAYMENT_")),
+        )}
         onToggle={handleToggle}
         pending={toggle.isPending}
         onEdit={(item) => {
@@ -82,7 +87,9 @@ export default function AutomationsPage() {
       />
     ) : (
       <PersonalAutomation
-        items={applyOverrides(items.filter((item) => item.automationType === "PERSONAL"))}
+        items={applyOverrides(
+          items.filter((item) => item.automationType === "PERSONAL"),
+        )}
         onToggle={handleToggle}
         pending={toggle.isPending}
         onEdit={(item) => {
@@ -93,22 +100,18 @@ export default function AutomationsPage() {
     );
   return (
     <div className="space-y-5">
-      <PageHeader
-        title="Automations"
-        description="Manage lifecycle messages and operational workflows"
-        actions={
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setBuilderOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            Create automation
-          </Button>
-        }
-      />
-      <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
+      <div className="fixed bottom-6 right-6 z-20">
+        <Button
+          onClick={() => {
+            setEditing(null);
+            setBuilderOpen(true);
+          }}
+        >
+          <Plus className="h-4 w-4" />
+          Create automation
+        </Button>
+      </div>
+      <div className="grid gap-3 lg:grid-cols-[260px_1fr]">
         <AutomationList active={active} onChange={setActive} />
         {automations.isLoading ? (
           <Skeleton className="h-96" />

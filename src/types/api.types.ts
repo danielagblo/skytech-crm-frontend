@@ -52,5 +52,11 @@ export type ServiceType = "HOSTING" | "DOMAIN" | "MAINTENANCE";
 export type CalendarEventType =
   "CALL_LOG_FOLLOWUP" | "PAYMENT_DUE" | "MEETING" | "REMINDER" | "TASK_DUE";
 export type AutomationType =
-  "BIRTHDAY" | "PUBLIC_HOLIDAY" | "PAYMENT" | "PERSONAL";
+  | "BIRTHDAY"
+  | "PUBLIC_HOLIDAY"
+  | "PAYMENT_RECEIVED"
+  | "PAYMENT_DUE"
+  | "PAYMENT_OVERDUE"
+  | "PAYMENT_RECOVERY"
+  | "PERSONAL";
 export type BroadcastChannel = "SMS" | "EMAIL";

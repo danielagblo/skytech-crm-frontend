@@ -3,13 +3,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { AlertCircle, Plus, Search, TrendingUp } from "lucide-react";
+import {
+  AlertCircle,
+  CheckSquare2,
+  Flag,
+  ListChecks,
+  Plus,
+  Search,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Task } from "@/types/task.types";
 import type { Priority, TaskStatus } from "@/types/api.types";
 import { tasksService } from "@/services/tasks.service";
 import { useTasks, useTaskStats, useUpdateTaskStatus } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import { useCreateActivity } from "@/hooks/useActivities";
+import { useAuthStore } from "@/store/authStore";
 import { TaskColumn } from "./TaskColumn";
 import { TaskDetail } from "./TaskDetail";
 import { CreateTaskModal } from "./CreateTaskModal";
@@ -26,7 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { OverdueResolutionModal } from "./OverdueResolutionModal";
 
-const statuses: TaskStatus[] = ["TODO", "DOING", "DONE", "OVERDUE"];
+const statuses: TaskStatus[] = ["TODO", "OVERDUE", "DOING", "DONE"];
 export const TaskBoard = () => {
   const [statusOverrides, setStatusOverrides] = useState<
     Record<string, TaskStatus>
@@ -38,6 +47,7 @@ export const TaskBoard = () => {
   const [priority, setPriority] = useState<Priority>();
   const [assignee, setAssignee] = useState<string>();
   const searchParams = useSearchParams();
+  const currentUserId = useAuthStore((state) => state.user?.id);
   const openedRef = useRef<string | null>(null);
   const tasks = useTasks({
     search: search || undefined,
@@ -65,13 +75,27 @@ export const TaskBoard = () => {
     const openId =
       searchParams?.get("open") ??
       new URLSearchParams(window.location.search).get("open");
-    if (!openId || openedRef.current === openId || items.length === 0) return;
+    const reasonRequested =
+      (searchParams?.get("reason") ??
+        new URLSearchParams(window.location.search).get("reason")) === "1";
+    const requestKey = `${openId ?? ""}:${reasonRequested ? "reason" : "detail"}`;
+    if (!openId || openedRef.current === requestKey || items.length === 0)
+      return;
     const target = items.find((task) => task.id === openId);
     if (!target) return;
-    openedRef.current = openId;
-    const timer = window.setTimeout(() => setSelected(target), 0);
+    if (reasonRequested && !currentUserId) return;
+    openedRef.current = requestKey;
+    const canEnterReason =
+      reasonRequested &&
+      target.status !== "DONE" &&
+      !target.completionReason?.trim() &&
+      target.assigneeIds.includes(currentUserId ?? "");
+    const timer = window.setTimeout(() => {
+      if (canEnterReason) setOverdueResolution(target);
+      else setSelected(target);
+    }, 0);
     return () => window.clearTimeout(timer);
-  }, [searchParams, items]);
+  }, [searchParams, items, currentUserId]);
   const detailQueries = useQueries({
     queries: items.flatMap((task) => [
       {
@@ -172,78 +196,121 @@ export const TaskBoard = () => {
     done: items.filter((task) => task.status === "DONE").length,
     overdue: items.filter((task) => task.status === "OVERDUE").length,
   };
+  const priorityCounts = {
+    LOW: items.filter((task) => task.priority === "LOW").length,
+    MEDIUM: items.filter((task) => task.priority === "MEDIUM").length,
+    HIGH: items.filter((task) => task.priority === "HIGH").length,
+  };
+  const statCards: Array<{
+    label: string;
+    value: number;
+    icon: LucideIcon;
+    color: string;
+  }> = [
+    {
+      label: "Low Priority",
+      value: priorityCounts.LOW,
+      icon: Flag,
+      color: "text-green-500",
+    },
+    {
+      label: "Medium Priority",
+      value: priorityCounts.MEDIUM,
+      icon: Flag,
+      color: "text-amber-400",
+    },
+    {
+      label: "High Priority",
+      value: priorityCounts.HIGH,
+      icon: Flag,
+      color: "text-red-500",
+    },
+    {
+      label: "Total Task",
+      value: statsData.total,
+      icon: ListChecks,
+      color: "text-foreground",
+    },
+    {
+      label: "Total Task Done",
+      value: statsData.done,
+      icon: CheckSquare2,
+      color: "text-foreground",
+    },
+    {
+      label: "Overdue",
+      value: statsData.overdue,
+      icon: AlertCircle,
+      color: "text-red-500",
+    },
+  ];
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
-        {[
-          ["Total Tasks", statsData.total],
-          ["Total Task Done", statsData.done],
-          ["Overdue", statsData.overdue],
-        ].map(([label, value]) => (
-          <div
-            key={String(label)}
-            className="surface flex items-center justify-between p-4"
-          >
-            <div>
-              <p className="eyebrow">{label}</p>
-              <p className="mt-1 text-2xl font-semibold">{value}</p>
-            </div>
-            <span className="flex items-center gap-1 text-xs text-green-700">
-              <TrendingUp className="h-4 w-4" />
-              Live
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="surface flex flex-wrap items-center gap-2 rounded-xl p-3">
-        <div className="relative min-w-56 flex-1">
+    <div className="flex flex-col lg:h-[calc(100dvh-7.75rem)] lg:min-h-0 lg:overflow-hidden 2xl:h-[calc(100dvh-8.25rem)]">
+      <div className="flex flex-wrap items-center gap-2 border-b bg-card px-2 py-3 sm:px-3">
+        <div className="relative min-w-56 flex-1 sm:max-w-64">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search tasks"
+            placeholder="Search"
             className="pl-9"
           />
         </div>
-        <Select
-          onValueChange={(value) =>
-            setAssignee(value === "ALL" ? undefined : value)
-          }
-        >
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="Assignee" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All assignees</SelectItem>
-            {(users.data?.content ?? []).map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {user.firstName} {user.lastName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          onValueChange={(value) =>
-            setPriority(value === "ALL" ? undefined : (value as Priority))
-          }
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All priorities</SelectItem>
-            <SelectItem value="LOW">Low</SelectItem>
-            <SelectItem value="MEDIUM">Medium</SelectItem>
-            <SelectItem value="HIGH">High</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button onClick={() => setCreate(true)}>
-          <Plus className="h-4 w-4" />
-          Create task
-        </Button>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Select
+            onValueChange={(value) =>
+              setAssignee(value === "ALL" ? undefined : value)
+            }
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Assignee" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All assignees</SelectItem>
+              {(users.data?.content ?? []).map((user) => (
+                <SelectItem key={user.id} value={user.id}>
+                  {user.firstName} {user.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            onValueChange={(value) =>
+              setPriority(value === "ALL" ? undefined : (value as Priority))
+            }
+          >
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All priorities</SelectItem>
+              <SelectItem value="LOW">Low</SelectItem>
+              <SelectItem value="MEDIUM">Medium</SelectItem>
+              <SelectItem value="HIGH">High</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={() => setCreate(true)}>
+            <Plus className="h-4 w-4" />
+            Create task
+          </Button>
+        </div>
+      </div>
+      <div className="scrollbar-thin grid auto-cols-[minmax(170px,1fr)] grid-flow-col overflow-x-auto border-b bg-card">
+        {statCards.map(({ label, value, icon: Icon, color }) => (
+          <div
+            key={String(label)}
+            className="border-r border-border px-4 py-2.5 last:border-r-0"
+          >
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Icon className={`h-4 w-4 ${color}`} />
+              {label}
+            </p>
+            <p className="mt-1 text-xl font-semibold text-foreground">{value}</p>
+          </div>
+        ))}
       </div>
       <DragDropContext onDragEnd={drop}>
-        <div className="dot-grid flex min-h-[600px] gap-4 overflow-x-auto rounded-2xl border p-4">
+        <div className="dot-grid flex min-h-[650px] flex-1 gap-8 overflow-x-auto overflow-y-hidden border-x border-b px-10 py-2 max-xl:gap-3 max-xl:px-3 lg:min-h-0 2xl:gap-10">
           {statuses.map((status) => (
             <TaskColumn
               key={status}
@@ -260,15 +327,14 @@ export const TaskBoard = () => {
         task={selected}
         users={users.data?.content ?? []}
         open={Boolean(selected)}
-        pending={updateStatus.isPending}
         onOpenChange={(value) => !value && setSelected(null)}
-        onStatusChange={(status) => selected && moveStatus(selected, status)}
       />
       <CreateTaskModal open={create} onOpenChange={setCreate} />
       <OverdueResolutionModal
         task={overdueResolution}
         open={Boolean(overdueResolution)}
         pending={updateStatus.isPending || createActivity.isPending}
+        mode="complete"
         onOpenChange={(open) => !open && setOverdueResolution(null)}
         onConfirm={async (reason) => {
           if (!overdueResolution) return;

@@ -38,21 +38,35 @@ export const ClientRetentionLog = ({
   users: User[];
 }) => {
   const mutation = useAddDealLog();
+  const latestRetentionLog = (serviceType: ServiceType) =>
+    logs
+      .filter(
+        (log) =>
+          log.logType === "CLIENT_RETENTION" &&
+          log.serviceType === serviceType,
+      )
+      .sort(
+        (left, right) =>
+          new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+      )[0];
   const services = [
     {
       type: "DOMAIN" as const,
-      expiry: deal.domainExpiry,
-      cost: deal.domainCost,
+      expiry: latestRetentionLog("DOMAIN")?.expiryDate ?? deal.domainExpiry,
+      cost: latestRetentionLog("DOMAIN")?.retentionAmount ?? deal.domainCost,
     },
     {
       type: "HOSTING" as const,
-      expiry: deal.hostingExpiry,
-      cost: deal.hostingCost,
+      expiry: latestRetentionLog("HOSTING")?.expiryDate ?? deal.hostingExpiry,
+      cost: latestRetentionLog("HOSTING")?.retentionAmount ?? deal.hostingCost,
     },
     {
       type: "MAINTENANCE" as const,
-      expiry: deal.maintenanceExpiry,
-      cost: deal.maintenanceCost,
+      expiry:
+        latestRetentionLog("MAINTENANCE")?.expiryDate ?? deal.maintenanceExpiry,
+      cost:
+        latestRetentionLog("MAINTENANCE")?.retentionAmount ??
+        deal.maintenanceCost,
     },
   ];
   const {
@@ -114,7 +128,35 @@ export const ClientRetentionLog = ({
           );
         })}
       </div>
-      <form onSubmit={submit} className="grid gap-3 border-b pb-4">
+      <form
+        onSubmit={submit}
+        className="grid gap-4 rounded-2xl border border-primary/25 bg-primary/5 p-4 dark:bg-primary/10"
+      >
+        <div>
+          <p className="text-sm font-semibold text-foreground">
+            Set up or renew a service
+          </p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Choose the service, then enter its cost and expiry date. Saving
+            updates the matching service card above and adds a retention log.
+          </p>
+        </div>
+        <div>
+          <Label>Service to configure</Label>
+          <Select
+            value={values.service}
+            onValueChange={(value: ServiceType) => setValue("service", value)}
+          >
+            <SelectTrigger className="bg-background">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DOMAIN">Domain</SelectItem>
+              <SelectItem value="HOSTING">Hosting</SelectItem>
+              <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Invoice</Label>
@@ -125,7 +167,7 @@ export const ClientRetentionLog = ({
             <Input {...register("receipt")} />
           </div>
           <div>
-            <Label>Amount</Label>
+            <Label>Service cost</Label>
             <Input type="number" step="0.01" {...register("amount")} />
           </div>
           <div>
@@ -138,24 +180,8 @@ export const ClientRetentionLog = ({
             Complete all retention fields before saving.
           </p>
         )}
-        <div>
-          <Label>Service type</Label>
-          <Select
-            value={values.service}
-            onValueChange={(value: ServiceType) => setValue("service", value)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="DOMAIN">Domain</SelectItem>
-              <SelectItem value="HOSTING">Hosting</SelectItem>
-              <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Saving…" : "Save retention log"}
+          {mutation.isPending ? "Saving…" : "Save service details"}
         </Button>
       </form>
       <LogFeed dealId={deal.id} logs={logs} users={users} />

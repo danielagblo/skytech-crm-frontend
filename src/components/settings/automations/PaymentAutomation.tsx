@@ -1,16 +1,29 @@
 import {
+  ArrowDown,
+  CheckCircle2,
   CreditCard,
-  GitBranch,
   Mail,
   MessageSquare,
-  Pause,
-  SkipForward,
+  ReceiptText,
+  ShieldCheck,
 } from "lucide-react";
 import type { Automation, AutomationStep } from "@/types/automation.types";
 import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/shared/EmptyState";
+
 const labelFor = (step: AutomationStep, index: number) =>
-  step.label ? step.label : step.action ? step.action : `Step ${index + 1}`;
+  step.label || step.action || `Delivery step ${index + 1}`;
+
+const triggerLabel = (type: Automation["automationType"]) => {
+  const labels: Partial<Record<Automation["automationType"], string>> = {
+    PAYMENT_RECEIVED: "Payment received",
+    PAYMENT_DUE: "Payment due",
+    PAYMENT_OVERDUE: "Payment overdue",
+    PAYMENT_RECOVERY: "Payment recovery",
+  };
+  return labels[type] ?? type.replaceAll("_", " ");
+};
+
 export const PaymentAutomation = ({
   items,
   onToggle,
@@ -24,78 +37,129 @@ export const PaymentAutomation = ({
 }) => (
   <section className="space-y-5">
     <div>
-      <h2 className="text-lg font-semibold">Payment automation</h2>
+      <h2 className="text-lg font-semibold">Payment automations</h2>
       <p className="text-sm text-muted-foreground">
-        Read-only workflow preview for payment lifecycle communication.
+        Event-driven payment messages with persisted, delayed delivery steps.
       </p>
     </div>
     {items.length === 0 ? (
       <EmptyState
         icon={CreditCard}
         title="No payment workflows"
-        message="Payment automation branches will appear after they are configured."
+        message="Create a payment automation to acknowledge recorded payments."
       />
     ) : (
       items.map((item) => (
-        <article key={item.id} className="space-y-4">
-          <div className="mx-auto flex max-w-sm items-center gap-3 rounded-xl border-2 border-primary bg-green-50 p-4">
-            <div className="flex-1 text-center">
-              <p className="eyebrow">Trigger</p>
-              <strong>{item.name}</strong>
+        <article key={item.id} className="surface overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/35 p-4">
+            <div>
+              <p className="eyebrow">Payment workflow</p>
+              <h3 className="font-semibold">{item.name}</h3>
             </div>
-            <Switch
-              checked={item.active}
-              disabled={pending}
-              onCheckedChange={() => onToggle(item.id)}
-            />
-            <button
-              type="button"
-              className="rounded-md border px-2 py-1 text-xs hover:bg-muted"
-              onClick={() => onEdit(item)}
-            >
-              Edit
-            </button>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={item.active}
+                disabled={pending}
+                onCheckedChange={() => onToggle(item.id)}
+              />
+              <button
+                type="button"
+                className="rounded-md border bg-background px-3 py-1.5 text-xs hover:bg-muted"
+                onClick={() => onEdit(item)}
+              >
+                Edit workflow
+              </button>
+            </div>
           </div>
-          <div className="mx-auto h-8 w-px bg-gray-300" />
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-            <GitBranch className="h-4 w-4" />
-            {item.steps.length} configured steps
-          </div>
-          <div className="grid gap-5 lg:grid-cols-3">
-            {item.steps.map((step, index) => (
-              <div key={index} className="surface p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-900 text-xs text-white">
-                    {index + 1}
-                  </span>
-                  <h3 className="font-semibold">{labelFor(step, index)}</h3>
-                </div>
-                <div className="rounded-xl border bg-white p-3">
-                  <p className="text-[10px] uppercase text-muted-foreground">
-                    Wait / action
-                  </p>
-                  <p className="text-sm font-medium">
-                    {typeof step.wait === "string"
-                      ? step.wait
-                      : typeof step.waitDays === "number"
-                        ? `Wait ${step.waitDays} days`
-                        : "Continue when conditions match"}
-                  </p>
-                  <div className="mt-2 flex gap-1">
-                    {[Pause, MessageSquare, Mail, SkipForward].map(
-                      (Icon, control) => (
-                        <span key={control} className="rounded border p-1">
-                          <Icon className="h-3 w-3" />
-                        </span>
-                      ),
+
+          <div className="grid gap-6 p-5 lg:grid-cols-[minmax(230px,.75fr)_minmax(0,1.6fr)]">
+            <div className="space-y-3">
+              <FlowNode
+                icon={ReceiptText}
+                eyebrow="Trigger"
+                title={triggerLabel(item.automationType)}
+                body="Runs only for its explicit payment event; due and recovery events are not treated as received payments."
+              />
+              <ArrowDown className="mx-auto h-5 w-5 text-muted-foreground" />
+              <FlowNode
+                icon={ShieldCheck}
+                eyebrow="Eligibility"
+                title="Consent and contact checked"
+                body="SMS/email is skipped when the lead has not opted in or has no reachable address."
+              />
+            </div>
+
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold">Sequential delivery</p>
+                <span className="text-xs text-muted-foreground">
+                  {item.steps.length} step{item.steps.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {item.steps.map((step, index) => (
+                  <div
+                    key={`${item.id}-${index}`}
+                    className="grid gap-3 rounded-xl border bg-background p-3 sm:grid-cols-[36px_1fr_auto] sm:items-center"
+                  >
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-primary/15 font-semibold">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium">{labelFor(step, index)}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                      {step.message}
+                      </p>
+                    </div>
+                    {Number(step.waitDays ?? 0) > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        Wait {step.waitDays} day{step.waitDays === 1 ? "" : "s"}
+                      </span>
                     )}
+                    <span className="inline-flex w-fit items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium">
+                      {step.channel === "EMAIL" ? (
+                        <Mail className="h-3.5 w-3.5" />
+                      ) : (
+                        <MessageSquare className="h-3.5 w-3.5" />
+                      )}
+                      {step.channel}
+                    </span>
                   </div>
+                ))}
+                <div className="flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/10 p-3 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-success" />
+                  Workflow finishes after all configured messages are attempted.
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </article>
       ))
     )}
   </section>
+);
+
+const FlowNode = ({
+  icon: Icon,
+  eyebrow,
+  title,
+  body,
+}: {
+  icon: typeof ReceiptText;
+  eyebrow: string;
+  title: string;
+  body: string;
+}) => (
+  <div className="rounded-xl border bg-background p-4">
+    <div className="flex gap-3">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15">
+        <Icon className="h-4 w-4 text-success" />
+      </span>
+      <div>
+        <p className="eyebrow">{eyebrow}</p>
+        <p className="font-semibold">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">{body}</p>
+      </div>
+    </div>
+  </div>
 );

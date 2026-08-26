@@ -13,6 +13,7 @@ import { PipelineColumn } from "./PipelineColumn";
 import { DealDetail } from "./DealDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { toast } from "sonner";
 
 const stages: DealStage[] = [
   "PROSPECTING",
@@ -57,6 +58,13 @@ export const PipelineBoard = () => {
   );
 
   const commitStage = (id: string, stage: DealStage) => {
+    const source = sourceDeals.find((deal) => deal.id === id);
+    if (stage === "CLIENT_RETENTION" && !source?.paidInFull) {
+      toast.error(
+        "Settle the agreed contract amount in full before moving this deal to retention.",
+      );
+      return;
+    }
     const previous = stageOverrides[id];
     setStageOverrides((current) => ({
       ...current,
@@ -115,7 +123,7 @@ export const PipelineBoard = () => {
   return (
     <>
       <DragDropContext onDragEnd={drop}>
-        <div className="dot-grid scrollbar-thin flex min-h-[620px] gap-4 overflow-x-auto rounded-2xl border p-4">
+        <div className="dot-grid scrollbar-thin flex min-h-[620px] flex-1 gap-3 overflow-x-auto overflow-y-hidden rounded-lg border p-2 sm:p-3 lg:h-full lg:min-h-0 2xl:gap-4 2xl:p-4">
           {stages.map((stage) => (
             <PipelineColumn
               key={stage}
@@ -136,9 +144,7 @@ export const PipelineBoard = () => {
         )}
         users={users.data?.content ?? []}
         open={Boolean(selected)}
-        pending={updateStage.isPending}
         onOpenChange={(value) => !value && setSelected(null)}
-        onStageChange={(stage) => selected && commitStage(selected.id, stage)}
       />
     </>
   );
