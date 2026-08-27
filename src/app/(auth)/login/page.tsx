@@ -4,13 +4,13 @@ export const metadata: Metadata = { title: "Login" };
 export default function LoginPage() {
   return (
     <main
-      className="relative grid min-h-screen overflow-hidden bg-cover bg-center lg:grid-cols-2"
+      className="relative grid h-screen overflow-hidden bg-cover bg-center lg:grid-cols-2"
       style={{ backgroundImage: "url('/assets/loginOTP_bg.png')" }}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/15" />
       <div className="relative hidden lg:block" />
-      <div className="relative flex min-h-screen items-center justify-center p-4 sm:p-8 lg:justify-start">
-        <section className="flex min-h-[620px] w-full max-w-[600px] flex-col justify-center border border-white/55 bg-white/10 p-6 text-slate-950 shadow-2xl backdrop-blur-[3px] sm:p-12 lg:min-h-[680px]">
+      <div className="relative flex h-full items-center justify-center p-4 sm:p-8 lg:justify-start">
+        <section className="flex flex-col w-full max-w-[600px] max-h-[90vh] overflow-y-auto border border-white/55 bg-white/10 p-6 text-slate-950 shadow-2xl backdrop-blur-[3px] sm:p-12">
           <div className="mb-10 text-center">
             <img
               src="/assets/skytech_Logo.png"
