@@ -72,33 +72,32 @@ export default function AgentsPage() {
           Add agent
         </Button>
       </div>
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(420px,.9fr)]">
-        <div className="space-y-4">
-          {users.isLoading ? (
-            <Skeleton className="h-72" />
-          ) : users.isError ? (
-            <EmptyState
-              icon={AlertCircle}
-              title="Agents could not be loaded"
-              message="Check your connection and refresh this page."
-            />
-          ) : (
-            <section className="overflow-hidden border bg-card">
-              <AgentTable
-                agents={agents}
-                performance={performance}
-                onOpen={(selected) => {
-                  setAgent(selected);
-                  setOpen(true);
-                }}
-              />
-              <Pagination
-                page={page}
-                totalPages={Math.max(users.data?.totalPages ?? 1, 1)}
-                onPageChange={setPage}
-              />
-            </section>
-          )}
+      {users.isLoading ? (
+        <Skeleton className="h-72" />
+      ) : users.isError ? (
+        <EmptyState
+          icon={AlertCircle}
+          title="Agents could not be loaded"
+          message="Check your connection and refresh this page."
+        />
+      ) : (
+        <section className="w-full overflow-hidden border bg-card">
+          <AgentTable
+            agents={agents}
+            performance={performance}
+            onOpen={(selected) => {
+              setAgent(selected);
+              setOpen(true);
+            }}
+          />
+          <Pagination
+            page={page}
+            totalPages={Math.max(users.data?.totalPages ?? 1, 1)}
+            onPageChange={setPage}
+          />
+        </section>
+      )}
+      <div className="grid items-start gap-4 lg:grid-cols-2 2xl:grid-cols-[minmax(420px,.8fr)_minmax(640px,1.2fr)] min-[2200px]:grid-cols-[minmax(560px,.7fr)_minmax(900px,1.3fr)]">
           <section className="border bg-card p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -124,31 +123,34 @@ export default function AgentsPage() {
                 }}
               />
             </div>
-          <div className="mt-4 divide-y">
-            <div className="pb-4">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
-                Assignment strategy
-              </p>
-              <Select
-                value={assignment.data?.config.strategy ?? "LEAST_LOADED"}
-                disabled={updateAssignment.isPending}
-                onValueChange={(strategy: "LEAST_LOADED" | "ROUND_ROBIN") =>
-                  updateAssignment.mutate({
-                    enabled: assignmentOverride ?? Boolean(assignment.data?.enabled),
-                    config: { strategy },
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="LEAST_LOADED">Least loaded</SelectItem>
-                  <SelectItem value="ROUND_ROBIN">Round robin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {(leads.data?.content ?? []).map((lead) => (
+            <div className="mt-4 divide-y">
+              <div className="pb-4">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">
+                  Assignment strategy
+                </p>
+                <Select
+                  value={assignment.data?.config.strategy ?? "LEAST_LOADED"}
+                  disabled={updateAssignment.isPending}
+                  onValueChange={(
+                    strategy: "LEAST_LOADED" | "ROUND_ROBIN",
+                  ) =>
+                    updateAssignment.mutate({
+                      enabled:
+                        assignmentOverride ?? Boolean(assignment.data?.enabled),
+                      config: { strategy },
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LEAST_LOADED">Least loaded</SelectItem>
+                    <SelectItem value="ROUND_ROBIN">Round robin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {(leads.data?.content ?? []).map((lead) => (
                 <div key={lead.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold">
@@ -166,7 +168,6 @@ export default function AgentsPage() {
               ))}
             </div>
           </section>
-        </div>
         <UpcomingActivity />
       </div>
       <AgentPerformanceTable userId={agent?.id ?? agents[0]?.id} />
