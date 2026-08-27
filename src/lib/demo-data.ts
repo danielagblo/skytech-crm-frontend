@@ -241,6 +241,7 @@ export const demoDashboard: DashboardOverview = {
   executivePerformance: demoUsers.map((user, index) => ({
     userId: user.id,
     name: `${user.firstName} ${user.lastName}`,
+    profilePhotoUrl: user.profilePhotoUrl,
     closedDeals: [67, 42, 35, 28][index],
     revenue: 100000 - index * 12000,
     conversionRate: [60, 90, 74, 68][index],

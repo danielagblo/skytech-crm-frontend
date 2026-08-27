@@ -20,6 +20,7 @@ export interface DashboardOverview {
   executivePerformance: {
     userId: string;
     name: string;
+    profilePhotoUrl: string | null;
     closedDeals: number;
     revenue: number;
     conversionRate: number;

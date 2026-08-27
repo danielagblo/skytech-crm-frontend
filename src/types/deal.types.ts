@@ -107,6 +107,7 @@ export interface Comment {
   parentCommentId: string | null;
   authorId: string;
   authorName: string;
+  authorProfilePhotoUrl: string | null;
   body: string;
   createdAt: string;
 }

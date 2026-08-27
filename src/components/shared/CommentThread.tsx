@@ -76,6 +76,7 @@ export const CommentThread = ({
               <div className="flex gap-3">
                 <UserAvatar
                   name={comment.authorName || "CRM user"}
+                  src={comment.authorProfilePhotoUrl ?? undefined}
                   className="h-8 w-8"
                 />
                 <div className="min-w-0 flex-1 rounded-xl bg-muted/70 p-3">
@@ -141,6 +142,7 @@ export const CommentThread = ({
                       <div key={reply.id} className="mb-2 flex gap-2">
                         <UserAvatar
                           name={reply.authorName || "CRM user"}
+                          src={reply.authorProfilePhotoUrl ?? undefined}
                           className="h-7 w-7"
                         />
                         <div className="rounded-xl bg-muted p-3 text-sm">

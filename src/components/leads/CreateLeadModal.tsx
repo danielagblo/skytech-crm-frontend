@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -123,6 +123,14 @@ export const CreateLeadModal = ({
 }) => {
   const create = useCreateLead();
   const update = useUpdateLead();
+  const eligibleUsers = useMemo(
+    () => users.filter((user) => user.active),
+    [users],
+  );
+  const eligibleUserIds = useMemo(
+    () => new Set(eligibleUsers.map((user) => user.id)),
+    [eligibleUsers],
+  );
   const {
     register,
     control,
@@ -141,7 +149,9 @@ export const CreateLeadModal = ({
     reset(
       lead
         ? {
-            assigneeIds: lead.assignedTo ?? [],
+            assigneeIds: (lead.assignedTo ?? []).filter((id) =>
+              eligibleUserIds.has(id),
+            ),
             firstName: lead.firstName ?? "",
             lastName: lead.lastName ?? "",
             birthday: lead.birthday ?? "",
@@ -165,11 +175,11 @@ export const CreateLeadModal = ({
           }
         : defaults,
     );
-  }, [lead, open, reset]);
+  }, [eligibleUserIds, lead, open, reset]);
 
   const submit = handleSubmit((values) => {
     const data = {
-      assignedTo: values.assigneeIds,
+      assignedTo: values.assigneeIds.filter((id) => eligibleUserIds.has(id)),
       firstName: values.firstName,
       lastName: values.lastName,
       birthday: values.birthday || undefined,
@@ -229,9 +239,7 @@ export const CreateLeadModal = ({
             <div className="sm:col-span-2 xl:col-span-3">
               <Label>Assign to</Label>
               <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {users
-                  .filter((user) => user.active)
-                  .map((user) => (
+                {eligibleUsers.map((user) => (
                     <label
                       key={user.id}
                       className="flex items-center gap-3 rounded-xl border px-3 py-2 text-sm"

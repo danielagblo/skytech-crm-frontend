@@ -57,7 +57,11 @@ export const ExecutivePerformanceTable = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <UserAvatar name={row.name} className="h-7 w-7" />
+                    <UserAvatar
+                      name={row.name}
+                      src={row.profilePhotoUrl ?? undefined}
+                      className="h-7 w-7"
+                    />
                     <span className="font-medium">{row.name}</span>
                   </div>
                 </TableCell>
