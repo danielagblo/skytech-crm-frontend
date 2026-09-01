@@ -15,6 +15,8 @@ export interface User {
   lastLogin: string | null;
   lastSeenAt: string | null;
   presenceStatus: "ONLINE" | "OFFLINE";
+  clientRatingAverage?: number | null;
+  clientRatingCount?: number;
   createdAt: string;
 }
 

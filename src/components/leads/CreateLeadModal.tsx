@@ -32,10 +32,17 @@ import { LEAD_INDUSTRIES } from "@/lib/crm-options";
 const schema = z
   .object({
     assigneeIds: z.array(z.string()).default([]),
-    firstName: z.string().min(2, "Enter a first name."),
-    lastName: z.string().min(2, "Enter a last name."),
-    birthday: z.string().optional(),
-    role: z.string().min(2, "Enter the contact role."),
+    firstName: z.string().trim().min(1, "Enter a first name."),
+    lastName: z.string(),
+    birthday: z
+      .string()
+      .regex(/^\d{2}-\d{2}$/, "Enter the birthday as MM-DD.")
+      .refine((value) => {
+        const [month, day] = value.split("-").map(Number);
+        const date = new Date(Date.UTC(2000, month - 1, day));
+        return date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+      }, "Enter a valid month and day."),
+    role: z.string(),
     leadSource: z.enum([
       "SMS",
       "EMAIL",
@@ -45,16 +52,16 @@ const schema = z
       "META_ADS",
     ]),
     priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
-    companyName: z.string().min(2, "Enter a company name."),
-    industry: z.string().min(2, "Choose an industry."),
-    phone1: z.string(),
+    companyName: z.string(),
+    industry: z.string(),
+    phone1: z.string().trim().min(7, "Enter a contact phone number."),
     phone2: z.string().optional(),
     whatsapp: z.string().optional(),
     emailAddress: z.union([
       z.literal(""),
       z.string().email("Enter a valid email."),
     ]),
-    address: z.string().min(4, "Enter an address."),
+    address: z.string(),
     launchTimeline: z.enum([
       "IN_1_WEEK",
       "ONE_TO_TWO_MONTHS",
@@ -65,7 +72,7 @@ const schema = z
     smsOptIn: z.boolean(),
     emailOptIn: z.boolean(),
     newsletterOptIn: z.boolean(),
-    description: z.string().min(10, "Add at least 10 characters."),
+    description: z.string(),
   })
   .superRefine((values, context) => {
     if (values.smsOptIn && values.phone1.trim().length < 8)
@@ -154,7 +161,7 @@ export const CreateLeadModal = ({
             ),
             firstName: lead.firstName ?? "",
             lastName: lead.lastName ?? "",
-            birthday: lead.birthday ?? "",
+            birthday: lead.birthday?.slice(-5) ?? "",
             role: lead.role ?? "",
             leadSource: lead.leadSource ?? "SMS",
             priority: lead.priority ?? "MEDIUM",
@@ -266,8 +273,14 @@ export const CreateLeadModal = ({
               {error("lastName")}
             </div>
             <div>
-              <Label>Birthday</Label>
-              <Input type="date" {...register("birthday")} />
+              <Label>Birthday (month and day)</Label>
+              <Input
+                inputMode="numeric"
+                placeholder="MM-DD"
+                maxLength={5}
+                {...register("birthday")}
+              />
+              {error("birthday")}
             </div>
             <div>
               <Label>Role</Label>
@@ -346,7 +359,7 @@ export const CreateLeadModal = ({
               {error("industry")}
             </div>
             <div>
-              <Label>Phone</Label>
+              <Label>Contact (phone)</Label>
               <Input {...register("phone1")} />
               {error("phone1")}
             </div>

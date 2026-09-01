@@ -60,6 +60,8 @@ export const LogFeed = ({
     <div className="space-y-4">
       {ordered.map((log, index) => {
         const reviewer = users.find((user) => user.id === log.createdById);
+        const clientRating = reviewer?.clientRatingAverage ?? null;
+        const clientRatingCount = reviewer?.clientRatingCount ?? 0;
         return (
           <article key={log.id} className="rounded-xl border p-4">
             <div className="mb-3 flex items-center gap-2">
@@ -105,14 +107,24 @@ export const LogFeed = ({
               {log.amountPaid != null && (
                 <span>• {formatCurrency(log.amountPaid)}</span>
               )}
-              <span className="flex">
-                {Array.from({ length: 5 }, (_, star) => (
-                  <Star
-                    key={star}
-                    className={`h-3 w-3 ${star < (log.autoReviewScore ?? 0) ? "fill-primary text-primary" : "text-gray-200"}`}
-                  />
-                ))}
-              </span>
+              {clientRating != null && clientRatingCount > 0 ? (
+                <span
+                  className="flex items-center gap-1"
+                  title={`${clientRating.toFixed(2)} from ${clientRatingCount} submitted client ${clientRatingCount === 1 ? "rating" : "ratings"}`}
+                >
+                  <span className="flex">
+                    {Array.from({ length: 5 }, (_, star) => (
+                      <Star
+                        key={star}
+                        className={`h-3 w-3 ${star < Math.round(clientRating) ? "fill-primary text-primary" : "text-gray-200"}`}
+                      />
+                    ))}
+                  </span>
+                  <span>{clientRating.toFixed(1)}</span>
+                </span>
+              ) : (
+                <span>No client ratings</span>
+              )}
             </div>
             <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
               {log.body || log.specialConditions || "No written notes."}
