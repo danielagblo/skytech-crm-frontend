@@ -202,6 +202,8 @@ export const AutomationBuilderSheet = ({
     options?.triggerRequirements?.PERSONAL?.executable ??
     typeOptions.find((item) => item.value === "PERSONAL")?.executable ??
     true;
+  const targetLeads = leads.data?.content ?? [];
+  const targetLeadCount = targetLeads.length;
 
   useEffect(() => {
     if (!open) return;
@@ -393,58 +395,59 @@ export const AutomationBuilderSheet = ({
                   </div>
                 ) : (
                   <>
-                    <label className="flex cursor-pointer items-center gap-3 px-3 py-2 bg-muted/40 rounded-t-lg border-b">
+                    <label className="flex cursor-pointer items-center gap-3 rounded-t-lg border-b bg-muted/40 px-3 py-2">
                       <Checkbox
                         checked={
-                          leads.data?.content?.length > 0 &&
-                          contactIds.length === (leads.data?.content?.length ?? 0)
+                          targetLeadCount > 0 &&
+                          contactIds.length === targetLeadCount
                         }
                         onCheckedChange={(checked) => {
-                          const allIds = (leads.data?.content ?? []).map((l) => l.id);
+                          const allIds = targetLeads.map((lead) => lead.id);
                           form.setValue("contactIds", checked ? allIds : [], {
                             shouldValidate: true,
                           });
                         }}
                       />
                       <span className="text-sm font-medium">
-                        Select all ({(leads.data?.content?.length ?? 0).toLocaleString()})
+                        Select all ({targetLeadCount.toLocaleString()})
                       </span>
                     </label>
-                    <div className="max-h-72 divide-y overflow-y-auto rounded-b-lg border rounded-t-none">
-                      {(leads.data?.content ?? []).map((lead) => {
-                      const label =
-                        `${lead.firstName ?? ""} ${lead.lastName ?? ""}`.trim() ||
-                        lead.companyName ||
-                        lead.email ||
-                        lead.id;
-                      return (
-                        <label
-                          key={lead.id}
-                          className="flex cursor-pointer items-center gap-3 p-3 hover:bg-muted/50"
-                        >
-                          <Checkbox
-                            checked={contactIds.includes(lead.id)}
-                            onCheckedChange={(checked) => {
-                              const next = checked
-                                ? [...contactIds, lead.id]
-                                : contactIds.filter((id) => id !== lead.id);
-                              form.setValue("contactIds", next, {
-                                shouldValidate: true,
-                              });
-                            }}
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium">
-                              {label}
+                    <div className="max-h-72 divide-y overflow-y-auto rounded-b-lg border border-t-0">
+                      {targetLeads.map((lead) => {
+                        const label =
+                          `${lead.firstName ?? ""} ${lead.lastName ?? ""}`.trim() ||
+                          lead.companyName ||
+                          lead.email ||
+                          lead.id;
+                        return (
+                          <label
+                            key={lead.id}
+                            className="flex cursor-pointer items-center gap-3 p-3 hover:bg-muted/50"
+                          >
+                            <Checkbox
+                              checked={contactIds.includes(lead.id)}
+                              onCheckedChange={(checked) => {
+                                const next = checked
+                                  ? [...contactIds, lead.id]
+                                  : contactIds.filter((id) => id !== lead.id);
+                                form.setValue("contactIds", next, {
+                                  shouldValidate: true,
+                                });
+                              }}
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium">
+                                {label}
+                              </span>
+                              <span className="block truncate text-xs text-muted-foreground">
+                                {lead.companyName || lead.category || "Contact"}
+                              </span>
                             </span>
-                            <span className="block truncate text-xs text-muted-foreground">
-                              {lead.companyName || lead.category || "Contact"}
-                            </span>
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </>
                 )}
               </div>
             )}
