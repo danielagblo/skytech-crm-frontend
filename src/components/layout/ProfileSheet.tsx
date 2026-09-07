@@ -37,6 +37,7 @@ export const ProfileSheet = ({
           <div className="flex items-center gap-5 rounded-2xl bg-muted p-5">
             <div className="relative">
               <UserAvatar
+                id={user.id}
                 name={name}
                 src={user.profilePhotoUrl ?? undefined}
                 className="h-24 w-24 ring-4 ring-primary/40"
@@ -56,7 +57,20 @@ export const ProfileSheet = ({
                 className="hidden"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
-                  if (file) upload.mutate({ id: user.id, file });
+                  if (file) {
+                    // store a data URL locally as a fallback in case the server URL expires
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      try {
+                        const data = reader.result as string;
+                        localStorage.setItem(`profilePhoto:${user.id}`, data);
+                      } catch {
+                        // ignore
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                    upload.mutate({ id: user.id, file });
+                  }
                   event.currentTarget.value = "";
                 }}
               />

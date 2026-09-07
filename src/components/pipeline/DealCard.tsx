@@ -1,10 +1,14 @@
+"use client";
 import { CalendarClock, MessageSquare, Phone, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Deal, DealLog } from "@/types/deal.types";
 import type { Lead } from "@/types/lead.types";
 import type { User, UserSummary } from "@/types/user.types";
 import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { AssigneeStack } from "@/components/shared/AssigneeStack";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { isLeadSeen } from "@/lib/seenLeads";
+import { useEffect, useState } from "react";
 
 export const DealCard = ({
   deal,
@@ -26,15 +30,17 @@ export const DealCard = ({
       .map((d) => new Date(d).toISOString())
       .sort();
     if (dates.length === 0) return null;
-    const now = new Date().toISOString();
-    const upcoming = dates.find((d) => d >= now);
-    return upcoming ?? dates[0];
+    return dates[dates.length - 1];
   })();
   const services = [
     ["DOMAIN", deal.domainExpiry, deal.domainCost],
     ["HOSTING", deal.hostingExpiry, deal.hostingCost],
     ["MAINTENANCE", deal.maintenanceExpiry, deal.maintenanceCost],
   ] as const;
+  const [isSeen, setIsSeen] = useState(true);
+  useEffect(() => {
+    setIsSeen(lead ? isLeadSeen(lead.id) : true);
+  }, [lead]);
   return (
     <button
       onClick={onClick}
@@ -50,9 +56,16 @@ export const DealCard = ({
       <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
         <p className="flex items-center gap-2">
           <UserRound className="h-3.5 w-3.5" />
-          {lead
-            ? `${lead.firstName || "Unnamed"} · ${lead.role || "Contact"}`
-            : "No linked lead"}
+          {lead ? (
+            <span className="flex items-center gap-2">
+              {!isSeen && (
+                <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-primary/80" />
+              )}
+              <span>{`${lead.firstName || "Unnamed"} · ${lead.role || "Contact"}`}</span>
+            </span>
+          ) : (
+            "No linked lead"
+          )}
         </p>
         <p className="flex items-center gap-2">
           <Phone className="h-3.5 w-3.5" />

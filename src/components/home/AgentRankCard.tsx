@@ -37,6 +37,7 @@ export const AgentRankCard = ({
     <section className="surface p-5">
       <div className="flex items-center gap-3">
         <UserAvatar
+          id={user?.id}
           name={name}
           src={user?.profilePhotoUrl ?? undefined}
           className="h-12 w-12"

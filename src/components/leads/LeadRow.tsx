@@ -1,9 +1,11 @@
 import { ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Lead } from "@/types/lead.types";
 import type { User, UserSummary } from "@/types/user.types";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { AssigneeStack } from "@/components/shared/AssigneeStack";
 import { PriorityBadge } from "@/components/shared/PriorityBadge";
+import { isLeadSeen, markLeadSeen } from "@/lib/seenLeads";
 
 export const LeadRow = ({
   lead,
@@ -15,13 +17,33 @@ export const LeadRow = ({
   onOpen: (lead: Lead) => void;
 }) => {
   const conversionScore = Math.min(100, Math.max(0, lead.conversionScore));
-  const assignees = lead.assignedTo
+  const assignees = (lead.assignedTo ?? [])
     .map((id) => users.find((user) => user.id === id))
     .filter((user): user is User => Boolean(user)) as UserSummary[];
+  const [seen, setSeen] = useState<boolean>(false);
+  useEffect(() => {
+    setSeen(isLeadSeen(lead.id));
+    const handler = (e: any) => {
+      if (e?.detail === lead.id) setSeen(true);
+      else setSeen(isLeadSeen(lead.id));
+    };
+    window.addEventListener("seenLeadsChanged", handler);
+    return () => window.removeEventListener("seenLeadsChanged", handler);
+  }, [lead.id]);
   return (
     <TableRow>
       <TableCell className="font-semibold">
-        {lead.firstName || "—"} {lead.lastName || ""}
+        <div className="flex items-center gap-2">
+          {!seen && (
+            <span
+              className="inline-block h-2 w-2 shrink-0 rounded-full bg-primary/80"
+              aria-hidden
+            />
+          )}
+          <span>
+            {lead.firstName || "—"} {lead.lastName || ""}
+          </span>
+        </div>
       </TableCell>
       <TableCell>{lead.phone1 || "—"}</TableCell>
       <TableCell>{lead.companyName || "—"}</TableCell>
@@ -57,7 +79,11 @@ export const LeadRow = ({
       </TableCell>
       <TableCell>
         <button
-          onClick={() => onOpen(lead)}
+          onClick={() => {
+            markLeadSeen(lead.id);
+            setSeen(true);
+            onOpen(lead);
+          }}
           className="rounded-full p-2 hover:bg-muted"
           aria-label={`Open ${lead.firstName || "lead"}`}
         >

@@ -38,6 +38,9 @@ export const LeadsTable = () => {
   const usersQuery = useUsers({ page: 0, size: 100 });
   const users = usersQuery.data?.content ?? [];
   const leads = leadsQuery.data?.content ?? [];
+  const leadsSorted = [...leads].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
   return (
     <div className="space-y-4">
       <LeadFilters
@@ -99,7 +102,7 @@ export const LeadsTable = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {leads.map((lead) => (
+                  {leadsSorted.map((lead) => (
                     <LeadRow
                       key={lead.id}
                       lead={lead}

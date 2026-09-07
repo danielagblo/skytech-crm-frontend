@@ -75,6 +75,7 @@ export const CommentThread = ({
             <div key={comment.id} className="space-y-2">
               <div className="flex gap-3">
                 <UserAvatar
+                  id={comment.authorId}
                   name={comment.authorName || "CRM user"}
                   src={comment.authorProfilePhotoUrl ?? undefined}
                   className="h-8 w-8"
@@ -141,6 +142,7 @@ export const CommentThread = ({
                     replies.map((reply) => (
                       <div key={reply.id} className="mb-2 flex gap-2">
                         <UserAvatar
+                          id={reply.authorId}
                           name={reply.authorName || "CRM user"}
                           src={reply.authorProfilePhotoUrl ?? undefined}
                           className="h-7 w-7"

@@ -133,6 +133,7 @@ export const AddAgentModal = ({
           <form className="space-y-4" onSubmit={submit}>
             <div className="flex flex-col items-center">
               <UserAvatar
+                id={agent?.id}
                 name={
                   agent ? `${agent.firstName} ${agent.lastName}` : "New Agent"
                 }
@@ -147,9 +148,25 @@ export const AddAgentModal = ({
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
                     onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file) photo.mutate({ id: agent.id, file });
-                    }}
+                        const file = event.target.files?.[0];
+                        if (file) {
+                          try {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              try {
+                                const data = reader.result as string;
+                                localStorage.setItem(`profilePhoto:${agent.id}`, data);
+                              } catch {
+                                /* ignore */
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          } catch {
+                            /* ignore */
+                          }
+                          photo.mutate({ id: agent.id, file });
+                        }
+                      }}
                   />
                   <Button
                     type="button"

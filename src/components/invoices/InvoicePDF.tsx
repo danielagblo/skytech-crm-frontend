@@ -370,7 +370,7 @@ export function InvoicePDFDocument({
           {signatureUrl ? (
             <View style={{ alignItems: "flex-end" }}>
               {/* eslint-disable-next-line jsx-a11y/alt-text */}
-              <Image src={signatureUrl} style={{ width: 140, height: 48, objectFit: "contain" }} />
+              <Image src={signatureUrl} style={{ width: 240, height: 83, objectFit: "contain" }} />
               <Text style={styles.signatureLabel}>{data.issuerName}</Text>
             </View>
           ) : data.signatureName ? (

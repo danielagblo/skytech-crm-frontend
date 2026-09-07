@@ -55,6 +55,7 @@ export const AgentTable = ({
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <UserAvatar
+                      id={agent.id}
                       name={`${agent.firstName} ${agent.lastName}`}
                       src={agent.profilePhotoUrl ?? undefined}
                       className="h-8 w-8"

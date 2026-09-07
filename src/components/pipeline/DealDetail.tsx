@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, Mail, MapPin, Phone, UserRound } from "lucide-react";
 import type { Deal } from "@/types/deal.types";
 import type { Lead } from "@/types/lead.types";
@@ -20,6 +20,8 @@ import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { StageBadge } from "@/components/shared/StageBadge";
 import { formatDate } from "@/lib/utils";
 import { NegotiationLog } from "./logs/NegotiationLog";
+
+import { markLeadSeen } from "@/lib/seenLeads";
 import { SettlementLog } from "./logs/SettlementLog";
 import { PaymentLog } from "./logs/PaymentLog";
 import { ClientRetentionLog } from "./logs/ClientRetentionLog";
@@ -47,15 +49,23 @@ export const DealDetail = ({
   const [expanded, setExpanded] = useState(false);
   const logs = useDealLogs(deal?.id ?? "");
   if (!deal) return null;
+  useEffect(() => {
+    if (open && lead) markLeadSeen(lead.id);
+  }, [open, lead]);
   const reached = (stage: DealStage) =>
     order.indexOf(stage) <= order.indexOf(deal.stage) &&
     stage !== "PROSPECTING";
   const assignee = users.find((user) => user.id === deal.assignedToId);
   const creator = users.find((user) => user.id === deal.createdById);
-  const latestFollowUp = (logs.data ?? [])
-    .map((log) => log.followUpAt || log.settlementFollowUp)
-    .filter((date): date is string => Boolean(date))
-    .sort()[0];
+  const latestFollowUp = (() => {
+    const dates = (logs.data ?? [])
+      .map((log) => log.followUpAt || log.settlementFollowUp)
+      .filter((date): date is string => Boolean(date))
+      .map((d) => new Date(d).toISOString());
+    if (dates.length === 0) return undefined;
+    dates.sort();
+    return dates[dates.length - 1];
+  })();
   const stageLogs = (
     type: "NEGOTIATION" | "SETTLEMENT" | "PAYMENT" | "CLIENT_RETENTION",
   ) => (logs.data ?? []).filter((log) => log.logType === type);

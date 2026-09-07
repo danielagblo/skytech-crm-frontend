@@ -4,6 +4,7 @@ export const AgentCard = ({ agent }: { agent: User }) => (
   <div className="surface p-4">
     <div className="flex items-center gap-3">
       <UserAvatar
+        id={agent.id}
         name={`${agent.firstName} ${agent.lastName}`}
         src={agent.profilePhotoUrl ?? undefined}
         className="h-11 w-11"

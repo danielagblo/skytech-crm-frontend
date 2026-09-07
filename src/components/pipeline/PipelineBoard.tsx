@@ -124,17 +124,34 @@ export const PipelineBoard = () => {
     <>
       <DragDropContext onDragEnd={drop}>
         <div className="dot-grid scrollbar-thin flex min-h-[620px] flex-1 gap-3 overflow-x-auto overflow-y-hidden rounded-lg border p-2 sm:p-3 lg:h-full lg:min-h-0 2xl:gap-4 2xl:p-4">
-          {stages.map((stage) => (
-            <PipelineColumn
-              key={stage}
-              stage={stage}
-              deals={items.filter((deal) => deal.stage === stage)}
-              leads={leads.data?.content ?? []}
-              users={users.data?.content ?? []}
-              logs={logs}
-              onOpen={setSelected}
-            />
-          ))}
+          {stages.map((stage) => {
+            const columnDeals = items.filter((deal) => deal.stage === stage);
+            const sortedDeals =
+              stage === "PROSPECTING"
+                ? columnDeals.slice().sort((a, b) => {
+                    const la = (leads.data?.content ?? []).find(
+                      (l) => l.id === a.leadId,
+                    );
+                    const lb = (leads.data?.content ?? []).find(
+                      (l) => l.id === b.leadId,
+                    );
+                    const ta = la ? new Date(la.createdAt).getTime() : 0;
+                    const tb = lb ? new Date(lb.createdAt).getTime() : 0;
+                    return tb - ta;
+                  })
+                : columnDeals;
+            return (
+              <PipelineColumn
+                key={stage}
+                stage={stage}
+                deals={sortedDeals}
+                leads={leads.data?.content ?? []}
+                users={users.data?.content ?? []}
+                logs={logs}
+                onOpen={setSelected}
+              />
+            );
+          })}
         </div>
       </DragDropContext>
       <DealDetail

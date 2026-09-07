@@ -151,6 +151,7 @@ export const TopBar = () => {
             aria-label="Open profile"
           >
             <UserAvatar
+              id={user?.id}
               name={name}
               src={user?.profilePhotoUrl ?? undefined}
               className="h-10 w-10 ring-2 ring-cyan-400 sm:h-12 sm:w-12"

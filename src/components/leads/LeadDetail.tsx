@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   Calendar,
@@ -25,6 +25,7 @@ import { CreateLeadModal } from "./CreateLeadModal";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { usePermission } from "@/hooks/usePermission";
 import { useConvertLead, useDeleteLead } from "@/hooks/useLeads";
+import { markLeadSeen } from "@/lib/seenLeads";
 
 export const LeadDetail = ({
   lead,
@@ -43,7 +44,10 @@ export const LeadDetail = ({
   const remove = useDeleteLead();
   const convert = useConvertLead();
   if (!lead) return null;
-  const assignees = lead.assignedTo
+  useEffect(() => {
+    if (open && lead) markLeadSeen(lead.id);
+  }, [open, lead]);
+  const assignees = (lead.assignedTo ?? [])
     .map((id) => users.find((user) => user.id === id))
     .filter((user): user is User => Boolean(user)) as UserSummary[];
   const creator = users.find((user) => user.id === lead.createdById);

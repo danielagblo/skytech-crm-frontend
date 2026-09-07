@@ -265,8 +265,8 @@ export default function InvoicePreview({
                 <img
                   src={data.signatureUrl}
                   alt={`${data.issuerName} signature`}
-                  className="h-12 object-contain"
-                  style={{ maxWidth: 220 }}
+                  className="h-[70px] object-contain"
+                  style={{ maxWidth: 320 }}
                 />
                 <p className="mt-1 text-xs text-neutral-500">{data.issuerName}</p>
               </div>

@@ -8,6 +8,8 @@ import { AssigneeStack } from "@/components/shared/AssigneeStack";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { User, UserSummary } from "@/types/user.types";
+import { useEffect } from "react";
+import { markLeadSeen } from "@/lib/seenLeads";
 
 export const LeadDetailPage = ({ leadId }: { leadId: string }) => {
   const leadQuery = useLead(leadId);
@@ -29,9 +31,12 @@ export const LeadDetailPage = ({ leadId }: { leadId: string }) => {
     );
   const lead = leadQuery.data;
   const users = usersQuery.data?.content ?? [];
-  const assignees = lead.assignedTo
+  const assignees = (lead.assignedTo ?? [])
     .map((id) => users.find((user) => user.id === id))
     .filter((user): user is User => Boolean(user)) as UserSummary[];
+  useEffect(() => {
+    if (lead) markLeadSeen(lead.id);
+  }, [lead]);
   return (
     <div className="space-y-5">
       <PageHeader

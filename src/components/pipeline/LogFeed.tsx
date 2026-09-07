@@ -66,6 +66,7 @@ export const LogFeed = ({
           <article key={log.id} className="rounded-xl border p-4">
             <div className="mb-3 flex items-center gap-2">
               <UserAvatar
+                id={reviewer?.id}
                 name={
                   reviewer
                     ? `${reviewer.firstName} ${reviewer.lastName}`

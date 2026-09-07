@@ -11,6 +11,7 @@ export const AssigneeStack = ({
     {users.slice(0, max).map((u) => (
       <UserAvatar
         key={u.id}
+        id={u.id}
         name={`${u.firstName} ${u.lastName}`}
         src={u.profilePhotoUrl ?? undefined}
         className="h-7 w-7 border-2 border-white"
