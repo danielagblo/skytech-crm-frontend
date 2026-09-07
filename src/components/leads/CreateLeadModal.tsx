@@ -245,8 +245,22 @@ export const CreateLeadModal = ({
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <div className="sm:col-span-2 xl:col-span-3">
               <Label>Assign to</Label>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {eligibleUsers.map((user) => (
+              <div className="mt-2">
+                <label className="mb-2 flex items-center gap-3 text-sm">
+                  <Checkbox
+                    checked={eligibleUsers.length > 0 && selectedAssignees.size === eligibleUsers.length}
+                    onCheckedChange={(value) =>
+                      setValue(
+                        "assigneeIds",
+                        value ? eligibleUsers.map((u) => u.id) : [],
+                        { shouldValidate: true },
+                      )
+                    }
+                  />
+                  <span>Select all ({eligibleUsers.length})</span>
+                </label>
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {eligibleUsers.map((user) => (
                     <label
                       key={user.id}
                       className="flex items-center gap-3 rounded-xl border px-3 py-2 text-sm"
@@ -260,6 +274,7 @@ export const CreateLeadModal = ({
                       </span>
                     </label>
                   ))}
+                </div>
               </div>
             </div>
             <div>

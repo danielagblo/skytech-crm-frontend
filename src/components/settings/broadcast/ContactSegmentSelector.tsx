@@ -96,6 +96,21 @@ export const ContactSegmentSelector = ({
               />
             </div>
             <div className="max-h-72 divide-y overflow-y-auto rounded-lg border">
+              <label className="flex cursor-pointer items-center gap-3 px-3 py-2 bg-muted/40 rounded-t-lg border-b">
+                <Checkbox
+                  checked={
+                    leadItems.length > 0 &&
+                    selectedLeadIds.length === leadItems.length
+                  }
+                  onCheckedChange={(checked) => {
+                    const allIds = leadItems.map((l) => l.id);
+                    onLeadIdsChange(checked ? allIds : []);
+                  }}
+                />
+                <span className="text-sm font-medium">
+                  Select all ({leadItems.length.toLocaleString()})
+                </span>
+              </label>
               {leadItems.map((lead) => {
                 const label =
                   `${lead.firstName ?? ""} ${lead.lastName ?? ""}`.trim() ||

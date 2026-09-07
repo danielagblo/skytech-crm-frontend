@@ -392,8 +392,26 @@ export const AutomationBuilderSheet = ({
                     <div className="h-10 animate-pulse rounded-lg bg-muted" />
                   </div>
                 ) : (
-                  <div className="max-h-72 divide-y overflow-y-auto rounded-lg border">
-                    {(leads.data?.content ?? []).map((lead) => {
+                  <>
+                    <label className="flex cursor-pointer items-center gap-3 px-3 py-2 bg-muted/40 rounded-t-lg border-b">
+                      <Checkbox
+                        checked={
+                          leads.data?.content?.length > 0 &&
+                          contactIds.length === (leads.data?.content?.length ?? 0)
+                        }
+                        onCheckedChange={(checked) => {
+                          const allIds = (leads.data?.content ?? []).map((l) => l.id);
+                          form.setValue("contactIds", checked ? allIds : [], {
+                            shouldValidate: true,
+                          });
+                        }}
+                      />
+                      <span className="text-sm font-medium">
+                        Select all ({(leads.data?.content?.length ?? 0).toLocaleString()})
+                      </span>
+                    </label>
+                    <div className="max-h-72 divide-y overflow-y-auto rounded-b-lg border rounded-t-none">
+                      {(leads.data?.content ?? []).map((lead) => {
                       const label =
                         `${lead.firstName ?? ""} ${lead.lastName ?? ""}`.trim() ||
                         lead.companyName ||

@@ -19,10 +19,17 @@ export const DealCard = ({
   logs: DealLog[];
   onClick: () => void;
 }) => {
-  const followUp = logs
-    .map((log) => log.followUpAt || log.settlementFollowUp)
-    .filter((date): date is string => Boolean(date))
-    .sort()[0];
+  const followUp = (() => {
+    const dates = logs
+      .map((log) => log.followUpAt || log.settlementFollowUp)
+      .filter((d): d is string => Boolean(d))
+      .map((d) => new Date(d).toISOString())
+      .sort();
+    if (dates.length === 0) return null;
+    const now = new Date().toISOString();
+    const upcoming = dates.find((d) => d >= now);
+    return upcoming ?? dates[0];
+  })();
   const services = [
     ["DOMAIN", deal.domainExpiry, deal.domainCost],
     ["HOSTING", deal.hostingExpiry, deal.hostingCost],
@@ -55,7 +62,7 @@ export const DealCard = ({
           <CalendarClock className="h-3.5 w-3.5" />
           {followUp
             ? `Follow-up ${formatDate(followUp)}`
-            : `Updated ${formatDate(deal.updatedAt)}`}
+            : `Issued ${formatDate(deal.createdAt)}`}
         </p>
       </div>
       {deal.stage === "PAYMENT" && (
