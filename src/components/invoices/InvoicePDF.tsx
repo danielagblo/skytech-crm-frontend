@@ -162,6 +162,7 @@ export function InvoicePDFDocument({
   const total = Math.max(subtotal + tax - discount, 0);
   const symbol = data.currencySymbol ?? "GH¢";
   const logoUrl = resolveUrl(data.logoUrl);
+  const signatureUrl = resolveUrl((data as any).signatureUrl);
 
   return (
     <Document>
@@ -366,7 +367,13 @@ export function InvoicePDFDocument({
               </View>
             )}
           </View>
-          {data.signatureName ? (
+          {signatureUrl ? (
+            <View style={{ alignItems: "flex-end" }}>
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
+              <Image src={signatureUrl} style={{ width: 140, height: 48, objectFit: "contain" }} />
+              <Text style={styles.signatureLabel}>{data.issuerName}</Text>
+            </View>
+          ) : data.signatureName ? (
             <View>
               <Text style={styles.signature}>{data.signatureName}</Text>
               <Text style={styles.signatureLabel}>{data.issuerName}</Text>

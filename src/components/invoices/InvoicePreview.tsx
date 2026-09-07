@@ -40,6 +40,7 @@ export interface InvoiceData {
   accountName: string;
   accountNumber: string;
   signatureName?: string;
+  signatureUrl?: string;
   logoUrl?: string;
 }
 
@@ -259,7 +260,17 @@ export default function InvoicePreview({
                 </p>
               )}
             </div>
-            {data.signatureName && (
+            {data.signatureUrl ? (
+              <div className="pr-4 flex flex-col items-end">
+                <img
+                  src={data.signatureUrl}
+                  alt={`${data.issuerName} signature`}
+                  className="h-12 object-contain"
+                  style={{ maxWidth: 220 }}
+                />
+                <p className="mt-1 text-xs text-neutral-500">{data.issuerName}</p>
+              </div>
+            ) : data.signatureName ? (
               <div className="pr-4">
                 <p
                   className="text-3xl text-neutral-800"
@@ -271,7 +282,7 @@ export default function InvoicePreview({
                   {data.issuerName}
                 </p>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

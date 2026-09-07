@@ -501,7 +501,7 @@ export const InvoiceWorkspace = ({
     bankName: "-",
     accountName: "Skytech Ghana",
     accountNumber: "0-",
-    signatureName: "Daniel Agblo",
+    signatureUrl: "/assets/daniel-agblo-signature.jpeg",
   };
 
   const isMobile = () => window.matchMedia("(max-width: 767px)").matches;

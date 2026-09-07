@@ -12,7 +12,7 @@ const issuerInfo: InvoiceIssuerSettings = {
   phone: process.env.INVOICE_ISSUER_PHONE ?? "",
   address: process.env.INVOICE_ISSUER_ADDRESS ?? "",
   taxId: process.env.INVOICE_ISSUER_TAX_ID ?? "",
-  paymentInstructions: process.env.INVOICE_PAYMENT_INSTRUCTIONS ?? "",
+  paymentInstructions: process.env.INVOICE_PAYMENT_INSTRUCTIONS?.replace(/\\n/g, '\n') ?? "",
 };
 
 export default function InvoicesPage() {
