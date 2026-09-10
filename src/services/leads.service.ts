@@ -32,4 +32,7 @@ export const leadsService = {
       assignees,
       autoAssign,
     }),
+  markSeen: (id: string) => api.put<ApiResponse<void>>(`/leads/${id}/seen`),
+  getSeen: (leadIds: string[]) =>
+    api.get<ApiResponse<string[]>>(`/leads/seen`, { params: { leadIds } }),
 };

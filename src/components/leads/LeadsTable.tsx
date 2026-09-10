@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertCircle, Users } from "lucide-react";
 import type { Lead } from "@/types/lead.types";
 import type { Priority } from "@/types/api.types";
@@ -41,6 +41,17 @@ export const LeadsTable = () => {
   const leadsSorted = [...leads].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
+  useEffect(() => {
+    // sync server-side seen state for visible leads
+    (async () => {
+      try {
+        const ids = leadsSorted.map((l) => l.id);
+        if (ids.length) await import("@/lib/seenLeads").then((m) => m.syncSeenFor(ids));
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, [leadsSorted]);
   return (
     <div className="space-y-4">
       <LeadFilters

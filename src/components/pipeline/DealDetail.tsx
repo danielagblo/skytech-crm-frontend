@@ -57,14 +57,14 @@ export const DealDetail = ({
     stage !== "PROSPECTING";
   const assignee = users.find((user) => user.id === deal.assignedToId);
   const creator = users.find((user) => user.id === deal.createdById);
-  const latestFollowUp = (() => {
+  const { latestFollowUp, hasFollowUp } = (() => {
     const dates = (logs.data ?? [])
       .map((log) => log.followUpAt || log.settlementFollowUp)
       .filter((date): date is string => Boolean(date))
       .map((d) => new Date(d).toISOString());
-    if (dates.length === 0) return undefined;
+    if (dates.length === 0) return { latestFollowUp: undefined as string | undefined, hasFollowUp: false };
     dates.sort();
-    return dates[dates.length - 1];
+    return { latestFollowUp: dates[dates.length - 1], hasFollowUp: true };
   })();
   const stageLogs = (
     type: "NEGOTIATION" | "SETTLEMENT" | "PAYMENT" | "CLIENT_RETENTION",
@@ -124,9 +124,11 @@ export const DealDetail = ({
               </p>
               <p className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                {latestFollowUp
-                  ? `Follow-up ${formatDate(latestFollowUp)}`
-                  : "No follow-up scheduled"}
+                {hasFollowUp ? (
+                  `Follow-up ${formatDate(latestFollowUp as string)}`
+                ) : (
+                  `Issued ${formatDate(deal.createdAt)}`
+                )}
               </p>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4 text-xs sm:grid-cols-4">
