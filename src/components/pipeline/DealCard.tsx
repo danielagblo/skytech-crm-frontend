@@ -8,7 +8,6 @@ import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { AssigneeStack } from "@/components/shared/AssigneeStack";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { isLeadSeen } from "@/lib/seenLeads";
-import { useEffect, useState } from "react";
 
 export const DealCard = ({
   deal,

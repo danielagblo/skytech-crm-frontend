@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AlertCircle, Users } from "lucide-react";
 import type { Lead } from "@/types/lead.types";
 import type { Priority } from "@/types/api.types";
@@ -38,8 +38,12 @@ export const LeadsTable = () => {
   const usersQuery = useUsers({ page: 0, size: 100 });
   const users = usersQuery.data?.content ?? [];
   const leads = leadsQuery.data?.content ?? [];
-  const leadsSorted = [...leads].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  const leadsSorted = useMemo(
+    () =>
+      [...leads].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [leads],
   );
   useEffect(() => {
     // sync server-side seen state for visible leads
